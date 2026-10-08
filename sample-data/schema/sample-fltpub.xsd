@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Schema for the synthetic sample manual set. Every addressable element carries a stable id. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:sample:fltpub:1.0"
+           xmlns="urn:sample:fltpub:1.0" elementFormDefault="qualified">
+  <xs:simpleType name="NodeId"><xs:restriction base="xs:ID"><xs:pattern value="[a-z0-9]+-[cstp][0-9]+|[A-Z0-9\-]+"/></xs:restriction></xs:simpleType>
+  <xs:complexType name="Text" mixed="true">
+    <xs:sequence><xs:element name="xref" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType><xs:simpleContent><xs:extension base="xs:string"><xs:attribute name="target" type="xs:IDREF" use="required"/></xs:extension></xs:simpleContent></xs:complexType>
+    </xs:element></xs:sequence>
+    <xs:attribute name="id" type="NodeId" use="required"/>
+  </xs:complexType>
+  <xs:element name="manual">
+    <xs:complexType><xs:sequence>
+      <xs:element name="meta"><xs:complexType><xs:sequence>
+        <xs:element name="docId" type="xs:string"/><xs:element name="title" type="xs:string"/>
+        <xs:element name="docType"><xs:simpleType><xs:restriction base="xs:string"><xs:enumeration value="FM"/><xs:enumeration value="FOM"/><xs:enumeration value="WOM"/><xs:enumeration value="MEL"/></xs:restriction></xs:simpleType></xs:element>
+        <xs:element name="applicability" type="xs:string"/><xs:element name="revision" type="xs:nonNegativeInteger"/>
+        <xs:element name="revisionDate" type="xs:date"/><xs:element name="effectiveDate" type="xs:date"/>
+        <xs:element name="owner" type="xs:string"/><xs:element name="changeSummary" type="xs:string"/><xs:element name="classification" type="xs:string"/>
+      </xs:sequence></xs:complexType></xs:element>
+      <xs:element name="chapter" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+        <xs:element name="title" type="xs:string"/>
+        <xs:element name="section" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+          <xs:element name="title" type="xs:string"/>
+          <xs:element name="topic" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+            <xs:element name="title" type="xs:string"/>
+            <xs:choice maxOccurs="unbounded">
+              <xs:element name="para" type="Text"/><xs:element name="note" type="Text"/>
+              <xs:element name="caution" type="Text"/><xs:element name="warning" type="Text"/>
+              <xs:element name="list"><xs:complexType><xs:sequence><xs:element name="item" type="xs:string" maxOccurs="unbounded"/></xs:sequence><xs:attribute name="id" type="NodeId" use="required"/></xs:complexType></xs:element>
+              <xs:element name="table"><xs:complexType><xs:sequence><xs:element name="row" maxOccurs="unbounded"><xs:complexType><xs:sequence><xs:element name="cell" type="xs:string" maxOccurs="unbounded"/></xs:sequence><xs:attribute name="header" type="xs:boolean"/></xs:complexType></xs:element></xs:sequence><xs:attribute name="id" type="NodeId" use="required"/></xs:complexType></xs:element>
+              <xs:element name="checklist"><xs:complexType><xs:sequence><xs:element name="check" maxOccurs="unbounded"><xs:complexType><xs:sequence><xs:element name="challenge" type="xs:string"/><xs:element name="response" type="xs:string"/></xs:sequence><xs:attribute name="id" type="NodeId" use="required"/></xs:complexType></xs:element></xs:sequence><xs:attribute name="id" type="NodeId" use="required"/></xs:complexType></xs:element>
+              <xs:element name="melItem"><xs:complexType><xs:sequence><xs:element name="remarks" type="xs:string"/></xs:sequence>
+                <xs:attribute name="id" type="NodeId" use="required"/><xs:attribute name="category"><xs:simpleType><xs:restriction base="xs:string"><xs:pattern value="[ABCD]"/></xs:restriction></xs:simpleType></xs:attribute>
+                <xs:attribute name="installed" type="xs:nonNegativeInteger"/><xs:attribute name="required" type="xs:nonNegativeInteger"/></xs:complexType></xs:element>
+            </xs:choice>
+          </xs:sequence><xs:attribute name="id" type="NodeId" use="required"/><xs:attribute name="number" type="xs:string" use="required"/></xs:complexType></xs:element>
+        </xs:sequence><xs:attribute name="id" type="NodeId" use="required"/><xs:attribute name="number" type="xs:string" use="required"/></xs:complexType></xs:element>
+      </xs:sequence><xs:attribute name="id" type="NodeId" use="required"/><xs:attribute name="number" type="xs:string" use="required"/></xs:complexType></xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/><xs:attribute name="docType" type="xs:string" use="required"/></xs:complexType>
+  </xs:element>
+</xs:schema>

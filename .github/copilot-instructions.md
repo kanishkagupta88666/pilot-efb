@@ -25,3 +25,9 @@ Build the parser in small steps, in this order: validation, metadata, hierarchy,
 ## Workflow
 
 Use one branch per phase. Test, commit, and open a pull request for each phase. Never push to `main`.
+
+## Client XML Dataset Rules
+
+- `id` is permanent across revisions; `number` is positional and may change. Anchor deep links, annotations, and bookmarks to `id`, never to `number` or page.
+- Blocks have permanent IDs too. PDF outline entries use the same IDs as the XML.
+- First development cycle scope: FM-S100 Rev 2 only. `sample-data/README.md` describes the synthetic client dataset.
