@@ -1,0 +1,27 @@
+{
+  "docId": "FM-S100",
+  "from": "Rev1",
+  "to": "Rev2",
+  "cases": [
+    {
+      "case": "unchanged",
+      "anchorNodeId": "fm100-p10029",
+      "expected": "Annotation carries forward silently."
+    },
+    {
+      "case": "changed",
+      "anchorNodeId": "fm100-p00260",
+      "expected": "Annotation carries forward and is flagged for the pilot to review."
+    },
+    {
+      "case": "moved",
+      "anchorNodeId": "fm100-p01732",
+      "expected": "Annotation follows its node to the new topic location (number changes, ID does not)."
+    },
+    {
+      "case": "removed",
+      "anchorNodeId": "fm100-p00060",
+      "expected": "Annotation moves to an orphaned list showing the original text; pilot chooses keep as note or discard."
+    }
+  ]
+}

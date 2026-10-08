@@ -1,0 +1,1002 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- SYNTHETIC SAMPLE DATA. Entirely fictional content for prototype testing only. Not derived from any operator manual. Not for operational use. -->
+<manual xmlns="urn:sample:fltpub:1.0" id="MEL-S100" docType="MEL">
+  <meta>
+    <docId>MEL-S100</docId>
+    <title>Sample Minimum Equipment List - SAMPLE-100</title>
+    <docType>MEL</docType>
+    <applicability>SAMPLE-100</applicability>
+    <revision>9</revision>
+    <revisionDate>2026-02-01</revisionDate>
+    <effectiveDate>2026-02-15</effectiveDate>
+    <owner>Sample Technical Publications</owner>
+    <changeSummary>Routine revision.</changeSummary>
+    <classification>SYNTHETIC SAMPLE - NOT FOR OPERATIONAL USE</classification>
+  </meta>
+  <chapter id="mel100-c01" number="01">
+    <title>ATA 21 Air Conditioning</title>
+    <section id="mel100-s001" number="01.10">
+      <title>Items</title>
+      <topic id="mel100-t0001" number="01.10.1">
+        <title>21-10 Probe Heat</title>
+        <melItem id="mel100-p00750" category="D" installed="2" required="1">
+          <remarks>During preflight, the relief pilot should verify the Thrust Reverser selector position when operating at a sample station without ground power. If the Standby Hydraulic is inoperative, continue cruise only after both pilots has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00751">(O) Sample operations note. The Autopilot Channel B status message is expected to read within the sample range of 57 to 65 units during climb. Values in this manual are invented and must not be used for any operational purpose. Values in this manual are invented and must not be used for any operational purpose. Values in this manual are invented and must not be used for any operational purpose.</para>
+        <para id="mel100-p00752">(M) Sample maintenance note. The Autobrake Selector switch position that differs from the expected state requires both pilots to verify the condition if a discrepancy is observed. The Bleed Air Supply quantity display is expected to read within the sample range of 45 to 53 units during engine start.</para>
+      </topic>
+      <topic id="mel100-t0002" number="01.10.2">
+        <title>21-20 Ground Proximity Monitor</title>
+        <melItem id="mel100-p00753" category="D" installed="3" required="2">
+          <remarks>During climb, the First Officer should select the Autopilot Channel A annunciation once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p00754">(O) Sample operations note. If the Traffic Advisory Display is inoperative, continue an extended ground delay only after both pilots has reviewed the associated sample guidance. The Standby Hydraulic annunciation that differs from the expected state requires both pilots to select the condition when the associated caution light remains illuminated. Refer to the related topic for additional sample context. During climb, the First Officer should select the Autopilot Channel A annunciation when the associated caution light remains illuminated.</para>
+        <para id="mel100-p00755">(M) Sample maintenance note. The Window Heat advisory is expected to read within the sample range of 57 to 60 units during a diversion. The Bleed Air Supply status message that differs from the expected state requires the First Officer to announce the condition before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0003" number="01.10.3">
+        <title>21-30 Cockpit Voice Recorder</title>
+        <melItem id="mel100-p00756" category="B" installed="3" required="2">
+          <remarks>The wording here is placeholder content shaped like a procedure, not a procedure. The Window Heat quantity display that differs from the expected state requires the relief pilot to brief the condition when the associated caution light remains illuminated. The Standby Hydraulic annunciation that differs from the expected state requires the pilot flying to verify the condition when conditions permit.</remarks>
+        </melItem>
+        <para id="mel100-p00757">(O) Sample operations note. The Weather Radar annunciation that differs from the expected state requires the Captain to announce the condition when operating at a sample station without ground power. The Traffic Advisory Display status message is expected to read within the sample range of 68 to 74 units during a maintenance-requested ground run.</para>
+        <para id="mel100-p00758">(M) Sample maintenance note. The Weather Radar switch position that differs from the expected state requires the relief pilot to brief the condition if the indication does not stabilize within the sample interval. The Standby Hydraulic switch position that differs from the expected state requires both pilots to record the condition before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0004" number="01.10.4">
+        <title>21-40 Primary Electrical Bus</title>
+        <melItem id="mel100-p00759" category="C" installed="2" required="1">
+          <remarks>The Autothrottle annunciation is expected to read within the sample range of 46 to 56 units during taxi. The Engine Anti-Ice advisory that differs from the expected state requires the pilot flying to select the condition once the checklist item is complete. During climb, the pilot flying should select the Center Tank Pumps status message unless directed otherwise by the Sample Operations Center.</remarks>
+        </melItem>
+        <para id="mel100-p00760">(O) Sample operations note. The Standby Hydraulic quantity display is expected to read within the sample range of 21 to 27 units during landing. The relief pilot will select any change in the Fire Detection Loop advisory and advise the other pilot if a discrepancy is observed. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p00761">(M) Sample maintenance note. If the Standby Instruments is inoperative, continue climb only after the relief pilot has reviewed the associated sample guidance. During an extended ground delay, the pilot monitoring should select the Brake Temperature Monitor annunciation unless directed otherwise by the Sample Operations Center. Both pilots will brief any change in the Wing Anti-Ice selector position and advise the other pilot before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0005" number="01.10.5">
+        <title>21-50 Autobrake Selector</title>
+        <melItem id="mel100-p00762" category="D" installed="2" required="1">
+          <remarks>The Weather Radar switch position that differs from the expected state requires the pilot flying to confirm the condition once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p00763">(O) Sample operations note. During taxi, the pilot flying should monitor the Pack Temperature Control annunciation if a discrepancy is observed. This text is fictional and exists only to give the prototype realistic volume and structure. During parking, the pilot monitoring should verify the Standby Hydraulic switch position when the associated caution light remains illuminated.</para>
+        <para id="mel100-p00764">(M) Sample maintenance note. Values in this manual are invented and must not be used for any operational purpose. During landing, the pilot monitoring should select the Autothrottle selector position if a discrepancy is observed.</para>
+      </topic>
+      <topic id="mel100-t0006" number="01.10.6">
+        <title>21-60 Speedbrake Handle</title>
+        <melItem id="mel100-p00765" category="D" installed="2" required="1">
+          <remarks>Values in this manual are invented and must not be used for any operational purpose. The Autopilot Channel A advisory is expected to read within the sample range of 32 to 40 units during preflight.</remarks>
+        </melItem>
+        <para id="mel100-p00766">(O) Sample operations note. Values in this manual are invented and must not be used for any operational purpose. The Transponder quantity display that differs from the expected state requires both pilots to select the condition once the checklist item is complete.</para>
+        <para id="mel100-p00767">(M) Sample maintenance note. During a turnaround, both pilots should announce the Autobrake Selector indication once the checklist item is complete. The Hydraulic System A status message that differs from the expected state requires the First Officer to verify the condition when the associated caution light remains illuminated. If the Wing Anti-Ice is inoperative, continue taxi only after the First Officer has reviewed the associated sample guidance.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c02" number="02">
+    <title>ATA 22 Auto Flight</title>
+    <section id="mel100-s002" number="02.10">
+      <title>Items</title>
+      <topic id="mel100-t0007" number="02.10.1">
+        <title>22-10 Autobrake Selector</title>
+        <melItem id="mel100-p00768" category="D" installed="4" required="3">
+          <remarks>The relief pilot will cross-check any change in the Autobrake Selector switch position and advise the other pilot unless directed otherwise by the Sample Operations Center. The Engine Anti-Ice status message is expected to read within the sample range of 22 to 26 units during landing. The pilot flying will verify any change in the Flight Management Computer quantity display and advise the other pilot if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00769">(O) Sample operations note. During a maintenance-requested ground run, the pilot flying should select the Fire Detection Loop quantity display if a discrepancy is observed. The Standby Hydraulic switch position that differs from the expected state requires both pilots to confirm the condition unless directed otherwise by the Sample Operations Center. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p00770">(M) Sample maintenance note. The Flight Management Computer quantity display that differs from the expected state requires the relief pilot to announce the condition when conditions permit. The Wing Anti-Ice advisory is expected to read within the sample range of 14 to 19 units during a turnaround. The pilot flying will announce any change in the Autopilot Channel B quantity display and advise the other pilot unless directed otherwise by the Sample Operations Center.</para>
+      </topic>
+      <topic id="mel100-t0008" number="02.10.2">
+        <title>22-20 Primary Electrical Bus</title>
+        <melItem id="mel100-p00771" category="B" installed="2" required="1">
+          <remarks>If the Engine Anti-Ice is inoperative, continue a maintenance-requested ground run only after the pilot monitoring has reviewed the associated sample guidance. Refer to the related topic for additional sample context. The relief pilot will brief any change in the Hydraulic System B indication and advise the other pilot when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00772">(O) Sample operations note. The Window Heat selector position is expected to read within the sample range of 68 to 78 units during an extended ground delay. If the Oxygen Distribution is inoperative, continue a diversion only after the First Officer has reviewed the associated sample guidance. During an extended ground delay, the First Officer should announce the Standby Instruments switch position when conditions permit.</para>
+        <para id="mel100-p00773">(M) Sample maintenance note. Refer to the related topic for additional sample context. The Flight Management Computer switch position is expected to read within the sample range of 62 to 73 units during climb. The Brake Temperature Monitor quantity display is expected to read within the sample range of 44 to 47 units during landing.</para>
+      </topic>
+      <topic id="mel100-t0009" number="02.10.3">
+        <title>22-30 Hydraulic System B</title>
+        <melItem id="mel100-p00774" category="B" installed="3" required="1">
+          <remarks>The Wing Anti-Ice switch position that differs from the expected state requires the relief pilot to record the condition when the associated caution light remains illuminated. The Primary Electrical Bus status message that differs from the expected state requires the relief pilot to select the condition once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p00775">(O) Sample operations note. During approach, the Captain should record the Primary Electrical Bus advisory if a discrepancy is observed. During preflight, the First Officer should cross-check the Window Heat quantity display when operating at a sample station without ground power.</para>
+        <para id="mel100-p00776">(M) Sample maintenance note. During approach, the First Officer should select the Primary Electrical Bus selector position if a discrepancy is observed. If the Wing Anti-Ice is inoperative, continue takeoff only after the relief pilot has reviewed the associated sample guidance. During climb, the pilot monitoring should monitor the Standby Hydraulic indication if the indication does not stabilize within the sample interval.</para>
+      </topic>
+      <topic id="mel100-t0010" number="02.10.4">
+        <title>22-40 Hydraulic System B</title>
+        <melItem id="mel100-p00777" category="B" installed="2" required="0">
+          <remarks>Values in this manual are invented and must not be used for any operational purpose.</remarks>
+        </melItem>
+        <para id="mel100-p00778">(O) Sample operations note. During landing, both pilots should monitor the Engine Anti-Ice selector position if a discrepancy is observed. If the Auxiliary Power Unit is inoperative, continue a turnaround only after the pilot flying has reviewed the associated sample guidance. The Transponder selector position that differs from the expected state requires the pilot flying to announce the condition once the checklist item is complete. The Hydraulic System B quantity display that differs from the expected state requires the Captain to select the condition when operating at a sample station without ground power.</para>
+        <para id="mel100-p00779">(M) Sample maintenance note. The Brake Temperature Monitor selector position that differs from the expected state requires both pilots to confirm the condition once the checklist item is complete. During a turnaround, the First Officer should brief the Auxiliary Power Unit status message if the indication does not stabilize within the sample interval.</para>
+      </topic>
+      <topic id="mel100-t0011" number="02.10.5">
+        <title>22-50 Fire Detection Loop</title>
+        <melItem id="mel100-p00780" category="A" installed="4" required="2">
+          <remarks>If the Wing Anti-Ice is inoperative, continue an extended ground delay only after both pilots has reviewed the associated sample guidance. The first officer will record any change in the Auxiliary Power Unit quantity display and advise the other pilot before the next phase of flight. During a turnaround, the Captain should record the Wing Anti-Ice status message when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p00781">(O) Sample operations note. During a maintenance-requested ground run, both pilots should cross-check the Engine Anti-Ice advisory if the indication does not stabilize within the sample interval. This text is fictional and exists only to give the prototype realistic volume and structure. The Cabin Pressure Controller advisory is expected to read within the sample range of 38 to 47 units during descent. During landing, both pilots should monitor the Speedbrake Handle quantity display if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p00782">(M) Sample maintenance note. Values in this manual are invented and must not be used for any operational purpose. The Nosewheel Steering status message that differs from the expected state requires the First Officer to cross-check the condition when conditions permit.</para>
+      </topic>
+      <topic id="mel100-t0012" number="02.10.6">
+        <title>22-60 Autopilot Channel A</title>
+        <melItem id="mel100-p00783" category="C" installed="4" required="0">
+          <remarks>Values in this manual are invented and must not be used for any operational purpose.</remarks>
+        </melItem>
+        <para id="mel100-p00784">(O) Sample operations note. Refer to the related topic for additional sample context. During an extended ground delay, the Captain should record the Cargo Smoke Detection quantity display once the checklist item is complete.</para>
+        <para id="mel100-p00785">(M) Sample maintenance note. The first officer will cross-check any change in the Probe Heat switch position and advise the other pilot when conditions permit. The Auxiliary Power Unit selector position is expected to read within the sample range of 45 to 51 units during parking.</para>
+      </topic>
+      <topic id="mel100-t0013" number="02.10.7">
+        <title>22-70 Transponder</title>
+        <melItem id="mel100-p00786" category="B" installed="2" required="0">
+          <remarks>The Traffic Advisory Display status message is expected to read within the sample range of 97 to 102 units during takeoff. During a turnaround, the First Officer should monitor the Fuel Crossfeed selector position when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00787">(O) Sample operations note. The Autobrake Selector status message is expected to read within the sample range of 81 to 92 units during a maintenance-requested ground run. The Auxiliary Power Unit status message is expected to read within the sample range of 93 to 97 units during taxi. The first officer will brief any change in the Autobrake Selector annunciation and advise the other pilot once the checklist item is complete. The Landing Gear Indication selector position is expected to read within the sample range of 9 to 18 units during preflight.</para>
+        <para id="mel100-p00788">(M) Sample maintenance note. If the Autobrake Selector is inoperative, continue engine start only after the pilot flying has reviewed the associated sample guidance. During cruise, both pilots should verify the Autothrottle switch position before the next phase of flight. During a maintenance-requested ground run, the First Officer should brief the Fuel Crossfeed advisory if a discrepancy is observed.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c03" number="03">
+    <title>ATA 23 Communications</title>
+    <section id="mel100-s003" number="03.10">
+      <title>Items</title>
+      <topic id="mel100-t0014" number="03.10.1">
+        <title>23-10 Cargo Smoke Detection</title>
+        <melItem id="mel100-p00789" category="B" installed="3" required="0">
+          <remarks>The Center Tank Pumps annunciation that differs from the expected state requires both pilots to brief the condition unless directed otherwise by the Sample Operations Center.</remarks>
+        </melItem>
+        <para id="mel100-p00790">(O) Sample operations note. The pilot flying will verify any change in the Nosewheel Steering annunciation and advise the other pilot when conditions permit. The Flight Management Computer annunciation that differs from the expected state requires both pilots to brief the condition when the associated caution light remains illuminated.</para>
+        <para id="mel100-p00791">(M) Sample maintenance note. During takeoff, the Captain should select the Auxiliary Power Unit quantity display when the associated caution light remains illuminated. Refer to the related topic for additional sample context.</para>
+      </topic>
+      <topic id="mel100-t0015" number="03.10.2">
+        <title>23-20 Center Tank Pumps</title>
+        <melItem id="mel100-p00792" category="C" installed="3" required="2">
+          <remarks>This text is fictional and exists only to give the prototype realistic volume and structure. During landing, the Captain should select the Brake Temperature Monitor advisory if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00793">(O) Sample operations note. During a diversion, the Captain should brief the Flap Position Indication advisory if the indication does not stabilize within the sample interval. The relief pilot will brief any change in the Engine Anti-Ice selector position and advise the other pilot when conditions permit. During an extended ground delay, the Captain should brief the Bleed Air Supply indication before the next phase of flight.</para>
+        <para id="mel100-p00794">(M) Sample maintenance note. Refer to the related topic for additional sample context. The pilot flying will verify any change in the Fire Detection Loop quantity display and advise the other pilot once the checklist item is complete. During taxi, both pilots should record the Nosewheel Steering quantity display when operating at a sample station without ground power.</para>
+      </topic>
+      <topic id="mel100-t0016" number="03.10.3">
+        <title>23-30 Auxiliary Power Unit</title>
+        <melItem id="mel100-p00795" category="D" installed="3" required="0">
+          <remarks>If the Flap Position Indication is inoperative, continue preflight only after the pilot flying has reviewed the associated sample guidance. The first officer will record any change in the Fuel Crossfeed selector position and advise the other pilot when conditions permit. During landing, the Captain should brief the Autopilot Channel B indication when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00796">(O) Sample operations note. The Stall Warning advisory that differs from the expected state requires the pilot flying to confirm the condition when operating at a sample station without ground power. The Fire Detection Loop indication is expected to read within the sample range of 90 to 102 units during a maintenance-requested ground run.</para>
+        <para id="mel100-p00797">(M) Sample maintenance note. During engine start, the relief pilot should cross-check the Standby Hydraulic switch position when conditions permit. The Weather Radar switch position is expected to read within the sample range of 75 to 79 units during taxi. Values in this manual are invented and must not be used for any operational purpose.</para>
+      </topic>
+      <topic id="mel100-t0017" number="03.10.4">
+        <title>23-40 Standby Instruments</title>
+        <melItem id="mel100-p00798" category="C" installed="4" required="3">
+          <remarks>During a maintenance-requested ground run, both pilots should brief the Weather Radar status message before the next phase of flight. During an extended ground delay, the relief pilot should announce the Window Heat status message before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p00799">(O) Sample operations note. The Autobrake Selector quantity display that differs from the expected state requires the relief pilot to monitor the condition if the indication does not stabilize within the sample interval. The wording here is placeholder content shaped like a procedure, not a procedure. The Auxiliary Power Unit advisory is expected to read within the sample range of 50 to 59 units during preflight.</para>
+        <para id="mel100-p00800">(M) Sample maintenance note. The pilot monitoring will brief any change in the Speedbrake Handle switch position and advise the other pilot when operating at a sample station without ground power. During an extended ground delay, the pilot monitoring should select the Weather Radar advisory if a discrepancy is observed. The Oxygen Distribution quantity display is expected to read within the sample range of 68 to 77 units during cruise.</para>
+      </topic>
+      <topic id="mel100-t0018" number="03.10.5">
+        <title>23-50 Nosewheel Steering</title>
+        <melItem id="mel100-p00801" category="A" installed="4" required="0">
+          <remarks>During climb, the First Officer should announce the Nosewheel Steering switch position if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00802">(O) Sample operations note. The Fuel Crossfeed indication that differs from the expected state requires both pilots to record the condition once the checklist item is complete. This text is fictional and exists only to give the prototype realistic volume and structure. If the Wing Anti-Ice is inoperative, continue cruise only after the relief pilot has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00803">(M) Sample maintenance note. This text is fictional and exists only to give the prototype realistic volume and structure. During a diversion, the First Officer should confirm the Probe Heat indication when operating at a sample station without ground power. Values in this manual are invented and must not be used for any operational purpose.</para>
+      </topic>
+      <topic id="mel100-t0019" number="03.10.6">
+        <title>23-60 Pack Temperature Control</title>
+        <melItem id="mel100-p00804" category="A" installed="3" required="1">
+          <remarks>During descent, the Captain should monitor the Hydraulic System B status message when the associated caution light remains illuminated. During a maintenance-requested ground run, the First Officer should verify the Hydraulic System A annunciation when the associated caution light remains illuminated. If the Autothrottle is inoperative, continue engine start only after the pilot flying has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00805">(O) Sample operations note. The Autopilot Channel B advisory is expected to read within the sample range of 16 to 26 units during a maintenance-requested ground run. This text is fictional and exists only to give the prototype realistic volume and structure. The Auxiliary Power Unit switch position that differs from the expected state requires the Captain to verify the condition if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p00806">(M) Sample maintenance note. During engine start, the pilot monitoring should record the Center Tank Pumps indication once the checklist item is complete. This text is fictional and exists only to give the prototype realistic volume and structure. The Autothrottle switch position that differs from the expected state requires the First Officer to record the condition before the next phase of flight.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c04" number="04">
+    <title>ATA 24 Electrical Power</title>
+    <section id="mel100-s004" number="04.10">
+      <title>Items</title>
+      <topic id="mel100-t0020" number="04.10.1">
+        <title>24-10 Fuel Crossfeed</title>
+        <melItem id="mel100-p00807" category="C" installed="4" required="0">
+          <remarks>The pilot monitoring will confirm any change in the Brake Temperature Monitor switch position and advise the other pilot if a discrepancy is observed. If the Engine Anti-Ice is inoperative, continue takeoff only after both pilots has reviewed the associated sample guidance. If the Bleed Air Supply is inoperative, continue descent only after the First Officer has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00808">(O) Sample operations note. The Speedbrake Handle advisory that differs from the expected state requires both pilots to monitor the condition when the associated caution light remains illuminated. The Landing Gear Indication indication that differs from the expected state requires both pilots to brief the condition when conditions permit.</para>
+        <para id="mel100-p00809">(M) Sample maintenance note. During a turnaround, both pilots should cross-check the Pack Temperature Control switch position unless directed otherwise by the Sample Operations Center. During a diversion, the First Officer should confirm the Cargo Smoke Detection switch position if a discrepancy is observed. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+      </topic>
+      <topic id="mel100-t0021" number="04.10.2">
+        <title>24-20 Standby Hydraulic</title>
+        <melItem id="mel100-p00810" category="C" installed="2" required="0">
+          <remarks>The first officer will monitor any change in the Standby Instruments quantity display and advise the other pilot when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p00811">(O) Sample operations note. If the Fuel Crossfeed is inoperative, continue cruise only after the pilot flying has reviewed the associated sample guidance. During preflight, the relief pilot should confirm the Cargo Smoke Detection quantity display if a discrepancy is observed. The Cockpit Voice Recorder indication is expected to read within the sample range of 10 to 22 units during climb.</para>
+        <para id="mel100-p00812">(M) Sample maintenance note. The Cargo Smoke Detection selector position is expected to read within the sample range of 84 to 87 units during an extended ground delay. The captain will confirm any change in the Speedbrake Handle indication and advise the other pilot if a discrepancy is observed. The Window Heat annunciation is expected to read within the sample range of 51 to 59 units during landing.</para>
+      </topic>
+      <topic id="mel100-t0022" number="04.10.3">
+        <title>24-30 Transponder</title>
+        <melItem id="mel100-p00813" category="D" installed="4" required="0">
+          <remarks>The Autobrake Selector quantity display is expected to read within the sample range of 73 to 82 units during a turnaround. The Landing Gear Indication annunciation that differs from the expected state requires the Captain to select the condition if a discrepancy is observed. The Autopilot Channel B indication is expected to read within the sample range of 85 to 95 units during approach.</remarks>
+        </melItem>
+        <para id="mel100-p00814">(O) Sample operations note. The pilot flying will announce any change in the Flap Position Indication selector position and advise the other pilot unless directed otherwise by the Sample Operations Center. Both pilots will brief any change in the Fuel Crossfeed status message and advise the other pilot when conditions permit. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p00815">(M) Sample maintenance note. Refer to the related topic for additional sample context. The Landing Gear Indication advisory is expected to read within the sample range of 79 to 83 units during parking.</para>
+      </topic>
+      <topic id="mel100-t0023" number="04.10.4">
+        <title>24-40 Thrust Reverser</title>
+        <melItem id="mel100-p00816" category="C" installed="3" required="1">
+          <remarks>If the Pack Temperature Control is inoperative, continue preflight only after the pilot monitoring has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00817">(O) Sample operations note. During a diversion, the relief pilot should brief the Transponder annunciation unless directed otherwise by the Sample Operations Center. If the Brake Temperature Monitor is inoperative, continue landing only after the pilot monitoring has reviewed the associated sample guidance. The Weather Radar selector position is expected to read within the sample range of 69 to 73 units during a turnaround. If the Standby Instruments is inoperative, continue a diversion only after the First Officer has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00818">(M) Sample maintenance note. This text is fictional and exists only to give the prototype realistic volume and structure. The pilot flying will monitor any change in the Cabin Pressure Controller switch position and advise the other pilot unless directed otherwise by the Sample Operations Center. During parking, the pilot flying should confirm the Probe Heat selector position once the checklist item is complete.</para>
+      </topic>
+      <topic id="mel100-t0024" number="04.10.5">
+        <title>24-50 Fire Detection Loop</title>
+        <melItem id="mel100-p00819" category="B" installed="2" required="1">
+          <remarks>The relief pilot will verify any change in the Nosewheel Steering status message and advise the other pilot before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p00820">(O) Sample operations note. The Weather Radar switch position that differs from the expected state requires the Captain to verify the condition once the checklist item is complete. The pilot monitoring will verify any change in the Flap Position Indication annunciation and advise the other pilot when the associated caution light remains illuminated. The Hydraulic System B switch position that differs from the expected state requires the First Officer to monitor the condition when operating at a sample station without ground power.</para>
+        <para id="mel100-p00821">(M) Sample maintenance note. If the Weather Radar is inoperative, continue taxi only after the Captain has reviewed the associated sample guidance. If the Flight Management Computer is inoperative, continue an extended ground delay only after the Captain has reviewed the associated sample guidance. If the Oxygen Distribution is inoperative, continue taxi only after the First Officer has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0025" number="04.10.6">
+        <title>24-60 Standby Hydraulic</title>
+        <melItem id="mel100-p00822" category="A" installed="4" required="2">
+          <remarks>The wording here is placeholder content shaped like a procedure, not a procedure. The Weather Radar advisory that differs from the expected state requires the pilot monitoring to brief the condition once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p00823">(O) Sample operations note. If the Window Heat is inoperative, continue preflight only after both pilots has reviewed the associated sample guidance. If the Pack Temperature Control is inoperative, continue taxi only after both pilots has reviewed the associated sample guidance. The Autobrake Selector status message is expected to read within the sample range of 7 to 14 units during a diversion. The Weather Radar selector position that differs from the expected state requires both pilots to record the condition if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p00824">(M) Sample maintenance note. The Brake Temperature Monitor selector position that differs from the expected state requires the pilot monitoring to cross-check the condition once the checklist item is complete. The Pack Temperature Control indication that differs from the expected state requires the pilot monitoring to cross-check the condition before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0026" number="04.10.7">
+        <title>24-70 Engine Anti-Ice</title>
+        <melItem id="mel100-p00825" category="D" installed="4" required="3">
+          <remarks>The Cabin Pressure Controller annunciation that differs from the expected state requires the relief pilot to cross-check the condition once the checklist item is complete. The first officer will monitor any change in the Speedbrake Handle switch position and advise the other pilot unless directed otherwise by the Sample Operations Center. The captain will record any change in the Standby Instruments quantity display and advise the other pilot when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p00826">(O) Sample operations note. If the Brake Temperature Monitor is inoperative, continue a diversion only after the Captain has reviewed the associated sample guidance. This text is fictional and exists only to give the prototype realistic volume and structure. If the Weather Radar is inoperative, continue preflight only after both pilots has reviewed the associated sample guidance. The Pack Temperature Control selector position that differs from the expected state requires the pilot monitoring to announce the condition before the next phase of flight.</para>
+        <para id="mel100-p00827">(M) Sample maintenance note. The Bleed Air Supply switch position that differs from the expected state requires the relief pilot to announce the condition if a discrepancy is observed. The Engine Anti-Ice status message that differs from the expected state requires the First Officer to brief the condition before the next phase of flight. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c05" number="05">
+    <title>ATA 26 Fire Protection</title>
+    <section id="mel100-s005" number="05.10">
+      <title>Items</title>
+      <topic id="mel100-t0027" number="05.10.1">
+        <title>26-10 Weather Radar</title>
+        <melItem id="mel100-p00828" category="D" installed="2" required="1">
+          <remarks>If the Fuel Crossfeed is inoperative, continue parking only after the Captain has reviewed the associated sample guidance. The Autobrake Selector status message is expected to read within the sample range of 58 to 69 units during parking. The captain will brief any change in the Cabin Pressure Controller selector position and advise the other pilot when conditions permit.</remarks>
+        </melItem>
+        <para id="mel100-p00829">(O) Sample operations note. The captain will record any change in the Pack Temperature Control switch position and advise the other pilot unless directed otherwise by the Sample Operations Center. The Pack Temperature Control selector position is expected to read within the sample range of 53 to 58 units during preflight. The pilot monitoring will verify any change in the Autobrake Selector annunciation and advise the other pilot if the indication does not stabilize within the sample interval. The Transponder indication is expected to read within the sample range of 67 to 76 units during approach.</para>
+        <para id="mel100-p00830">(M) Sample maintenance note. Values in this manual are invented and must not be used for any operational purpose. During an extended ground delay, both pilots should confirm the Probe Heat advisory before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0028" number="05.10.2">
+        <title>26-20 Engine Anti-Ice</title>
+        <melItem id="mel100-p00831" category="D" installed="3" required="2">
+          <remarks>The Primary Electrical Bus indication that differs from the expected state requires both pilots to verify the condition if the indication does not stabilize within the sample interval. The Primary Electrical Bus quantity display that differs from the expected state requires the relief pilot to announce the condition before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p00832">(O) Sample operations note. The Ground Proximity Monitor advisory that differs from the expected state requires the pilot monitoring to brief the condition if a discrepancy is observed. The first officer will announce any change in the Traffic Advisory Display indication and advise the other pilot once the checklist item is complete. During a maintenance-requested ground run, the pilot monitoring should announce the Landing Gear Indication indication unless directed otherwise by the Sample Operations Center. The Engine Anti-Ice switch position is expected to read within the sample range of 37 to 41 units during approach.</para>
+        <para id="mel100-p00833">(M) Sample maintenance note. If the Cargo Smoke Detection is inoperative, continue takeoff only after the First Officer has reviewed the associated sample guidance. During an extended ground delay, the Captain should select the Weather Radar annunciation unless directed otherwise by the Sample Operations Center. The Primary Electrical Bus advisory that differs from the expected state requires the Captain to brief the condition when operating at a sample station without ground power.</para>
+      </topic>
+      <topic id="mel100-t0029" number="05.10.3">
+        <title>26-30 Traffic Advisory Display</title>
+        <melItem id="mel100-p00834" category="A" installed="2" required="1">
+          <remarks>The Transponder status message that differs from the expected state requires the relief pilot to announce the condition when conditions permit. The Flap Position Indication quantity display is expected to read within the sample range of 39 to 42 units during takeoff. The Hydraulic System A selector position is expected to read within the sample range of 45 to 53 units during a maintenance-requested ground run.</remarks>
+        </melItem>
+        <para id="mel100-p00835">(O) Sample operations note. The Center Tank Pumps annunciation that differs from the expected state requires the relief pilot to brief the condition unless directed otherwise by the Sample Operations Center. The Traffic Advisory Display advisory that differs from the expected state requires the pilot monitoring to record the condition when the associated caution light remains illuminated. Both pilots will cross-check any change in the Transponder annunciation and advise the other pilot if a discrepancy is observed. During taxi, the relief pilot should confirm the Brake Temperature Monitor switch position when operating at a sample station without ground power.</para>
+        <para id="mel100-p00836">(M) Sample maintenance note. During cruise, the First Officer should monitor the Center Tank Pumps indication before the next phase of flight. The Oxygen Distribution selector position is expected to read within the sample range of 75 to 79 units during preflight. During a diversion, both pilots should monitor the Hydraulic System A indication when operating at a sample station without ground power.</para>
+      </topic>
+      <topic id="mel100-t0030" number="05.10.4">
+        <title>26-40 Thrust Reverser</title>
+        <melItem id="mel100-p00837" category="A" installed="4" required="1">
+          <remarks>Refer to the related topic for additional sample context. The relief pilot will announce any change in the Flap Position Indication advisory and advise the other pilot once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p00838">(O) Sample operations note. If the Weather Radar is inoperative, continue descent only after the relief pilot has reviewed the associated sample guidance. Both pilots will announce any change in the Cabin Pressure Controller advisory and advise the other pilot unless directed otherwise by the Sample Operations Center. Refer to the related topic for additional sample context.</para>
+        <para id="mel100-p00839">(M) Sample maintenance note. The Standby Hydraulic advisory that differs from the expected state requires the First Officer to select the condition when operating at a sample station without ground power. Both pilots will confirm any change in the Fuel Crossfeed status message and advise the other pilot when conditions permit. Refer to the related topic for additional sample context.</para>
+      </topic>
+      <topic id="mel100-t0031" number="05.10.5">
+        <title>26-50 Probe Heat</title>
+        <melItem id="mel100-p00840" category="B" installed="2" required="0">
+          <remarks>If the Probe Heat is inoperative, continue a diversion only after the relief pilot has reviewed the associated sample guidance. The Autobrake Selector status message is expected to read within the sample range of 96 to 99 units during parking.</remarks>
+        </melItem>
+        <para id="mel100-p00841">(O) Sample operations note. Values in this manual are invented and must not be used for any operational purpose. The Cargo Smoke Detection status message that differs from the expected state requires both pilots to monitor the condition when operating at a sample station without ground power. If the Auxiliary Power Unit is inoperative, continue cruise only after both pilots has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00842">(M) Sample maintenance note. The Speedbrake Handle advisory that differs from the expected state requires the Captain to brief the condition once the checklist item is complete. The Fire Detection Loop annunciation that differs from the expected state requires the relief pilot to announce the condition if the indication does not stabilize within the sample interval.</para>
+      </topic>
+      <topic id="mel100-t0032" number="05.10.6">
+        <title>26-60 Oxygen Distribution</title>
+        <melItem id="mel100-p00843" category="A" installed="3" required="1">
+          <remarks>Refer to the related topic for additional sample context. The Stall Warning annunciation is expected to read within the sample range of 26 to 36 units during descent. The Center Tank Pumps selector position that differs from the expected state requires both pilots to brief the condition if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p00844">(O) Sample operations note. If the Pack Temperature Control is inoperative, continue climb only after the pilot monitoring has reviewed the associated sample guidance. Both pilots will monitor any change in the Fire Detection Loop advisory and advise the other pilot if the indication does not stabilize within the sample interval. During landing, the Captain should record the Cockpit Voice Recorder indication when operating at a sample station without ground power. Values in this manual are invented and must not be used for any operational purpose.</para>
+        <para id="mel100-p00845">(M) Sample maintenance note. The Window Heat status message is expected to read within the sample range of 29 to 32 units during descent. Refer to the related topic for additional sample context. During preflight, the pilot flying should announce the Autobrake Selector annunciation once the checklist item is complete.</para>
+      </topic>
+      <topic id="mel100-t0033" number="05.10.7">
+        <title>26-70 Oxygen Distribution</title>
+        <melItem id="mel100-p00846" category="D" installed="2" required="0">
+          <remarks>During climb, the First Officer should monitor the Flight Management Computer indication when conditions permit.</remarks>
+        </melItem>
+        <para id="mel100-p00847">(O) Sample operations note. If the Brake Temperature Monitor is inoperative, continue cruise only after the relief pilot has reviewed the associated sample guidance. Values in this manual are invented and must not be used for any operational purpose. The Autothrottle status message that differs from the expected state requires the pilot monitoring to select the condition if a discrepancy is observed. If the Center Tank Pumps is inoperative, continue a diversion only after the First Officer has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00848">(M) Sample maintenance note. If the Landing Gear Indication is inoperative, continue a maintenance-requested ground run only after the pilot monitoring has reviewed the associated sample guidance. If the Window Heat is inoperative, continue climb only after the pilot monitoring has reviewed the associated sample guidance. The Window Heat advisory that differs from the expected state requires the relief pilot to verify the condition if the indication does not stabilize within the sample interval.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c06" number="06">
+    <title>ATA 28 Fuel</title>
+    <section id="mel100-s006" number="06.10">
+      <title>Items</title>
+      <topic id="mel100-t0034" number="06.10.1">
+        <title>28-10 Window Heat</title>
+        <melItem id="mel100-p00849" category="D" installed="4" required="1">
+          <remarks>Both pilots will select any change in the Ground Proximity Monitor advisory and advise the other pilot when conditions permit.</remarks>
+        </melItem>
+        <para id="mel100-p00850">(O) Sample operations note. If the Flap Position Indication is inoperative, continue climb only after the pilot flying has reviewed the associated sample guidance. The Transponder quantity display is expected to read within the sample range of 30 to 36 units during a turnaround. The relief pilot will cross-check any change in the Stall Warning indication and advise the other pilot when the associated caution light remains illuminated.</para>
+        <para id="mel100-p00851">(M) Sample maintenance note. The captain will cross-check any change in the Nosewheel Steering annunciation and advise the other pilot when operating at a sample station without ground power. The Hydraulic System A advisory that differs from the expected state requires the Captain to confirm the condition once the checklist item is complete.</para>
+      </topic>
+      <topic id="mel100-t0035" number="06.10.2">
+        <title>28-20 Hydraulic System A</title>
+        <melItem id="mel100-p00852" category="C" installed="2" required="0">
+          <remarks>The Standby Instruments annunciation is expected to read within the sample range of 95 to 100 units during engine start. During taxi, the pilot monitoring should brief the Pack Temperature Control selector position when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p00853">(O) Sample operations note. The Speedbrake Handle indication is expected to read within the sample range of 31 to 37 units during a turnaround. The Standby Instruments indication that differs from the expected state requires both pilots to cross-check the condition unless directed otherwise by the Sample Operations Center.</para>
+        <para id="mel100-p00854">(M) Sample maintenance note. This text is fictional and exists only to give the prototype realistic volume and structure. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+      </topic>
+      <topic id="mel100-t0036" number="06.10.3">
+        <title>28-30 Autothrottle</title>
+        <melItem id="mel100-p00855" category="D" installed="3" required="0">
+          <remarks>The Flap Position Indication switch position is expected to read within the sample range of 42 to 50 units during cruise.</remarks>
+        </melItem>
+        <para id="mel100-p00856">(O) Sample operations note. During parking, the First Officer should announce the Landing Gear Indication status message unless directed otherwise by the Sample Operations Center. If the Brake Temperature Monitor is inoperative, continue an extended ground delay only after the First Officer has reviewed the associated sample guidance. The Cabin Pressure Controller quantity display is expected to read within the sample range of 47 to 58 units during engine start.</para>
+        <para id="mel100-p00857">(M) Sample maintenance note. During landing, the Captain should announce the Bleed Air Supply indication before the next phase of flight. The Hydraulic System A status message that differs from the expected state requires the First Officer to select the condition if the indication does not stabilize within the sample interval. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+      </topic>
+      <topic id="mel100-t0037" number="06.10.4">
+        <title>28-40 Center Tank Pumps</title>
+        <melItem id="mel100-p00858" category="B" installed="3" required="0">
+          <remarks>The Auxiliary Power Unit status message that differs from the expected state requires both pilots to cross-check the condition when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00859">(O) Sample operations note. The Wing Anti-Ice indication that differs from the expected state requires both pilots to monitor the condition when conditions permit. If the Autopilot Channel A is inoperative, continue an extended ground delay only after the pilot flying has reviewed the associated sample guidance. The Stall Warning annunciation is expected to read within the sample range of 18 to 21 units during a diversion.</para>
+        <para id="mel100-p00860">(M) Sample maintenance note. The Landing Gear Indication indication is expected to read within the sample range of 32 to 36 units during takeoff. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+      </topic>
+      <topic id="mel100-t0038" number="06.10.5">
+        <title>28-50 Brake Temperature Monitor</title>
+        <melItem id="mel100-p00861" category="B" installed="2" required="1">
+          <remarks>The Ground Proximity Monitor advisory is expected to read within the sample range of 60 to 68 units during descent. The Engine Anti-Ice switch position is expected to read within the sample range of 9 to 16 units during parking.</remarks>
+        </melItem>
+        <para id="mel100-p00862">(O) Sample operations note. The relief pilot will confirm any change in the Pack Temperature Control status message and advise the other pilot if the indication does not stabilize within the sample interval. During descent, the relief pilot should verify the Standby Instruments quantity display when the associated caution light remains illuminated.</para>
+        <para id="mel100-p00863">(M) Sample maintenance note. The Hydraulic System B quantity display that differs from the expected state requires the pilot monitoring to verify the condition if a discrepancy is observed. During landing, the relief pilot should cross-check the Engine Anti-Ice quantity display before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0039" number="06.10.6">
+        <title>28-60 Landing Gear Indication</title>
+        <melItem id="mel100-p00864" category="A" installed="3" required="2">
+          <remarks>The captain will brief any change in the Brake Temperature Monitor status message and advise the other pilot once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p00865">(O) Sample operations note. The captain will cross-check any change in the Pack Temperature Control annunciation and advise the other pilot when conditions permit. If the Thrust Reverser is inoperative, continue a maintenance-requested ground run only after the Captain has reviewed the associated sample guidance. The Autobrake Selector selector position is expected to read within the sample range of 19 to 23 units during a turnaround.</para>
+        <para id="mel100-p00866">(M) Sample maintenance note. The relief pilot will record any change in the Hydraulic System A annunciation and advise the other pilot if the indication does not stabilize within the sample interval. The Autopilot Channel B annunciation is expected to read within the sample range of 71 to 80 units during approach. If the Brake Temperature Monitor is inoperative, continue a maintenance-requested ground run only after the First Officer has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0040" number="06.10.7">
+        <title>28-70 Fire Detection Loop</title>
+        <melItem id="mel100-p00867" category="D" installed="3" required="0">
+          <remarks>During engine start, the First Officer should record the Brake Temperature Monitor quantity display when operating at a sample station without ground power. The pilot monitoring will monitor any change in the Autopilot Channel B selector position and advise the other pilot when conditions permit.</remarks>
+        </melItem>
+        <para id="mel100-p00868">(O) Sample operations note. The Autopilot Channel A indication is expected to read within the sample range of 45 to 53 units during takeoff. During descent, the pilot monitoring should announce the Center Tank Pumps selector position if a discrepancy is observed. The relief pilot will announce any change in the Speedbrake Handle status message and advise the other pilot once the checklist item is complete.</para>
+        <para id="mel100-p00869">(M) Sample maintenance note. The Fire Detection Loop quantity display that differs from the expected state requires the pilot flying to record the condition once the checklist item is complete. The pilot flying will confirm any change in the Window Heat advisory and advise the other pilot when conditions permit. The Traffic Advisory Display indication that differs from the expected state requires the First Officer to monitor the condition when conditions permit.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c07" number="07">
+    <title>ATA 29 Hydraulic Power</title>
+    <section id="mel100-s007" number="07.10">
+      <title>Items</title>
+      <topic id="mel100-t0041" number="07.10.1">
+        <title>29-10 Autopilot Channel A</title>
+        <melItem id="mel100-p00870" category="D" installed="4" required="2">
+          <remarks>The wording here is placeholder content shaped like a procedure, not a procedure. The Engine Anti-Ice advisory that differs from the expected state requires the pilot flying to verify the condition when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00871">(O) Sample operations note. During landing, both pilots should verify the Stall Warning status message once the checklist item is complete. If the Ground Proximity Monitor is inoperative, continue taxi only after the relief pilot has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00872">(M) Sample maintenance note. Both pilots will confirm any change in the Flap Position Indication switch position and advise the other pilot when operating at a sample station without ground power. If the Center Tank Pumps is inoperative, continue an extended ground delay only after the pilot flying has reviewed the associated sample guidance. The relief pilot will announce any change in the Stall Warning indication and advise the other pilot if the indication does not stabilize within the sample interval.</para>
+      </topic>
+      <topic id="mel100-t0042" number="07.10.2">
+        <title>29-20 Transponder</title>
+        <melItem id="mel100-p00873" category="D" installed="2" required="0">
+          <remarks>The Transponder switch position that differs from the expected state requires both pilots to record the condition when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00874">(O) Sample operations note. If the Thrust Reverser is inoperative, continue engine start only after the relief pilot has reviewed the associated sample guidance. The Landing Gear Indication status message is expected to read within the sample range of 51 to 63 units during an extended ground delay.</para>
+        <para id="mel100-p00875">(M) Sample maintenance note. The Transponder switch position is expected to read within the sample range of 2 to 7 units during landing. If the Fuel Crossfeed is inoperative, continue preflight only after the First Officer has reviewed the associated sample guidance. During parking, both pilots should monitor the Hydraulic System A switch position unless directed otherwise by the Sample Operations Center.</para>
+      </topic>
+      <topic id="mel100-t0043" number="07.10.3">
+        <title>29-30 Center Tank Pumps</title>
+        <melItem id="mel100-p00876" category="A" installed="3" required="1">
+          <remarks>The pilot flying will confirm any change in the Thrust Reverser switch position and advise the other pilot when operating at a sample station without ground power. If the Fire Detection Loop is inoperative, continue a diversion only after the pilot monitoring has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00877">(O) Sample operations note. The Center Tank Pumps indication that differs from the expected state requires the Captain to cross-check the condition if a discrepancy is observed. Both pilots will brief any change in the Wing Anti-Ice annunciation and advise the other pilot when the associated caution light remains illuminated. If the Auxiliary Power Unit is inoperative, continue taxi only after the pilot monitoring has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00878">(M) Sample maintenance note. During taxi, the pilot monitoring should confirm the Thrust Reverser indication before the next phase of flight. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+      </topic>
+      <topic id="mel100-t0044" number="07.10.4">
+        <title>29-40 Ground Proximity Monitor</title>
+        <melItem id="mel100-p00879" category="D" installed="2" required="0">
+          <remarks>During engine start, the First Officer should monitor the Thrust Reverser switch position unless directed otherwise by the Sample Operations Center.</remarks>
+        </melItem>
+        <para id="mel100-p00880">(O) Sample operations note. The pilot monitoring will record any change in the Traffic Advisory Display switch position and advise the other pilot when the associated caution light remains illuminated. If the Cabin Pressure Controller is inoperative, continue taxi only after the First Officer has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00881">(M) Sample maintenance note. During descent, the pilot monitoring should select the Pack Temperature Control status message once the checklist item is complete. This text is fictional and exists only to give the prototype realistic volume and structure. If the Autopilot Channel B is inoperative, continue climb only after the pilot monitoring has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0045" number="07.10.5">
+        <title>29-50 Window Heat</title>
+        <melItem id="mel100-p00882" category="A" installed="3" required="1">
+          <remarks>During preflight, the pilot monitoring should select the Weather Radar switch position before the next phase of flight. During taxi, the relief pilot should cross-check the Traffic Advisory Display annunciation before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p00883">(O) Sample operations note. During a maintenance-requested ground run, the First Officer should cross-check the Flap Position Indication status message when conditions permit. The wording here is placeholder content shaped like a procedure, not a procedure. Values in this manual are invented and must not be used for any operational purpose. The Cockpit Voice Recorder indication that differs from the expected state requires both pilots to select the condition if a discrepancy is observed.</para>
+        <para id="mel100-p00884">(M) Sample maintenance note. The Transponder indication that differs from the expected state requires the pilot monitoring to confirm the condition when operating at a sample station without ground power. The pilot monitoring will verify any change in the Cargo Smoke Detection annunciation and advise the other pilot when conditions permit. The Wing Anti-Ice advisory is expected to read within the sample range of 67 to 78 units during descent.</para>
+      </topic>
+      <topic id="mel100-t0046" number="07.10.6">
+        <title>29-60 Hydraulic System A</title>
+        <melItem id="mel100-p00885" category="A" installed="4" required="1">
+          <remarks>The Autobrake Selector annunciation that differs from the expected state requires the Captain to confirm the condition if the indication does not stabilize within the sample interval. The Cargo Smoke Detection advisory is expected to read within the sample range of 26 to 32 units during landing. If the Landing Gear Indication is inoperative, continue a diversion only after the pilot monitoring has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00886">(O) Sample operations note. The Ground Proximity Monitor status message is expected to read within the sample range of 70 to 82 units during a diversion. If the Weather Radar is inoperative, continue an extended ground delay only after both pilots has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00887">(M) Sample maintenance note. The Cockpit Voice Recorder selector position that differs from the expected state requires the Captain to cross-check the condition once the checklist item is complete. The Probe Heat switch position is expected to read within the sample range of 24 to 27 units during landing.</para>
+      </topic>
+      <topic id="mel100-t0047" number="07.10.7">
+        <title>29-70 Auxiliary Power Unit</title>
+        <melItem id="mel100-p00888" category="A" installed="3" required="1">
+          <remarks>During approach, the First Officer should select the Standby Instruments annunciation unless directed otherwise by the Sample Operations Center. This text is fictional and exists only to give the prototype realistic volume and structure. If the Fuel Crossfeed is inoperative, continue landing only after the pilot monitoring has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00889">(O) Sample operations note. During climb, the pilot flying should confirm the Standby Instruments advisory unless directed otherwise by the Sample Operations Center. The Autopilot Channel B quantity display is expected to read within the sample range of 2 to 9 units during a diversion. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p00890">(M) Sample maintenance note. The Speedbrake Handle quantity display is expected to read within the sample range of 11 to 17 units during preflight. Refer to the related topic for additional sample context. During landing, the pilot monitoring should select the Autopilot Channel A advisory if a discrepancy is observed.</para>
+      </topic>
+      <topic id="mel100-t0048" number="07.10.8">
+        <title>29-80 Weather Radar</title>
+        <melItem id="mel100-p00891" category="A" installed="3" required="0">
+          <remarks>Refer to the related topic for additional sample context. The Hydraulic System B indication that differs from the expected state requires the pilot flying to brief the condition before the next phase of flight. The Standby Hydraulic quantity display is expected to read within the sample range of 9 to 21 units during parking.</remarks>
+        </melItem>
+        <para id="mel100-p00892">(O) Sample operations note. The pilot monitoring will confirm any change in the Pack Temperature Control quantity display and advise the other pilot when conditions permit. Refer to the related topic for additional sample context.</para>
+        <para id="mel100-p00893">(M) Sample maintenance note. During descent, the First Officer should select the Speedbrake Handle status message when conditions permit. If the Primary Electrical Bus is inoperative, continue climb only after the pilot monitoring has reviewed the associated sample guidance. The Stall Warning quantity display is expected to read within the sample range of 30 to 34 units during parking.</para>
+      </topic>
+      <topic id="mel100-t0049" number="07.10.9">
+        <title>29-90 Ground Proximity Monitor</title>
+        <melItem id="mel100-p00894" category="A" installed="4" required="0">
+          <remarks>During engine start, the relief pilot should confirm the Ground Proximity Monitor selector position if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00895">(O) Sample operations note. The Primary Electrical Bus status message that differs from the expected state requires the pilot monitoring to cross-check the condition if a discrepancy is observed. Both pilots will monitor any change in the Cabin Pressure Controller quantity display and advise the other pilot when operating at a sample station without ground power.</para>
+        <para id="mel100-p00896">(M) Sample maintenance note. If the Autothrottle is inoperative, continue a turnaround only after the Captain has reviewed the associated sample guidance. The Flight Management Computer annunciation that differs from the expected state requires the First Officer to cross-check the condition unless directed otherwise by the Sample Operations Center. During a turnaround, the relief pilot should select the Fuel Crossfeed quantity display unless directed otherwise by the Sample Operations Center.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c08" number="08">
+    <title>ATA 30 Ice and Rain Protection</title>
+    <section id="mel100-s008" number="08.10">
+      <title>Items</title>
+      <topic id="mel100-t0050" number="08.10.1">
+        <title>30-10 Nosewheel Steering</title>
+        <melItem id="mel100-p00897" category="D" installed="2" required="0">
+          <remarks>During approach, the First Officer should confirm the Wing Anti-Ice status message if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00898">(O) Sample operations note. The first officer will announce any change in the Speedbrake Handle switch position and advise the other pilot when operating at a sample station without ground power. The pilot monitoring will verify any change in the Probe Heat quantity display and advise the other pilot if a discrepancy is observed.</para>
+        <para id="mel100-p00899">(M) Sample maintenance note. The Bleed Air Supply advisory is expected to read within the sample range of 83 to 93 units during cruise. If the Window Heat is inoperative, continue landing only after the pilot flying has reviewed the associated sample guidance. The relief pilot will announce any change in the Fire Detection Loop quantity display and advise the other pilot if the indication does not stabilize within the sample interval.</para>
+      </topic>
+      <topic id="mel100-t0051" number="08.10.2">
+        <title>30-20 Landing Gear Indication</title>
+        <melItem id="mel100-p00900" category="D" installed="3" required="2">
+          <remarks>The captain will brief any change in the Cargo Smoke Detection indication and advise the other pilot when operating at a sample station without ground power. During a maintenance-requested ground run, the relief pilot should brief the Engine Anti-Ice advisory if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00901">(O) Sample operations note. This text is fictional and exists only to give the prototype realistic volume and structure. During a turnaround, the First Officer should record the Fire Detection Loop annunciation once the checklist item is complete. If the Primary Electrical Bus is inoperative, continue taxi only after both pilots has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00902">(M) Sample maintenance note. The Flight Management Computer quantity display is expected to read within the sample range of 45 to 54 units during preflight. If the Landing Gear Indication is inoperative, continue an extended ground delay only after the First Officer has reviewed the associated sample guidance. During parking, the Captain should verify the Ground Proximity Monitor quantity display unless directed otherwise by the Sample Operations Center.</para>
+      </topic>
+      <topic id="mel100-t0052" number="08.10.3">
+        <title>30-30 Autobrake Selector</title>
+        <melItem id="mel100-p00903" category="D" installed="4" required="3">
+          <remarks>If the Center Tank Pumps is inoperative, continue a turnaround only after the Captain has reviewed the associated sample guidance. The Fire Detection Loop switch position that differs from the expected state requires the First Officer to announce the condition if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p00904">(O) Sample operations note. The Standby Instruments switch position that differs from the expected state requires both pilots to record the condition if the indication does not stabilize within the sample interval. The wording here is placeholder content shaped like a procedure, not a procedure. The Flap Position Indication advisory is expected to read within the sample range of 10 to 13 units during approach. During an extended ground delay, the First Officer should select the Pack Temperature Control indication once the checklist item is complete.</para>
+        <para id="mel100-p00905">(M) Sample maintenance note. This text is fictional and exists only to give the prototype realistic volume and structure. This text is fictional and exists only to give the prototype realistic volume and structure. The Autobrake Selector annunciation is expected to read within the sample range of 11 to 21 units during takeoff.</para>
+      </topic>
+      <topic id="mel100-t0053" number="08.10.4">
+        <title>30-40 Flap Position Indication</title>
+        <melItem id="mel100-p00906" category="C" installed="4" required="2">
+          <remarks>If the Autopilot Channel B is inoperative, continue engine start only after the pilot monitoring has reviewed the associated sample guidance. Refer to the related topic for additional sample context. The Ground Proximity Monitor advisory is expected to read within the sample range of 88 to 96 units during a turnaround.</remarks>
+        </melItem>
+        <para id="mel100-p00907">(O) Sample operations note. The pilot monitoring will monitor any change in the Cabin Pressure Controller annunciation and advise the other pilot when operating at a sample station without ground power. The first officer will verify any change in the Standby Instruments annunciation and advise the other pilot when the associated caution light remains illuminated. The Engine Anti-Ice status message that differs from the expected state requires both pilots to select the condition if the indication does not stabilize within the sample interval. If the Cargo Smoke Detection is inoperative, continue an extended ground delay only after the pilot monitoring has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00908">(M) Sample maintenance note. If the Oxygen Distribution is inoperative, continue takeoff only after the First Officer has reviewed the associated sample guidance. The Wing Anti-Ice quantity display that differs from the expected state requires the First Officer to confirm the condition if the indication does not stabilize within the sample interval. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+      </topic>
+      <topic id="mel100-t0054" number="08.10.5">
+        <title>30-50 Brake Temperature Monitor</title>
+        <melItem id="mel100-p00909" category="D" installed="4" required="1">
+          <remarks>Refer to the related topic for additional sample context.</remarks>
+        </melItem>
+        <para id="mel100-p00910">(O) Sample operations note. If the Center Tank Pumps is inoperative, continue a turnaround only after the First Officer has reviewed the associated sample guidance. The Flight Management Computer selector position that differs from the expected state requires the pilot monitoring to announce the condition if a discrepancy is observed. The Standby Hydraulic indication is expected to read within the sample range of 91 to 101 units during taxi. Values in this manual are invented and must not be used for any operational purpose.</para>
+        <para id="mel100-p00911">(M) Sample maintenance note. The wording here is placeholder content shaped like a procedure, not a procedure. The Wing Anti-Ice selector position is expected to read within the sample range of 14 to 20 units during parking.</para>
+      </topic>
+      <topic id="mel100-t0055" number="08.10.6">
+        <title>30-60 Primary Electrical Bus</title>
+        <melItem id="mel100-p00912" category="A" installed="4" required="2">
+          <remarks>The Flap Position Indication annunciation is expected to read within the sample range of 11 to 20 units during parking. The Autothrottle quantity display is expected to read within the sample range of 71 to 74 units during climb. Values in this manual are invented and must not be used for any operational purpose.</remarks>
+        </melItem>
+        <para id="mel100-p00913">(O) Sample operations note. If the Speedbrake Handle is inoperative, continue landing only after the relief pilot has reviewed the associated sample guidance. If the Landing Gear Indication is inoperative, continue descent only after both pilots has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00914">(M) Sample maintenance note. Refer to the related topic for additional sample context. The Standby Hydraulic advisory that differs from the expected state requires the Captain to brief the condition when conditions permit. The Traffic Advisory Display quantity display is expected to read within the sample range of 63 to 69 units during a diversion.</para>
+      </topic>
+      <topic id="mel100-t0056" number="08.10.7">
+        <title>30-70 Ground Proximity Monitor</title>
+        <melItem id="mel100-p00915" category="C" installed="2" required="1">
+          <remarks>If the Weather Radar is inoperative, continue cruise only after the First Officer has reviewed the associated sample guidance. If the Transponder is inoperative, continue approach only after both pilots has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00916">(O) Sample operations note. The Hydraulic System B selector position is expected to read within the sample range of 90 to 93 units during an extended ground delay. If the Hydraulic System A is inoperative, continue a diversion only after the relief pilot has reviewed the associated sample guidance. The captain will brief any change in the Stall Warning advisory and advise the other pilot when operating at a sample station without ground power.</para>
+        <para id="mel100-p00917">(M) Sample maintenance note. The Standby Instruments advisory is expected to read within the sample range of 68 to 80 units during taxi. The relief pilot will confirm any change in the Pack Temperature Control status message and advise the other pilot if the indication does not stabilize within the sample interval. The Bleed Air Supply status message that differs from the expected state requires the pilot monitoring to monitor the condition when conditions permit.</para>
+      </topic>
+      <topic id="mel100-t0057" number="08.10.8">
+        <title>30-80 Hydraulic System B</title>
+        <melItem id="mel100-p00918" category="C" installed="2" required="1">
+          <remarks>This text is fictional and exists only to give the prototype realistic volume and structure. Refer to the related topic for additional sample context.</remarks>
+        </melItem>
+        <para id="mel100-p00919">(O) Sample operations note. During climb, the pilot flying should record the Standby Hydraulic quantity display when the associated caution light remains illuminated. During taxi, the pilot monitoring should record the Nosewheel Steering status message when conditions permit. The Autobrake Selector switch position that differs from the expected state requires both pilots to monitor the condition if a discrepancy is observed. The Primary Electrical Bus switch position that differs from the expected state requires the First Officer to verify the condition before the next phase of flight.</para>
+        <para id="mel100-p00920">(M) Sample maintenance note. The Nosewheel Steering status message that differs from the expected state requires the pilot monitoring to select the condition when the associated caution light remains illuminated. The Hydraulic System B indication that differs from the expected state requires both pilots to verify the condition before the next phase of flight. If the Fire Detection Loop is inoperative, continue parking only after both pilots has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0058" number="08.10.9">
+        <title>30-90 Autobrake Selector</title>
+        <melItem id="mel100-p00921" category="C" installed="2" required="1">
+          <remarks>The Brake Temperature Monitor selector position that differs from the expected state requires the Captain to monitor the condition once the checklist item is complete. The Standby Hydraulic indication that differs from the expected state requires the pilot monitoring to verify the condition when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p00922">(O) Sample operations note. The pilot flying will announce any change in the Transponder switch position and advise the other pilot when conditions permit. The Probe Heat indication is expected to read within the sample range of 92 to 96 units during engine start. If the Transponder is inoperative, continue engine start only after the First Officer has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00923">(M) Sample maintenance note. If the Nosewheel Steering is inoperative, continue taxi only after the Captain has reviewed the associated sample guidance. If the Pack Temperature Control is inoperative, continue taxi only after the pilot monitoring has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0059" number="08.10.10">
+        <title>30-100 Thrust Reverser</title>
+        <melItem id="mel100-p00924" category="A" installed="2" required="0">
+          <remarks>If the Oxygen Distribution is inoperative, continue cruise only after the pilot flying has reviewed the associated sample guidance. Both pilots will verify any change in the Autobrake Selector quantity display and advise the other pilot once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p00925">(O) Sample operations note. The Probe Heat indication that differs from the expected state requires the Captain to brief the condition once the checklist item is complete. The Probe Heat status message is expected to read within the sample range of 71 to 82 units during engine start. The relief pilot will monitor any change in the Bleed Air Supply status message and advise the other pilot if the indication does not stabilize within the sample interval. Values in this manual are invented and must not be used for any operational purpose.</para>
+        <para id="mel100-p00926">(M) Sample maintenance note. During cruise, the pilot flying should monitor the Stall Warning status message when conditions permit. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c09" number="09">
+    <title>ATA 31 Indicating and Recording</title>
+    <section id="mel100-s009" number="09.10">
+      <title>Items</title>
+      <topic id="mel100-t0060" number="09.10.1">
+        <title>31-10 Probe Heat</title>
+        <melItem id="mel100-p00927" category="B" installed="3" required="0">
+          <remarks>The captain will monitor any change in the Autopilot Channel B quantity display and advise the other pilot when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p00928">(O) Sample operations note. The Fuel Crossfeed advisory is expected to read within the sample range of 19 to 28 units during takeoff. The captain will record any change in the Pack Temperature Control status message and advise the other pilot if a discrepancy is observed. The Hydraulic System A switch position is expected to read within the sample range of 47 to 53 units during a turnaround. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p00929">(M) Sample maintenance note. During engine start, the pilot monitoring should monitor the Flight Management Computer selector position when operating at a sample station without ground power. During an extended ground delay, the First Officer should verify the Landing Gear Indication annunciation unless directed otherwise by the Sample Operations Center. During cruise, the pilot flying should monitor the Flight Management Computer switch position once the checklist item is complete.</para>
+      </topic>
+      <topic id="mel100-t0061" number="09.10.2">
+        <title>31-20 Autopilot Channel B</title>
+        <melItem id="mel100-p00930" category="B" installed="3" required="1">
+          <remarks>The Nosewheel Steering advisory that differs from the expected state requires the Captain to announce the condition when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00931">(O) Sample operations note. The Weather Radar selector position that differs from the expected state requires the Captain to select the condition unless directed otherwise by the Sample Operations Center. The first officer will brief any change in the Wing Anti-Ice selector position and advise the other pilot when operating at a sample station without ground power. The Center Tank Pumps advisory is expected to read within the sample range of 22 to 29 units during takeoff.</para>
+        <para id="mel100-p00932">(M) Sample maintenance note. The Weather Radar status message is expected to read within the sample range of 32 to 43 units during preflight. The relief pilot will monitor any change in the Weather Radar advisory and advise the other pilot if a discrepancy is observed.</para>
+      </topic>
+      <topic id="mel100-t0062" number="09.10.3">
+        <title>31-30 Autopilot Channel B</title>
+        <melItem id="mel100-p00933" category="C" installed="4" required="3">
+          <remarks>The Fire Detection Loop selector position is expected to read within the sample range of 55 to 60 units during a diversion.</remarks>
+        </melItem>
+        <para id="mel100-p00934">(O) Sample operations note. If the Engine Anti-Ice is inoperative, continue a diversion only after the pilot flying has reviewed the associated sample guidance. The Auxiliary Power Unit switch position is expected to read within the sample range of 90 to 93 units during cruise. The Nosewheel Steering indication that differs from the expected state requires the pilot flying to announce the condition unless directed otherwise by the Sample Operations Center.</para>
+        <para id="mel100-p00935">(M) Sample maintenance note. During a diversion, the relief pilot should monitor the Thrust Reverser advisory when conditions permit. During parking, the pilot monitoring should cross-check the Ground Proximity Monitor switch position before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0063" number="09.10.4">
+        <title>31-40 Auxiliary Power Unit</title>
+        <melItem id="mel100-p00936" category="A" installed="4" required="1">
+          <remarks>If the Fuel Crossfeed is inoperative, continue descent only after the pilot monitoring has reviewed the associated sample guidance. The pilot flying will select any change in the Fuel Crossfeed quantity display and advise the other pilot once the checklist item is complete. The first officer will select any change in the Thrust Reverser status message and advise the other pilot when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00937">(O) Sample operations note. During a turnaround, the pilot flying should confirm the Standby Instruments annunciation if the indication does not stabilize within the sample interval. The first officer will confirm any change in the Hydraulic System A switch position and advise the other pilot if the indication does not stabilize within the sample interval. If the Bleed Air Supply is inoperative, continue engine start only after the relief pilot has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00938">(M) Sample maintenance note. The captain will cross-check any change in the Autopilot Channel B status message and advise the other pilot when conditions permit. The Brake Temperature Monitor selector position is expected to read within the sample range of 13 to 23 units during cruise.</para>
+      </topic>
+      <topic id="mel100-t0064" number="09.10.5">
+        <title>31-50 Flap Position Indication</title>
+        <melItem id="mel100-p00939" category="B" installed="3" required="2">
+          <remarks>During takeoff, the pilot flying should monitor the Center Tank Pumps annunciation if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p00940">(O) Sample operations note. During parking, both pilots should confirm the Standby Instruments status message once the checklist item is complete. During landing, both pilots should select the Hydraulic System B indication if a discrepancy is observed. During parking, the pilot monitoring should select the Nosewheel Steering status message when conditions permit.</para>
+        <para id="mel100-p00941">(M) Sample maintenance note. The Flap Position Indication switch position that differs from the expected state requires the pilot monitoring to cross-check the condition when conditions permit. The Autopilot Channel B quantity display is expected to read within the sample range of 60 to 65 units during a maintenance-requested ground run.</para>
+      </topic>
+      <topic id="mel100-t0065" number="09.10.6">
+        <title>31-60 Oxygen Distribution</title>
+        <melItem id="mel100-p00942" category="C" installed="4" required="0">
+          <remarks>If the Standby Instruments is inoperative, continue a diversion only after both pilots has reviewed the associated sample guidance. If the Autopilot Channel A is inoperative, continue landing only after the pilot flying has reviewed the associated sample guidance. The Speedbrake Handle switch position that differs from the expected state requires the Captain to verify the condition if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p00943">(O) Sample operations note. The Ground Proximity Monitor selector position that differs from the expected state requires the First Officer to brief the condition when the associated caution light remains illuminated. This text is fictional and exists only to give the prototype realistic volume and structure. During takeoff, the First Officer should monitor the Standby Instruments quantity display when conditions permit. The Speedbrake Handle annunciation is expected to read within the sample range of 4 to 8 units during an extended ground delay.</para>
+        <para id="mel100-p00944">(M) Sample maintenance note. The relief pilot will confirm any change in the Standby Hydraulic indication and advise the other pilot unless directed otherwise by the Sample Operations Center. During a diversion, the Captain should verify the Center Tank Pumps status message if a discrepancy is observed. The Flight Management Computer indication is expected to read within the sample range of 34 to 43 units during a turnaround.</para>
+      </topic>
+      <topic id="mel100-t0066" number="09.10.7">
+        <title>31-70 Primary Electrical Bus</title>
+        <melItem id="mel100-p00945" category="A" installed="3" required="0">
+          <remarks>During climb, the pilot monitoring should record the Stall Warning indication when conditions permit. If the Auxiliary Power Unit is inoperative, continue an extended ground delay only after the Captain has reviewed the associated sample guidance. This text is fictional and exists only to give the prototype realistic volume and structure.</remarks>
+        </melItem>
+        <para id="mel100-p00946">(O) Sample operations note. The Transponder selector position that differs from the expected state requires the Captain to record the condition when conditions permit. During a maintenance-requested ground run, both pilots should record the Transponder selector position if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p00947">(M) Sample maintenance note. During parking, the pilot flying should brief the Landing Gear Indication indication when conditions permit. The Autothrottle advisory is expected to read within the sample range of 84 to 92 units during approach.</para>
+      </topic>
+      <topic id="mel100-t0067" number="09.10.8">
+        <title>31-80 Center Tank Pumps</title>
+        <melItem id="mel100-p00948" category="A" installed="2" required="1">
+          <remarks>If the Oxygen Distribution is inoperative, continue preflight only after both pilots has reviewed the associated sample guidance. If the Brake Temperature Monitor is inoperative, continue a maintenance-requested ground run only after the pilot flying has reviewed the associated sample guidance. The Standby Hydraulic switch position is expected to read within the sample range of 54 to 60 units during takeoff.</remarks>
+        </melItem>
+        <para id="mel100-p00949">(O) Sample operations note. Refer to the related topic for additional sample context. The Oxygen Distribution advisory is expected to read within the sample range of 90 to 102 units during an extended ground delay.</para>
+        <para id="mel100-p00950">(M) Sample maintenance note. The Bleed Air Supply selector position that differs from the expected state requires the Captain to confirm the condition once the checklist item is complete. The pilot flying will monitor any change in the Fire Detection Loop indication and advise the other pilot if a discrepancy is observed. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+      </topic>
+      <topic id="mel100-t0068" number="09.10.9">
+        <title>31-90 Brake Temperature Monitor</title>
+        <melItem id="mel100-p00951" category="D" installed="4" required="3">
+          <remarks>During approach, the Captain should cross-check the Center Tank Pumps annunciation unless directed otherwise by the Sample Operations Center.</remarks>
+        </melItem>
+        <para id="mel100-p00952">(O) Sample operations note. This text is fictional and exists only to give the prototype realistic volume and structure. The Oxygen Distribution switch position is expected to read within the sample range of 87 to 95 units during a turnaround. The pilot flying will brief any change in the Landing Gear Indication switch position and advise the other pilot if a discrepancy is observed.</para>
+        <para id="mel100-p00953">(M) Sample maintenance note. During preflight, the First Officer should record the Hydraulic System B switch position if the indication does not stabilize within the sample interval. If the Autopilot Channel A is inoperative, continue takeoff only after the pilot flying has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0069" number="09.10.10">
+        <title>31-100 Primary Electrical Bus</title>
+        <melItem id="mel100-p00954" category="B" installed="4" required="2">
+          <remarks>The Oxygen Distribution switch position is expected to read within the sample range of 71 to 83 units during climb. The pilot monitoring will cross-check any change in the Wing Anti-Ice indication and advise the other pilot when operating at a sample station without ground power. The captain will cross-check any change in the Traffic Advisory Display advisory and advise the other pilot unless directed otherwise by the Sample Operations Center.</remarks>
+        </melItem>
+        <para id="mel100-p00955">(O) Sample operations note. The Speedbrake Handle status message that differs from the expected state requires the relief pilot to record the condition once the checklist item is complete. The Wing Anti-Ice selector position that differs from the expected state requires the pilot monitoring to monitor the condition when the associated caution light remains illuminated. Refer to the related topic for additional sample context.</para>
+        <para id="mel100-p00956">(M) Sample maintenance note. The Auxiliary Power Unit quantity display that differs from the expected state requires the pilot flying to brief the condition when operating at a sample station without ground power. Values in this manual are invented and must not be used for any operational purpose.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c10" number="10">
+    <title>ATA 32 Landing Gear</title>
+    <section id="mel100-s010" number="10.10">
+      <title>Items</title>
+      <topic id="mel100-t0070" number="10.10.1">
+        <title>32-10 Autopilot Channel A</title>
+        <melItem id="mel100-p00957" category="C" installed="4" required="2">
+          <remarks>The relief pilot will announce any change in the Oxygen Distribution quantity display and advise the other pilot if a discrepancy is observed. The wording here is placeholder content shaped like a procedure, not a procedure.</remarks>
+        </melItem>
+        <para id="mel100-p00958">(O) Sample operations note. The Autothrottle switch position is expected to read within the sample range of 27 to 37 units during a diversion. The relief pilot will monitor any change in the Autobrake Selector advisory and advise the other pilot if the indication does not stabilize within the sample interval. The Pack Temperature Control switch position that differs from the expected state requires both pilots to verify the condition when operating at a sample station without ground power. If the Pack Temperature Control is inoperative, continue a turnaround only after the Captain has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00959">(M) Sample maintenance note. The pilot monitoring will announce any change in the Wing Anti-Ice annunciation and advise the other pilot when operating at a sample station without ground power. The Window Heat advisory that differs from the expected state requires the relief pilot to verify the condition when the associated caution light remains illuminated.</para>
+      </topic>
+      <topic id="mel100-t0071" number="10.10.2">
+        <title>32-20 Stall Warning</title>
+        <melItem id="mel100-p00960" category="D" installed="2" required="0">
+          <remarks>The Center Tank Pumps selector position that differs from the expected state requires the relief pilot to confirm the condition once the checklist item is complete. This text is fictional and exists only to give the prototype realistic volume and structure. The first officer will confirm any change in the Speedbrake Handle selector position and advise the other pilot if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00961">(O) Sample operations note. Both pilots will select any change in the Weather Radar indication and advise the other pilot if the indication does not stabilize within the sample interval. The Standby Hydraulic switch position is expected to read within the sample range of 35 to 41 units during a diversion. Refer to the related topic for additional sample context.</para>
+        <para id="mel100-p00962">(M) Sample maintenance note. Both pilots will brief any change in the Wing Anti-Ice quantity display and advise the other pilot if the indication does not stabilize within the sample interval. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+      </topic>
+      <topic id="mel100-t0072" number="10.10.3">
+        <title>32-30 Cabin Pressure Controller</title>
+        <melItem id="mel100-p00963" category="C" installed="2" required="1">
+          <remarks>The Nosewheel Steering switch position is expected to read within the sample range of 34 to 39 units during a turnaround. If the Cockpit Voice Recorder is inoperative, continue engine start only after the Captain has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p00964">(O) Sample operations note. The Landing Gear Indication advisory is expected to read within the sample range of 93 to 99 units during preflight. During a turnaround, the relief pilot should select the Brake Temperature Monitor switch position before the next phase of flight. The pilot flying will verify any change in the Hydraulic System A advisory and advise the other pilot if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p00965">(M) Sample maintenance note. The pilot flying will announce any change in the Oxygen Distribution advisory and advise the other pilot before the next phase of flight. Both pilots will announce any change in the Fire Detection Loop annunciation and advise the other pilot if the indication does not stabilize within the sample interval. The Transponder selector position that differs from the expected state requires the relief pilot to monitor the condition unless directed otherwise by the Sample Operations Center.</para>
+      </topic>
+      <topic id="mel100-t0073" number="10.10.4">
+        <title>32-40 Fuel Crossfeed</title>
+        <melItem id="mel100-p00966" category="A" installed="4" required="3">
+          <remarks>The wording here is placeholder content shaped like a procedure, not a procedure. The captain will announce any change in the Hydraulic System B indication and advise the other pilot when conditions permit. Both pilots will select any change in the Hydraulic System A quantity display and advise the other pilot unless directed otherwise by the Sample Operations Center.</remarks>
+        </melItem>
+        <para id="mel100-p00967">(O) Sample operations note. If the Flap Position Indication is inoperative, continue an extended ground delay only after both pilots has reviewed the associated sample guidance. The Speedbrake Handle status message is expected to read within the sample range of 37 to 48 units during a turnaround. During a diversion, the Captain should cross-check the Flight Management Computer quantity display before the next phase of flight.</para>
+        <para id="mel100-p00968">(M) Sample maintenance note. During a maintenance-requested ground run, the relief pilot should monitor the Thrust Reverser advisory unless directed otherwise by the Sample Operations Center. During a diversion, the First Officer should cross-check the Standby Hydraulic switch position when conditions permit. If the Autopilot Channel A is inoperative, continue climb only after the relief pilot has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0074" number="10.10.5">
+        <title>32-50 Autothrottle</title>
+        <melItem id="mel100-p00969" category="B" installed="2" required="0">
+          <remarks>The pilot monitoring will select any change in the Autothrottle annunciation and advise the other pilot if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p00970">(O) Sample operations note. The Standby Hydraulic selector position that differs from the expected state requires the pilot monitoring to cross-check the condition when conditions permit. The relief pilot will record any change in the Hydraulic System B quantity display and advise the other pilot unless directed otherwise by the Sample Operations Center.</para>
+        <para id="mel100-p00971">(M) Sample maintenance note. If the Ground Proximity Monitor is inoperative, continue landing only after the pilot monitoring has reviewed the associated sample guidance. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+      </topic>
+      <topic id="mel100-t0075" number="10.10.6">
+        <title>32-60 Bleed Air Supply</title>
+        <melItem id="mel100-p00972" category="C" installed="2" required="1">
+          <remarks>Refer to the related topic for additional sample context. The first officer will verify any change in the Autobrake Selector indication and advise the other pilot once the checklist item is complete. The Brake Temperature Monitor switch position that differs from the expected state requires the pilot monitoring to monitor the condition before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p00973">(O) Sample operations note. Refer to the related topic for additional sample context. The Cabin Pressure Controller selector position that differs from the expected state requires the Captain to brief the condition before the next phase of flight. The Transponder advisory that differs from the expected state requires the pilot flying to cross-check the condition when operating at a sample station without ground power. The Pack Temperature Control quantity display is expected to read within the sample range of 26 to 34 units during a diversion.</para>
+        <para id="mel100-p00974">(M) Sample maintenance note. The Traffic Advisory Display advisory is expected to read within the sample range of 16 to 26 units during an extended ground delay. The first officer will announce any change in the Landing Gear Indication annunciation and advise the other pilot when operating at a sample station without ground power.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c11" number="11">
+    <title>ATA 33 Lights</title>
+    <section id="mel100-s011" number="11.10">
+      <title>Items</title>
+      <topic id="mel100-t0076" number="11.10.1">
+        <title>33-10 Probe Heat</title>
+        <melItem id="mel100-p00975" category="D" installed="3" required="2">
+          <remarks>Values in this manual are invented and must not be used for any operational purpose. The Window Heat annunciation is expected to read within the sample range of 88 to 99 units during cruise.</remarks>
+        </melItem>
+        <para id="mel100-p00976">(O) Sample operations note. If the Brake Temperature Monitor is inoperative, continue engine start only after the relief pilot has reviewed the associated sample guidance. The Hydraulic System B quantity display is expected to read within the sample range of 56 to 60 units during preflight. Refer to the related topic for additional sample context. The Autothrottle status message that differs from the expected state requires the pilot monitoring to cross-check the condition if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p00977">(M) Sample maintenance note. The Landing Gear Indication switch position is expected to read within the sample range of 10 to 14 units during a turnaround. The Autothrottle indication is expected to read within the sample range of 49 to 59 units during taxi.</para>
+      </topic>
+      <topic id="mel100-t0077" number="11.10.2">
+        <title>33-20 Fire Detection Loop</title>
+        <melItem id="mel100-p00978" category="C" installed="2" required="0">
+          <remarks>During a diversion, the pilot flying should select the Wing Anti-Ice quantity display if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00979">(O) Sample operations note. During parking, the relief pilot should brief the Bleed Air Supply status message if the indication does not stabilize within the sample interval. The Probe Heat status message that differs from the expected state requires both pilots to monitor the condition unless directed otherwise by the Sample Operations Center. If the Cabin Pressure Controller is inoperative, continue an extended ground delay only after the First Officer has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00980">(M) Sample maintenance note. The captain will announce any change in the Weather Radar annunciation and advise the other pilot when conditions permit. If the Traffic Advisory Display is inoperative, continue a maintenance-requested ground run only after the Captain has reviewed the associated sample guidance. The relief pilot will brief any change in the Traffic Advisory Display annunciation and advise the other pilot when the associated caution light remains illuminated.</para>
+      </topic>
+      <topic id="mel100-t0078" number="11.10.3">
+        <title>33-30 Hydraulic System A</title>
+        <melItem id="mel100-p00981" category="B" installed="2" required="1">
+          <remarks>The pilot monitoring will brief any change in the Cockpit Voice Recorder advisory and advise the other pilot before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p00982">(O) Sample operations note. The Cockpit Voice Recorder advisory that differs from the expected state requires the Captain to confirm the condition if a discrepancy is observed. Values in this manual are invented and must not be used for any operational purpose.</para>
+        <para id="mel100-p00983">(M) Sample maintenance note. The Brake Temperature Monitor selector position is expected to read within the sample range of 19 to 25 units during an extended ground delay. If the Autothrottle is inoperative, continue climb only after the pilot flying has reviewed the associated sample guidance. The Oxygen Distribution advisory is expected to read within the sample range of 89 to 97 units during an extended ground delay.</para>
+      </topic>
+      <topic id="mel100-t0079" number="11.10.4">
+        <title>33-40 Window Heat</title>
+        <melItem id="mel100-p00984" category="D" installed="2" required="0">
+          <remarks>Values in this manual are invented and must not be used for any operational purpose.</remarks>
+        </melItem>
+        <para id="mel100-p00985">(O) Sample operations note. The Wing Anti-Ice annunciation that differs from the expected state requires the pilot monitoring to select the condition unless directed otherwise by the Sample Operations Center. The Auxiliary Power Unit indication is expected to read within the sample range of 97 to 104 units during a turnaround. Refer to the related topic for additional sample context.</para>
+        <para id="mel100-p00986">(M) Sample maintenance note. This text is fictional and exists only to give the prototype realistic volume and structure. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+      </topic>
+      <topic id="mel100-t0080" number="11.10.5">
+        <title>33-50 Wing Anti-Ice</title>
+        <melItem id="mel100-p00987" category="C" installed="3" required="1">
+          <remarks>The captain will cross-check any change in the Pack Temperature Control quantity display and advise the other pilot if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p00988">(O) Sample operations note. During approach, the pilot monitoring should monitor the Bleed Air Supply selector position before the next phase of flight. The Bleed Air Supply advisory that differs from the expected state requires the First Officer to verify the condition if the indication does not stabilize within the sample interval. If the Nosewheel Steering is inoperative, continue climb only after the pilot monitoring has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00989">(M) Sample maintenance note. This text is fictional and exists only to give the prototype realistic volume and structure. Both pilots will confirm any change in the Wing Anti-Ice status message and advise the other pilot when the associated caution light remains illuminated.</para>
+      </topic>
+      <topic id="mel100-t0081" number="11.10.6">
+        <title>33-60 Nosewheel Steering</title>
+        <melItem id="mel100-p00990" category="C" installed="3" required="0">
+          <remarks>The Oxygen Distribution advisory is expected to read within the sample range of 33 to 40 units during taxi.</remarks>
+        </melItem>
+        <para id="mel100-p00991">(O) Sample operations note. The wording here is placeholder content shaped like a procedure, not a procedure. The pilot monitoring will cross-check any change in the Pack Temperature Control status message and advise the other pilot before the next phase of flight. If the Stall Warning is inoperative, continue a diversion only after both pilots has reviewed the associated sample guidance.</para>
+        <para id="mel100-p00992">(M) Sample maintenance note. The Nosewheel Steering annunciation that differs from the expected state requires the Captain to confirm the condition before the next phase of flight. Both pilots will monitor any change in the Fire Detection Loop quantity display and advise the other pilot when conditions permit. Refer to the related topic for additional sample context.</para>
+      </topic>
+      <topic id="mel100-t0082" number="11.10.7">
+        <title>33-70 Ground Proximity Monitor</title>
+        <melItem id="mel100-p00993" category="D" installed="3" required="2">
+          <remarks>The Brake Temperature Monitor annunciation that differs from the expected state requires the relief pilot to verify the condition when conditions permit.</remarks>
+        </melItem>
+        <para id="mel100-p00994">(O) Sample operations note. This text is fictional and exists only to give the prototype realistic volume and structure. The Autopilot Channel B indication that differs from the expected state requires the pilot monitoring to monitor the condition when the associated caution light remains illuminated. The Engine Anti-Ice quantity display that differs from the expected state requires both pilots to brief the condition when operating at a sample station without ground power.</para>
+        <para id="mel100-p00995">(M) Sample maintenance note. If the Window Heat is inoperative, continue takeoff only after the pilot monitoring has reviewed the associated sample guidance. The relief pilot will cross-check any change in the Fuel Crossfeed indication and advise the other pilot when the associated caution light remains illuminated.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c12" number="12">
+    <title>ATA 34 Navigation</title>
+    <section id="mel100-s012" number="12.10">
+      <title>Items</title>
+      <topic id="mel100-t0083" number="12.10.1">
+        <title>34-10 Thrust Reverser</title>
+        <melItem id="mel100-p00996" category="D" installed="3" required="2">
+          <remarks>The pilot monitoring will monitor any change in the Center Tank Pumps annunciation and advise the other pilot when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p00997">(O) Sample operations note. The Autothrottle annunciation is expected to read within the sample range of 97 to 107 units during engine start. During parking, the pilot monitoring should select the Transponder status message if the indication does not stabilize within the sample interval. The first officer will monitor any change in the Standby Hydraulic quantity display and advise the other pilot unless directed otherwise by the Sample Operations Center.</para>
+        <para id="mel100-p00998">(M) Sample maintenance note. The pilot flying will record any change in the Ground Proximity Monitor annunciation and advise the other pilot if a discrepancy is observed. The Engine Anti-Ice selector position is expected to read within the sample range of 93 to 103 units during a diversion. The Thrust Reverser switch position that differs from the expected state requires the relief pilot to confirm the condition when the associated caution light remains illuminated.</para>
+      </topic>
+      <topic id="mel100-t0084" number="12.10.2">
+        <title>34-20 Oxygen Distribution</title>
+        <melItem id="mel100-p00999" category="D" installed="2" required="1">
+          <remarks>The captain will record any change in the Auxiliary Power Unit quantity display and advise the other pilot if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p01000">(O) Sample operations note. This text is fictional and exists only to give the prototype realistic volume and structure. The Wing Anti-Ice quantity display is expected to read within the sample range of 32 to 43 units during cruise.</para>
+        <para id="mel100-p01001">(M) Sample maintenance note. The relief pilot will select any change in the Primary Electrical Bus advisory and advise the other pilot when conditions permit. If the Weather Radar is inoperative, continue descent only after the pilot flying has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0085" number="12.10.3">
+        <title>34-30 Oxygen Distribution</title>
+        <melItem id="mel100-p01002" category="B" installed="3" required="2">
+          <remarks>The Autothrottle switch position is expected to read within the sample range of 88 to 93 units during taxi.</remarks>
+        </melItem>
+        <para id="mel100-p01003">(O) Sample operations note. The Flight Management Computer annunciation that differs from the expected state requires the pilot flying to brief the condition if the indication does not stabilize within the sample interval. If the Probe Heat is inoperative, continue a diversion only after the pilot flying has reviewed the associated sample guidance. The Traffic Advisory Display advisory is expected to read within the sample range of 6 to 13 units during approach.</para>
+        <para id="mel100-p01004">(M) Sample maintenance note. The Auxiliary Power Unit selector position is expected to read within the sample range of 91 to 100 units during a maintenance-requested ground run. The Flight Management Computer switch position that differs from the expected state requires the First Officer to select the condition before the next phase of flight.</para>
+      </topic>
+      <topic id="mel100-t0086" number="12.10.4">
+        <title>34-40 Weather Radar</title>
+        <melItem id="mel100-p01005" category="C" installed="3" required="2">
+          <remarks>During an extended ground delay, the relief pilot should brief the Autopilot Channel B status message once the checklist item is complete. This text is fictional and exists only to give the prototype realistic volume and structure.</remarks>
+        </melItem>
+        <para id="mel100-p01006">(O) Sample operations note. Values in this manual are invented and must not be used for any operational purpose. If the Ground Proximity Monitor is inoperative, continue approach only after the relief pilot has reviewed the associated sample guidance. The Traffic Advisory Display switch position that differs from the expected state requires the Captain to cross-check the condition when operating at a sample station without ground power. The Auxiliary Power Unit selector position that differs from the expected state requires the pilot flying to cross-check the condition if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p01007">(M) Sample maintenance note. The Speedbrake Handle selector position is expected to read within the sample range of 46 to 57 units during takeoff. The captain will select any change in the Stall Warning advisory and advise the other pilot once the checklist item is complete.</para>
+      </topic>
+      <topic id="mel100-t0087" number="12.10.5">
+        <title>34-50 Flight Management Computer</title>
+        <melItem id="mel100-p01008" category="D" installed="3" required="0">
+          <remarks>The Autobrake Selector quantity display is expected to read within the sample range of 15 to 27 units during parking. If the Stall Warning is inoperative, continue approach only after the Captain has reviewed the associated sample guidance. During landing, the pilot monitoring should monitor the Probe Heat advisory before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p01009">(O) Sample operations note. During takeoff, the pilot monitoring should record the Pack Temperature Control status message unless directed otherwise by the Sample Operations Center. During takeoff, the Captain should monitor the Flight Management Computer switch position if the indication does not stabilize within the sample interval. Values in this manual are invented and must not be used for any operational purpose. Refer to the related topic for additional sample context.</para>
+        <para id="mel100-p01010">(M) Sample maintenance note. The Fuel Crossfeed indication is expected to read within the sample range of 2 to 6 units during parking. If the Speedbrake Handle is inoperative, continue parking only after the First Officer has reviewed the associated sample guidance. The Flap Position Indication advisory that differs from the expected state requires the First Officer to brief the condition when the associated caution light remains illuminated.</para>
+      </topic>
+      <topic id="mel100-t0088" number="12.10.6">
+        <title>34-60 Cabin Pressure Controller</title>
+        <melItem id="mel100-p01011" category="D" installed="3" required="2">
+          <remarks>If the Cargo Smoke Detection is inoperative, continue a turnaround only after the pilot monitoring has reviewed the associated sample guidance. If the Engine Anti-Ice is inoperative, continue engine start only after the pilot flying has reviewed the associated sample guidance. Both pilots will cross-check any change in the Autobrake Selector annunciation and advise the other pilot if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p01012">(O) Sample operations note. The Thrust Reverser switch position is expected to read within the sample range of 42 to 45 units during engine start. The Stall Warning advisory that differs from the expected state requires the First Officer to announce the condition when the associated caution light remains illuminated. During engine start, both pilots should record the Autobrake Selector advisory if the indication does not stabilize within the sample interval. The Fuel Crossfeed annunciation that differs from the expected state requires the Captain to monitor the condition when operating at a sample station without ground power.</para>
+        <para id="mel100-p01013">(M) Sample maintenance note. The relief pilot will verify any change in the Hydraulic System B advisory and advise the other pilot when conditions permit. During engine start, the First Officer should verify the Pack Temperature Control status message if a discrepancy is observed.</para>
+      </topic>
+      <topic id="mel100-t0089" number="12.10.7">
+        <title>34-70 Center Tank Pumps</title>
+        <melItem id="mel100-p01014" category="D" installed="3" required="0">
+          <remarks>During descent, the pilot monitoring should verify the Standby Instruments annunciation when the associated caution light remains illuminated. The Window Heat annunciation that differs from the expected state requires the pilot monitoring to cross-check the condition when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p01015">(O) Sample operations note. If the Autobrake Selector is inoperative, continue a maintenance-requested ground run only after the Captain has reviewed the associated sample guidance. During takeoff, the Captain should cross-check the Flight Management Computer quantity display once the checklist item is complete. The pilot monitoring will announce any change in the Cockpit Voice Recorder status message and advise the other pilot before the next phase of flight. The Cabin Pressure Controller status message is expected to read within the sample range of 97 to 106 units during a maintenance-requested ground run.</para>
+        <para id="mel100-p01016">(M) Sample maintenance note. During landing, the Captain should record the Pack Temperature Control indication if a discrepancy is observed. The first officer will verify any change in the Landing Gear Indication advisory and advise the other pilot when operating at a sample station without ground power.</para>
+      </topic>
+      <topic id="mel100-t0090" number="12.10.8">
+        <title>34-80 Bleed Air Supply</title>
+        <melItem id="mel100-p01017" category="A" installed="3" required="2">
+          <remarks>The Engine Anti-Ice indication that differs from the expected state requires the pilot flying to brief the condition when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p01018">(O) Sample operations note. The relief pilot will confirm any change in the Engine Anti-Ice selector position and advise the other pilot if the indication does not stabilize within the sample interval. The Cockpit Voice Recorder quantity display that differs from the expected state requires the First Officer to monitor the condition when the associated caution light remains illuminated. If the Cockpit Voice Recorder is inoperative, continue a turnaround only after the First Officer has reviewed the associated sample guidance.</para>
+        <para id="mel100-p01019">(M) Sample maintenance note. The Probe Heat indication is expected to read within the sample range of 7 to 16 units during approach. If the Fire Detection Loop is inoperative, continue climb only after the First Officer has reviewed the associated sample guidance.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c13" number="13">
+    <title>ATA 35 Oxygen</title>
+    <section id="mel100-s013" number="13.10">
+      <title>Items</title>
+      <topic id="mel100-t0091" number="13.10.1">
+        <title>35-10 Speedbrake Handle</title>
+        <melItem id="mel100-p01020" category="A" installed="4" required="1">
+          <remarks>This text is fictional and exists only to give the prototype realistic volume and structure. The Window Heat quantity display that differs from the expected state requires both pilots to announce the condition when operating at a sample station without ground power. During an extended ground delay, the pilot monitoring should record the Stall Warning advisory if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p01021">(O) Sample operations note. Values in this manual are invented and must not be used for any operational purpose. The Oxygen Distribution quantity display that differs from the expected state requires the pilot flying to brief the condition when the associated caution light remains illuminated. During an extended ground delay, both pilots should confirm the Center Tank Pumps quantity display unless directed otherwise by the Sample Operations Center. Values in this manual are invented and must not be used for any operational purpose.</para>
+        <para id="mel100-p01022">(M) Sample maintenance note. During descent, both pilots should announce the Flight Management Computer status message unless directed otherwise by the Sample Operations Center. The relief pilot will select any change in the Speedbrake Handle annunciation and advise the other pilot before the next phase of flight. If the Brake Temperature Monitor is inoperative, continue climb only after the relief pilot has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0092" number="13.10.2">
+        <title>35-20 Hydraulic System A</title>
+        <melItem id="mel100-p01023" category="C" installed="2" required="0">
+          <remarks>The first officer will announce any change in the Standby Hydraulic status message and advise the other pilot once the checklist item is complete. This text is fictional and exists only to give the prototype realistic volume and structure.</remarks>
+        </melItem>
+        <para id="mel100-p01024">(O) Sample operations note. During an extended ground delay, the First Officer should select the Speedbrake Handle status message once the checklist item is complete. If the Hydraulic System B is inoperative, continue approach only after the Captain has reviewed the associated sample guidance. The Fuel Crossfeed advisory is expected to read within the sample range of 32 to 36 units during an extended ground delay.</para>
+        <para id="mel100-p01025">(M) Sample maintenance note. During a maintenance-requested ground run, the Captain should record the Standby Hydraulic indication before the next phase of flight. During a turnaround, the relief pilot should cross-check the Bleed Air Supply selector position when the associated caution light remains illuminated. The Brake Temperature Monitor quantity display is expected to read within the sample range of 81 to 88 units during taxi.</para>
+      </topic>
+      <topic id="mel100-t0093" number="13.10.3">
+        <title>35-30 Wing Anti-Ice</title>
+        <melItem id="mel100-p01026" category="A" installed="2" required="0">
+          <remarks>The Standby Hydraulic annunciation is expected to read within the sample range of 39 to 48 units during climb.</remarks>
+        </melItem>
+        <para id="mel100-p01027">(O) Sample operations note. The wording here is placeholder content shaped like a procedure, not a procedure. During parking, the Captain should confirm the Flight Management Computer status message before the next phase of flight. During takeoff, the pilot monitoring should confirm the Autothrottle status message when operating at a sample station without ground power. The Traffic Advisory Display indication that differs from the expected state requires the pilot monitoring to select the condition if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p01028">(M) Sample maintenance note. The Pack Temperature Control quantity display that differs from the expected state requires the pilot flying to confirm the condition when the associated caution light remains illuminated. The Autopilot Channel A advisory that differs from the expected state requires both pilots to cross-check the condition before the next phase of flight. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+      </topic>
+      <topic id="mel100-t0094" number="13.10.4">
+        <title>35-40 Engine Anti-Ice</title>
+        <melItem id="mel100-p01029" category="C" installed="3" required="1">
+          <remarks>The pilot monitoring will confirm any change in the Cargo Smoke Detection status message and advise the other pilot once the checklist item is complete. The Center Tank Pumps quantity display is expected to read within the sample range of 49 to 57 units during climb.</remarks>
+        </melItem>
+        <para id="mel100-p01030">(O) Sample operations note. The captain will cross-check any change in the Autopilot Channel B annunciation and advise the other pilot when conditions permit. Refer to the related topic for additional sample context. During engine start, the pilot flying should verify the Fuel Crossfeed indication if a discrepancy is observed.</para>
+        <para id="mel100-p01031">(M) Sample maintenance note. During climb, the relief pilot should record the Fire Detection Loop switch position when conditions permit. Values in this manual are invented and must not be used for any operational purpose. If the Cabin Pressure Controller is inoperative, continue cruise only after the Captain has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0095" number="13.10.5">
+        <title>35-50 Wing Anti-Ice</title>
+        <melItem id="mel100-p01032" category="C" installed="4" required="3">
+          <remarks>If the Bleed Air Supply is inoperative, continue taxi only after both pilots has reviewed the associated sample guidance. During parking, the pilot monitoring should brief the Standby Instruments selector position if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p01033">(O) Sample operations note. The relief pilot will confirm any change in the Primary Electrical Bus status message and advise the other pilot when operating at a sample station without ground power. The Thrust Reverser selector position is expected to read within the sample range of 60 to 64 units during a maintenance-requested ground run.</para>
+        <para id="mel100-p01034">(M) Sample maintenance note. During a turnaround, the First Officer should verify the Standby Instruments status message when conditions permit. The Standby Hydraulic annunciation is expected to read within the sample range of 71 to 78 units during a turnaround. During a turnaround, the relief pilot should verify the Bleed Air Supply status message unless directed otherwise by the Sample Operations Center.</para>
+      </topic>
+      <topic id="mel100-t0096" number="13.10.6">
+        <title>35-60 Cabin Pressure Controller</title>
+        <melItem id="mel100-p01035" category="C" installed="3" required="1">
+          <remarks>The Center Tank Pumps annunciation that differs from the expected state requires the First Officer to cross-check the condition when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p01036">(O) Sample operations note. If the Window Heat is inoperative, continue takeoff only after the relief pilot has reviewed the associated sample guidance. The Weather Radar switch position is expected to read within the sample range of 51 to 62 units during preflight. During parking, the pilot monitoring should monitor the Auxiliary Power Unit quantity display once the checklist item is complete. The pilot flying will cross-check any change in the Standby Instruments switch position and advise the other pilot when the associated caution light remains illuminated.</para>
+        <para id="mel100-p01037">(M) Sample maintenance note. The Fuel Crossfeed selector position that differs from the expected state requires the Captain to cross-check the condition if the indication does not stabilize within the sample interval. Refer to the related topic for additional sample context. The Standby Hydraulic selector position that differs from the expected state requires the pilot monitoring to monitor the condition unless directed otherwise by the Sample Operations Center.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c14" number="14">
+    <title>ATA 36 Pneumatic</title>
+    <section id="mel100-s014" number="14.10">
+      <title>Items</title>
+      <topic id="mel100-t0097" number="14.10.1">
+        <title>36-10 Weather Radar</title>
+        <melItem id="mel100-p01038" category="A" installed="3" required="0">
+          <remarks>The Brake Temperature Monitor advisory is expected to read within the sample range of 98 to 105 units during cruise. The Center Tank Pumps advisory is expected to read within the sample range of 22 to 33 units during taxi.</remarks>
+        </melItem>
+        <para id="mel100-p01039">(O) Sample operations note. Refer to the related topic for additional sample context. If the Speedbrake Handle is inoperative, continue parking only after the pilot monitoring has reviewed the associated sample guidance.</para>
+        <para id="mel100-p01040">(M) Sample maintenance note. During cruise, the Captain should confirm the Auxiliary Power Unit switch position before the next phase of flight. If the Fire Detection Loop is inoperative, continue approach only after the pilot flying has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0098" number="14.10.2">
+        <title>36-20 Weather Radar</title>
+        <melItem id="mel100-p01041" category="C" installed="2" required="0">
+          <remarks>The pilot monitoring will cross-check any change in the Ground Proximity Monitor status message and advise the other pilot if a discrepancy is observed. If the Autopilot Channel B is inoperative, continue a turnaround only after the Captain has reviewed the associated sample guidance. The Stall Warning advisory that differs from the expected state requires the pilot flying to verify the condition if a discrepancy is observed.</remarks>
+        </melItem>
+        <para id="mel100-p01042">(O) Sample operations note. Both pilots will monitor any change in the Thrust Reverser annunciation and advise the other pilot when operating at a sample station without ground power. The Brake Temperature Monitor advisory that differs from the expected state requires the relief pilot to confirm the condition when operating at a sample station without ground power. The Autobrake Selector status message that differs from the expected state requires the Captain to announce the condition unless directed otherwise by the Sample Operations Center. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+        <para id="mel100-p01043">(M) Sample maintenance note. The Cockpit Voice Recorder switch position that differs from the expected state requires the pilot monitoring to verify the condition when the associated caution light remains illuminated. The Autopilot Channel A annunciation is expected to read within the sample range of 82 to 93 units during parking. If the Flight Management Computer is inoperative, continue landing only after the relief pilot has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0099" number="14.10.3">
+        <title>36-30 Wing Anti-Ice</title>
+        <melItem id="mel100-p01044" category="A" installed="3" required="1">
+          <remarks>The captain will verify any change in the Autobrake Selector annunciation and advise the other pilot if the indication does not stabilize within the sample interval.</remarks>
+        </melItem>
+        <para id="mel100-p01045">(O) Sample operations note. During parking, the pilot flying should announce the Standby Instruments annunciation if a discrepancy is observed. During parking, the First Officer should select the Window Heat annunciation when the associated caution light remains illuminated. If the Autobrake Selector is inoperative, continue preflight only after the relief pilot has reviewed the associated sample guidance. The captain will cross-check any change in the Flight Management Computer selector position and advise the other pilot once the checklist item is complete.</para>
+        <para id="mel100-p01046">(M) Sample maintenance note. The Speedbrake Handle annunciation that differs from the expected state requires the pilot monitoring to record the condition if the indication does not stabilize within the sample interval. The first officer will confirm any change in the Cockpit Voice Recorder annunciation and advise the other pilot when the associated caution light remains illuminated.</para>
+      </topic>
+      <topic id="mel100-t0100" number="14.10.4">
+        <title>36-40 Standby Instruments</title>
+        <melItem id="mel100-p01047" category="D" installed="2" required="1">
+          <remarks>If the Fire Detection Loop is inoperative, continue a turnaround only after the pilot flying has reviewed the associated sample guidance. The Brake Temperature Monitor selector position is expected to read within the sample range of 41 to 49 units during takeoff. If the Autobrake Selector is inoperative, continue an extended ground delay only after the pilot monitoring has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p01048">(O) Sample operations note. The Weather Radar quantity display is expected to read within the sample range of 83 to 94 units during an extended ground delay. The Fire Detection Loop switch position is expected to read within the sample range of 11 to 22 units during a diversion. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p01049">(M) Sample maintenance note. If the Bleed Air Supply is inoperative, continue a turnaround only after the pilot monitoring has reviewed the associated sample guidance. This text is fictional and exists only to give the prototype realistic volume and structure.</para>
+      </topic>
+      <topic id="mel100-t0101" number="14.10.5">
+        <title>36-50 Weather Radar</title>
+        <melItem id="mel100-p01050" category="A" installed="3" required="1">
+          <remarks>The Standby Hydraulic status message that differs from the expected state requires the pilot flying to cross-check the condition when conditions permit. The first officer will announce any change in the Autothrottle status message and advise the other pilot when operating at a sample station without ground power. The Traffic Advisory Display selector position that differs from the expected state requires the First Officer to cross-check the condition when the associated caution light remains illuminated.</remarks>
+        </melItem>
+        <para id="mel100-p01051">(O) Sample operations note. If the Traffic Advisory Display is inoperative, continue takeoff only after the pilot flying has reviewed the associated sample guidance. The Flap Position Indication switch position that differs from the expected state requires both pilots to verify the condition once the checklist item is complete.</para>
+        <para id="mel100-p01052">(M) Sample maintenance note. During landing, the pilot flying should announce the Thrust Reverser selector position once the checklist item is complete. During engine start, the Captain should brief the Autobrake Selector selector position when conditions permit.</para>
+      </topic>
+      <topic id="mel100-t0102" number="14.10.6">
+        <title>36-60 Nosewheel Steering</title>
+        <melItem id="mel100-p01053" category="D" installed="3" required="2">
+          <remarks>If the Stall Warning is inoperative, continue cruise only after the pilot monitoring has reviewed the associated sample guidance. The first officer will cross-check any change in the Auxiliary Power Unit advisory and advise the other pilot before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p01054">(O) Sample operations note. The Flap Position Indication selector position is expected to read within the sample range of 33 to 43 units during parking. The captain will record any change in the Autothrottle status message and advise the other pilot if a discrepancy is observed. During taxi, both pilots should verify the Stall Warning status message before the next phase of flight. Values in this manual are invented and must not be used for any operational purpose.</para>
+        <para id="mel100-p01055">(M) Sample maintenance note. If the Auxiliary Power Unit is inoperative, continue landing only after the pilot monitoring has reviewed the associated sample guidance. The relief pilot will brief any change in the Wing Anti-Ice status message and advise the other pilot unless directed otherwise by the Sample Operations Center. Values in this manual are invented and must not be used for any operational purpose.</para>
+      </topic>
+    </section>
+  </chapter>
+  <chapter id="mel100-c15" number="15">
+    <title>ATA 49 Auxiliary Power Unit</title>
+    <section id="mel100-s015" number="15.10">
+      <title>Items</title>
+      <topic id="mel100-t0103" number="15.10.1">
+        <title>49-10 Flight Management Computer</title>
+        <melItem id="mel100-p01056" category="B" installed="2" required="1">
+          <remarks>The relief pilot will select any change in the Window Heat status message and advise the other pilot if the indication does not stabilize within the sample interval. If the Stall Warning is inoperative, continue preflight only after both pilots has reviewed the associated sample guidance. The Autopilot Channel A status message is expected to read within the sample range of 48 to 51 units during engine start.</remarks>
+        </melItem>
+        <para id="mel100-p01057">(O) Sample operations note. If the Standby Instruments is inoperative, continue landing only after the pilot flying has reviewed the associated sample guidance. The Bleed Air Supply indication is expected to read within the sample range of 74 to 80 units during approach. During parking, the pilot flying should monitor the Cabin Pressure Controller selector position when the associated caution light remains illuminated. Both pilots will select any change in the Flight Management Computer quantity display and advise the other pilot once the checklist item is complete.</para>
+        <para id="mel100-p01058">(M) Sample maintenance note. The Autobrake Selector selector position is expected to read within the sample range of 37 to 40 units during approach. The captain will cross-check any change in the Window Heat status message and advise the other pilot when the associated caution light remains illuminated. The Autopilot Channel B switch position is expected to read within the sample range of 96 to 104 units during an extended ground delay.</para>
+      </topic>
+      <topic id="mel100-t0104" number="15.10.2">
+        <title>49-20 Cockpit Voice Recorder</title>
+        <melItem id="mel100-p01059" category="D" installed="2" required="0">
+          <remarks>The Standby Hydraulic advisory that differs from the expected state requires the First Officer to monitor the condition when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p01060">(O) Sample operations note. The Center Tank Pumps switch position that differs from the expected state requires the Captain to record the condition before the next phase of flight. This text is fictional and exists only to give the prototype realistic volume and structure. If the Center Tank Pumps is inoperative, continue taxi only after the pilot flying has reviewed the associated sample guidance.</para>
+        <para id="mel100-p01061">(M) Sample maintenance note. If the Engine Anti-Ice is inoperative, continue preflight only after the pilot flying has reviewed the associated sample guidance. The first officer will brief any change in the Autothrottle switch position and advise the other pilot when operating at a sample station without ground power.</para>
+      </topic>
+      <topic id="mel100-t0105" number="15.10.3">
+        <title>49-30 Autothrottle</title>
+        <melItem id="mel100-p01062" category="D" installed="2" required="1">
+          <remarks>The Standby Hydraulic status message is expected to read within the sample range of 48 to 59 units during climb.</remarks>
+        </melItem>
+        <para id="mel100-p01063">(O) Sample operations note. During approach, the pilot flying should verify the Stall Warning status message if a discrepancy is observed. Refer to the related topic for additional sample context. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p01064">(M) Sample maintenance note. If the Standby Instruments is inoperative, continue preflight only after the First Officer has reviewed the associated sample guidance. The Landing Gear Indication status message is expected to read within the sample range of 53 to 62 units during descent.</para>
+      </topic>
+      <topic id="mel100-t0106" number="15.10.4">
+        <title>49-40 Autobrake Selector</title>
+        <melItem id="mel100-p01065" category="D" installed="3" required="0">
+          <remarks>The captain will cross-check any change in the Pack Temperature Control status message and advise the other pilot before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p01066">(O) Sample operations note. If the Pack Temperature Control is inoperative, continue climb only after the Captain has reviewed the associated sample guidance. During engine start, the pilot flying should brief the Center Tank Pumps status message if a discrepancy is observed. The Hydraulic System A status message that differs from the expected state requires both pilots to verify the condition if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p01067">(M) Sample maintenance note. If the Nosewheel Steering is inoperative, continue a maintenance-requested ground run only after the pilot monitoring has reviewed the associated sample guidance. The pilot flying will record any change in the Landing Gear Indication quantity display and advise the other pilot if the indication does not stabilize within the sample interval.</para>
+      </topic>
+      <topic id="mel100-t0107" number="15.10.5">
+        <title>49-50 Hydraulic System B</title>
+        <melItem id="mel100-p01068" category="D" installed="3" required="1">
+          <remarks>The pilot flying will announce any change in the Cargo Smoke Detection selector position and advise the other pilot when conditions permit. If the Pack Temperature Control is inoperative, continue descent only after the pilot flying has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p01069">(O) Sample operations note. If the Traffic Advisory Display is inoperative, continue descent only after the relief pilot has reviewed the associated sample guidance. The Fuel Crossfeed indication that differs from the expected state requires the relief pilot to record the condition once the checklist item is complete. During a diversion, the pilot flying should confirm the Stall Warning quantity display if the indication does not stabilize within the sample interval.</para>
+        <para id="mel100-p01070">(M) Sample maintenance note. During engine start, the First Officer should announce the Cabin Pressure Controller status message once the checklist item is complete. The Cockpit Voice Recorder quantity display is expected to read within the sample range of 67 to 71 units during climb.</para>
+      </topic>
+      <topic id="mel100-t0108" number="15.10.6">
+        <title>49-60 Autothrottle</title>
+        <melItem id="mel100-p01071" category="C" installed="2" required="0">
+          <remarks>The Transponder annunciation that differs from the expected state requires the First Officer to confirm the condition if a discrepancy is observed. The wording here is placeholder content shaped like a procedure, not a procedure. The Traffic Advisory Display selector position that differs from the expected state requires both pilots to announce the condition once the checklist item is complete.</remarks>
+        </melItem>
+        <para id="mel100-p01072">(O) Sample operations note. The Autopilot Channel B switch position is expected to read within the sample range of 33 to 38 units during cruise. The wording here is placeholder content shaped like a procedure, not a procedure. Values in this manual are invented and must not be used for any operational purpose. The Stall Warning status message that differs from the expected state requires the First Officer to cross-check the condition before the next phase of flight.</para>
+        <para id="mel100-p01073">(M) Sample maintenance note. The pilot flying will verify any change in the Cabin Pressure Controller selector position and advise the other pilot unless directed otherwise by the Sample Operations Center. The relief pilot will cross-check any change in the Autobrake Selector advisory and advise the other pilot if a discrepancy is observed. The Autopilot Channel B switch position is expected to read within the sample range of 4 to 15 units during approach.</para>
+      </topic>
+      <topic id="mel100-t0109" number="15.10.7">
+        <title>49-70 Bleed Air Supply</title>
+        <melItem id="mel100-p01074" category="C" installed="2" required="0">
+          <remarks>During an extended ground delay, both pilots should confirm the Ground Proximity Monitor indication once the checklist item is complete. The captain will verify any change in the Standby Instruments quantity display and advise the other pilot when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p01075">(O) Sample operations note. The pilot monitoring will select any change in the Primary Electrical Bus selector position and advise the other pilot before the next phase of flight. Refer to the related topic for additional sample context.</para>
+        <para id="mel100-p01076">(M) Sample maintenance note. During takeoff, both pilots should confirm the Brake Temperature Monitor quantity display before the next phase of flight. The Flap Position Indication advisory is expected to read within the sample range of 14 to 20 units during landing. If the Nosewheel Steering is inoperative, continue climb only after the Captain has reviewed the associated sample guidance.</para>
+      </topic>
+      <topic id="mel100-t0110" number="15.10.8">
+        <title>49-80 Probe Heat</title>
+        <melItem id="mel100-p01077" category="D" installed="3" required="0">
+          <remarks>If the Traffic Advisory Display is inoperative, continue landing only after the pilot monitoring has reviewed the associated sample guidance. The captain will verify any change in the Wing Anti-Ice annunciation and advise the other pilot if a discrepancy is observed. If the Standby Instruments is inoperative, continue cruise only after the Captain has reviewed the associated sample guidance.</remarks>
+        </melItem>
+        <para id="mel100-p01078">(O) Sample operations note. Values in this manual are invented and must not be used for any operational purpose. If the Autothrottle is inoperative, continue taxi only after the Captain has reviewed the associated sample guidance.</para>
+        <para id="mel100-p01079">(M) Sample maintenance note. During approach, the pilot flying should select the Wing Anti-Ice switch position when operating at a sample station without ground power. The first officer will select any change in the Engine Anti-Ice indication and advise the other pilot before the next phase of flight. The Transponder quantity display that differs from the expected state requires both pilots to announce the condition if a discrepancy is observed.</para>
+      </topic>
+      <topic id="mel100-t0111" number="15.10.9">
+        <title>49-90 Bleed Air Supply</title>
+        <melItem id="mel100-p01080" category="C" installed="4" required="2">
+          <remarks>The pilot monitoring will monitor any change in the Autobrake Selector indication and advise the other pilot when the associated caution light remains illuminated. During descent, the pilot flying should cross-check the Fire Detection Loop advisory before the next phase of flight.</remarks>
+        </melItem>
+        <para id="mel100-p01081">(O) Sample operations note. Both pilots will record any change in the Hydraulic System B advisory and advise the other pilot if a discrepancy is observed. Both pilots will confirm any change in the Fuel Crossfeed selector position and advise the other pilot if the indication does not stabilize within the sample interval. The Wing Anti-Ice status message that differs from the expected state requires the pilot flying to brief the condition when the associated caution light remains illuminated. If the Ground Proximity Monitor is inoperative, continue landing only after the Captain has reviewed the associated sample guidance.</para>
+        <para id="mel100-p01082">(M) Sample maintenance note. The Flap Position Indication status message is expected to read within the sample range of 98 to 109 units during approach. The first officer will record any change in the Bleed Air Supply status message and advise the other pilot when operating at a sample station without ground power.</para>
+      </topic>
+      <topic id="mel100-t0112" number="15.10.10">
+        <title>49-100 Wing Anti-Ice</title>
+        <melItem id="mel100-p01083" category="B" installed="2" required="0">
+          <remarks>The Flap Position Indication status message that differs from the expected state requires the pilot flying to verify the condition when operating at a sample station without ground power.</remarks>
+        </melItem>
+        <para id="mel100-p01084">(O) Sample operations note. If the Cabin Pressure Controller is inoperative, continue preflight only after the relief pilot has reviewed the associated sample guidance. The wording here is placeholder content shaped like a procedure, not a procedure.</para>
+        <para id="mel100-p01085">(M) Sample maintenance note. This text is fictional and exists only to give the prototype realistic volume and structure. During an extended ground delay, the pilot monitoring should verify the Standby Instruments switch position when the associated caution light remains illuminated. The Primary Electrical Bus annunciation is expected to read within the sample range of 59 to 62 units during approach.</para>
+      </topic>
+    </section>
+  </chapter>
+</manual>

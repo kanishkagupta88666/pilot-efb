@@ -1,0 +1,47 @@
+{
+  "note": "Sample inbound deep-link targets for FM-S100 Revision 2 (current). Format: docId + node ID.",
+  "links": [
+    {
+      "docId": "FM-S100",
+      "nodeId": "fm100-t1193",
+      "expectedNumber": "01.10.1",
+      "expectedTitle": "New Sample Topic: Engine Anti-Ice"
+    },
+    {
+      "docId": "FM-S100",
+      "nodeId": "fm100-t0098",
+      "expectedNumber": "03.10.2",
+      "expectedTitle": "Flow: Wing Anti-Ice"
+    },
+    {
+      "docId": "FM-S100",
+      "nodeId": "fm100-t0196",
+      "expectedNumber": "03.50.5",
+      "expectedTitle": "Checklist: Speedbrake Handle"
+    },
+    {
+      "docId": "FM-S100",
+      "nodeId": "fm100-t0294",
+      "expectedNumber": "04.20.20",
+      "expectedTitle": "Checklist: Standby Instruments"
+    },
+    {
+      "docId": "FM-S100",
+      "nodeId": "fm100-t0391",
+      "expectedNumber": "05.40.7",
+      "expectedTitle": "Hydraulic System B Overview"
+    },
+    {
+      "docId": "FM-S100",
+      "nodeId": "fm100-t0488",
+      "expectedNumber": "06.10.5",
+      "expectedTitle": "Landing Gear Indication Overview"
+    },
+    {
+      "docId": "FM-S100",
+      "nodeId": "fm100-p00673",
+      "expectedNumber": "03.10.1",
+      "expectedTitle": "Paragraph-level target inside a topic"
+    }
+  ]
+}
