@@ -1,0 +1,310 @@
+{
+  "contractStatus": "PROVISIONAL — subject to frontend/backend review",
+  "source": {
+    "xml": "sample-data/xml/FM-S100_Rev2.xml",
+    "namespace": "urn:sample:fltpub:1.0"
+  },
+  "documentLibraryExample": {
+    "documents": [
+      {
+        "id": "FM-S100",
+        "namespace": "urn:sample:fltpub:1.0",
+        "docType": "FM",
+        "availableRevisions": [
+          {
+            "revision": 2,
+            "revisionDate": "2026-07-01",
+            "effectiveDate": "2026-07-15",
+            "status": "current",
+            "metadata": {
+              "docId": "FM-S100",
+              "title": "Sample Flight Manual - SAMPLE-100",
+              "docType": "FM",
+              "applicability": "SAMPLE-100",
+              "revision": 2,
+              "revisionDate": "2026-07-01",
+              "effectiveDate": "2026-07-15",
+              "owner": "Sample Flight Standards",
+              "changeSummary": "Reorganization revision. Topics relocated between sections, five topics removed, text updates and new topics.",
+              "classification": "SYNTHETIC SAMPLE - NOT FOR OPERATIONAL USE"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "navigationExample": {
+    "document": {
+      "id": "FM-S100",
+      "namespace": "urn:sample:fltpub:1.0",
+      "docType": "FM"
+    },
+    "version": {
+      "revision": 2,
+      "metadata": {
+        "docId": "FM-S100",
+        "title": "Sample Flight Manual - SAMPLE-100",
+        "docType": "FM",
+        "applicability": "SAMPLE-100",
+        "revision": 2,
+        "revisionDate": "2026-07-01",
+        "effectiveDate": "2026-07-15",
+        "owner": "Sample Flight Standards",
+        "changeSummary": "Reorganization revision. Topics relocated between sections, five topics removed, text updates and new topics.",
+        "classification": "SYNTHETIC SAMPLE - NOT FOR OPERATIONAL USE"
+      }
+    },
+    "chapters": [
+      {
+        "id": "fm100-c05",
+        "number": "05",
+        "title": "Non-Normal Procedures",
+        "sections": [
+          {
+            "id": "fm100-s019",
+            "number": "05.10",
+            "title": "Air Systems",
+            "topics": [
+              {
+                "id": "fm100-t0340",
+                "number": "05.10.16",
+                "title": "Autothrottle Crew Awareness"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "topicContentExample": {
+    "document": {
+      "id": "FM-S100",
+      "namespace": "urn:sample:fltpub:1.0",
+      "docType": "FM"
+    },
+    "version": {
+      "revision": 2,
+      "revisionDate": "2026-07-01",
+      "effectiveDate": "2026-07-15"
+    },
+    "topic": {
+      "id": "fm100-t0340",
+      "number": "05.10.16",
+      "title": "Autothrottle Crew Awareness",
+      "chapterId": "fm100-c05",
+      "sectionId": "fm100-s019",
+      "blocks": [
+        {
+          "type": "para",
+          "id": "fm100-p03214",
+          "segments": [
+            {
+              "type": "text",
+              "text": "Values in this manual are invented and must not be used for any operational purpose. If the Stall Warning is inoperative, continue approach only after the First Officer has reviewed the associated sample guidance. The Oxygen Distribution status message is expected to read within the sample range of 57 to 62 units during cruise. The Speedbrake Handle switch position that differs from the expected state requires the First Officer to cross-check the condition unless directed otherwise by the Sample Operations Center. The pilot monitoring will brief any change in the Cockpit Voice Recorder switch position and advise the other pilot when the associated caution light remains illuminated. See "
+            },
+            {
+              "type": "xref",
+              "targetId": "fm100-t0756",
+              "text": "11.20.1 Oxygen Distribution Crew Awareness"
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "id": "fm100-p03215",
+          "segments": [
+            {
+              "type": "text",
+              "text": "The Hydraulic System A annunciation is expected to read within the sample range of 34 to 41 units during climb."
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "fm100-p03216",
+          "items": [
+            "If the Flight Management Computer is inoperative, continue takeoff only after both pilots has reviewed the associated sample guidance.",
+            "During preflight, the Captain should record the Cockpit Voice Recorder quantity display if the indication does not stabilize within the sample interval.",
+            "During taxi, the pilot flying should confirm the Probe Heat advisory when conditions permit."
+          ]
+        },
+        {
+          "type": "caution",
+          "id": "fm100-p03217",
+          "segments": [
+            {
+              "type": "text",
+              "text": "Refer to the related topic for additional sample context."
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "id": "fm100-p03218",
+          "segments": [
+            {
+              "type": "text",
+              "text": "If the Thrust Reverser is inoperative, continue taxi only after the First Officer has reviewed the associated sample guidance. During approach, the pilot flying should confirm the Probe Heat selector position before the next phase of flight."
+            }
+          ]
+        },
+        {
+          "type": "checklist",
+          "id": "fm100-p03231",
+          "checks": [
+            {
+              "id": "fm100-p03219",
+              "challenge": "Autothrottle",
+              "response": "Checked"
+            },
+            {
+              "id": "fm100-p03220",
+              "challenge": "Thrust Reverser",
+              "response": "Off"
+            },
+            {
+              "id": "fm100-p03221",
+              "challenge": "Probe Heat",
+              "response": "Armed"
+            },
+            {
+              "id": "fm100-p03222",
+              "challenge": "Speedbrake Handle",
+              "response": "On"
+            },
+            {
+              "id": "fm100-p03223",
+              "challenge": "Autobrake Selector",
+              "response": "Verified"
+            },
+            {
+              "id": "fm100-p03224",
+              "challenge": "Window Heat",
+              "response": "Checked"
+            },
+            {
+              "id": "fm100-p03225",
+              "challenge": "Hydraulic System B",
+              "response": "Closed"
+            },
+            {
+              "id": "fm100-p03226",
+              "challenge": "Oxygen Distribution",
+              "response": "Verified"
+            },
+            {
+              "id": "fm100-p03227",
+              "challenge": "Ground Proximity Monitor",
+              "response": "Checked"
+            },
+            {
+              "id": "fm100-p03228",
+              "challenge": "Flap Position Indication",
+              "response": "Verified"
+            },
+            {
+              "id": "fm100-p03229",
+              "challenge": "Hydraulic System A",
+              "response": "Verified"
+            },
+            {
+              "id": "fm100-p03230",
+              "challenge": "Landing Gear Indication",
+              "response": "Closed"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "tableExample": {
+    "sourceTopic": {
+      "chapterId": "fm100-c18",
+      "sectionId": "fm100-s064",
+      "topicId": "fm100-t1086",
+      "number": "18.10.12",
+      "title": "Transponder Reset Guidance"
+    },
+    "block": {
+      "type": "table",
+      "id": "fm100-p09258",
+      "rows": [
+        {
+          "header": true,
+          "cells": [
+            "Condition",
+            "Sample value",
+            "Remarks"
+          ]
+        },
+        {
+          "cells": [
+            "Fire Detection Loop selector position",
+            "15 units",
+            "Normal"
+          ]
+        },
+        {
+          "cells": [
+            "Nosewheel Steering annunciation",
+            "44 units",
+            "Normal"
+          ]
+        },
+        {
+          "cells": [
+            "Probe Heat annunciation",
+            "69 units",
+            "Advisory only"
+          ]
+        }
+      ]
+    }
+  },
+  "paragraphDeepLinkExample": {
+    "request": {
+      "docId": "FM-S100",
+      "revision": 2,
+      "nodeId": "fm100-p00673"
+    },
+    "response": {
+      "documentId": "FM-S100",
+      "selectedRevision": 2,
+      "chapterId": "fm100-c03",
+      "sectionId": "fm100-s008",
+      "topicId": "fm100-t0097",
+      "targetNodeId": "fm100-p00673",
+      "targetType": "para",
+      "topic": {
+        "id": "fm100-t0097",
+        "number": "03.10.1",
+        "title": "Briefing: Fuel Crossfeed"
+      }
+    }
+  },
+  "checklistItemDeepLinkExample": {
+    "request": {
+      "docId": "FM-S100",
+      "revision": 2,
+      "nodeId": "fm100-p03219"
+    },
+    "response": {
+      "documentId": "FM-S100",
+      "selectedRevision": 2,
+      "chapterId": "fm100-c05",
+      "sectionId": "fm100-s019",
+      "topicId": "fm100-t0340",
+      "targetNodeId": "fm100-p03219",
+      "targetType": "check",
+      "topic": {
+        "id": "fm100-t0340",
+        "number": "05.10.16",
+        "title": "Autothrottle Crew Awareness"
+      }
+    }
+  }
+}
