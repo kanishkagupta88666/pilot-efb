@@ -30,7 +30,7 @@ class ValidationResult:
     errors: list[XmlValidationIssue]
 
 
-def _secure_parser() -> etree.XMLParser:
+def secure_xml_parser() -> etree.XMLParser:
     return etree.XMLParser(
         resolve_entities=False,
         no_network=True,
@@ -72,7 +72,7 @@ def validate_xml(
     xsd_file = Path(xsd_path) if xsd_path is not None else DEFAULT_XSD_PATH
 
     try:
-        schema_document = etree.parse(str(xsd_file), parser=_secure_parser())
+        schema_document = etree.parse(str(xsd_file), parser=secure_xml_parser())
         schema = etree.XMLSchema(schema_document)
     except OSError as error:
         return ValidationResult(
@@ -92,7 +92,7 @@ def validate_xml(
         )
 
     try:
-        xml_document = etree.parse(str(xml_file), parser=_secure_parser())
+        xml_document = etree.parse(str(xml_file), parser=secure_xml_parser())
     except OSError as error:
         return ValidationResult(
             is_valid=False,
