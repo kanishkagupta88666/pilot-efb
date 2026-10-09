@@ -52,9 +52,11 @@ def _errors_from_log(error_log: Iterable[_ErrorLogEntry]) -> list[XmlValidationI
 
 
 def _exception_errors(
-    error: etree.LxmlError, message: str
+    error: etree.LxmlError,
+    message: str,
+    error_log: Iterable[_ErrorLogEntry] | None = None,
 ) -> list[XmlValidationIssue]:
-    errors = _errors_from_log(error.error_log)
+    errors = _errors_from_log(error.error_log if error_log is None else error_log)
     if errors:
         return errors
 
@@ -71,8 +73,9 @@ def validate_xml(
     xml_file = Path(xml_path) if xml_path is not None else DEFAULT_XML_PATH
     xsd_file = Path(xsd_path) if xsd_path is not None else DEFAULT_XSD_PATH
 
+    xsd_parser = secure_xml_parser()
     try:
-        schema_document = etree.parse(str(xsd_file), parser=secure_xml_parser())
+        schema_document = etree.parse(str(xsd_file), parser=xsd_parser)
         schema = etree.XMLSchema(schema_document)
     except OSError as error:
         return ValidationResult(
@@ -88,11 +91,18 @@ def validate_xml(
     except (etree.XMLSyntaxError, etree.XMLSchemaParseError) as error:
         return ValidationResult(
             is_valid=False,
-            errors=_exception_errors(error, "Invalid XSD schema."),
+            errors=_exception_errors(
+                error,
+                "Invalid XSD schema.",
+                xsd_parser.error_log
+                if isinstance(error, etree.XMLSyntaxError)
+                else None,
+            ),
         )
 
+    xml_parser = secure_xml_parser()
     try:
-        xml_document = etree.parse(str(xml_file), parser=secure_xml_parser())
+        xml_document = etree.parse(str(xml_file), parser=xml_parser)
     except OSError as error:
         return ValidationResult(
             is_valid=False,
@@ -107,7 +117,11 @@ def validate_xml(
     except etree.XMLSyntaxError as error:
         return ValidationResult(
             is_valid=False,
-            errors=_exception_errors(error, "Malformed XML document."),
+            errors=_exception_errors(
+                error,
+                "Malformed XML document.",
+                xml_parser.error_log,
+            ),
         )
 
     if schema.validate(xml_document):
