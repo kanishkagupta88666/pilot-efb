@@ -5,13 +5,23 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.test import TestCase
+from lxml import etree
 from rest_framework.test import APITestCase
 
 from documents.xml_hierarchy import extract_hierarchy
 from documents.xml_metadata import extract_metadata
+from documents.xml_content import (
+    SkippedContentBlock,
+    SUPPORTED_BLOCK_TYPES,
+    XML_NAMESPACE,
+    extract_all_topic_content,
+    extract_topic_content,
+)
 from documents.xml_validation import (
+    DEFAULT_XML_PATH,
     ValidationResult,
     XmlValidationIssue,
+    secure_xml_parser,
     validate_xml,
 )
 
@@ -369,3 +379,261 @@ class HierarchyExtractionTests(TestCase):
         self.assertFalse(result.is_valid)
         self.assertEqual(result.errors, [issue])
         parser.assert_not_called()
+
+
+class XMLContentExtractionTests(TestCase):
+    def _real_xml_root(self):
+        return etree.parse(
+            str(DEFAULT_XML_PATH),
+            parser=secure_xml_parser(),
+        ).getroot()
+
+    def test_real_content_counts_match_independent_lxml_counts(self):
+        result = extract_all_topic_content()
+
+        self.assertTrue(result.is_valid, result.errors)
+        root = self._real_xml_root()
+        raw_counts = Counter(
+            etree.QName(element).localname
+            for element in root.iter()
+            if isinstance(element.tag, str)
+            and element.getparent() is not None
+            and element.getparent().tag == f"{{{XML_NAMESPACE}}}topic"
+            and etree.QName(element).localname != "title"
+        )
+        extracted_counts = Counter(
+            block["type"]
+            for topic in result.topics
+            for block in topic["blocks"]
+        )
+        for block_type in SUPPORTED_BLOCK_TYPES:
+            self.assertEqual(extracted_counts[block_type], raw_counts[block_type])
+        self.assertEqual(raw_counts["warning"], 0)
+        self.assertEqual(raw_counts["melItem"], 0)
+        self.assertEqual(result.skipped_blocks, [])
+        self.assertEqual(len(result.topics), 1193)
+
+    def test_real_topic_block_order_and_source_ids_are_preserved(self):
+        result = extract_topic_content("fm100-t0340")
+
+        self.assertTrue(result.is_valid, result.errors)
+        self.assertIsNotNone(result.topic)
+        topic = result.topic
+        self.assertEqual(topic["id"], "fm100-t0340")
+        self.assertEqual(topic["sectionId"], "fm100-s019")
+        self.assertEqual(
+            [(block["type"], block["id"]) for block in topic["blocks"]],
+            [
+                ("para", "fm100-p03214"),
+                ("note", "fm100-p03215"),
+                ("list", "fm100-p03216"),
+                ("caution", "fm100-p03217"),
+                ("note", "fm100-p03218"),
+                ("checklist", "fm100-p03231"),
+            ],
+        )
+        self.assertEqual(
+            topic["blocks"][2]["items"],
+            [
+                "If the Flight Management Computer is inoperative, continue takeoff only after both pilots has reviewed the associated sample guidance.",
+                "During preflight, the Captain should record the Cockpit Voice Recorder quantity display if the indication does not stabilize within the sample interval.",
+                "During taxi, the pilot flying should confirm the Probe Heat advisory when conditions permit.",
+            ],
+        )
+
+    def test_checklist_preserves_permanent_check_ids_and_order(self):
+        result = extract_topic_content("fm100-t0340")
+        self.assertTrue(result.is_valid, result.errors)
+        checklist = result.topic["blocks"][-1]
+
+        self.assertEqual(checklist["id"], "fm100-p03231")
+        self.assertEqual(
+            [check["id"] for check in checklist["checks"]],
+            [f"fm100-p{number:05d}" for number in range(3219, 3231)],
+        )
+        self.assertEqual(
+            checklist["checks"][0],
+            {
+                "id": "fm100-p03219",
+                "challenge": "Autothrottle",
+                "response": "Checked",
+            },
+        )
+
+    def test_real_table_retains_rows_cells_and_explicit_header_flags(self):
+        result = extract_topic_content("fm100-t1086")
+        self.assertTrue(result.is_valid, result.errors)
+        table = next(
+            block
+            for block in result.topic["blocks"]
+            if block["id"] == "fm100-p09258"
+        )
+
+        self.assertEqual(table["type"], "table")
+        self.assertEqual(len(table["rows"]), 4)
+        self.assertIs(table["rows"][0]["header"], True)
+        self.assertNotIn("header", table["rows"][1])
+        self.assertEqual(set(table["rows"][0]), {"header", "cells"})
+        self.assertEqual(set(table["rows"][1]), {"cells"})
+        self.assertTrue(all(row["cells"] for row in table["rows"]))
+        self.assertTrue(
+            all(isinstance(cell, str) for row in table["rows"] for cell in row["cells"])
+        )
+
+    def test_mixed_text_and_xref_segments_match_raw_xml_exactly(self):
+        result = extract_topic_content("fm100-t0340")
+        self.assertTrue(result.is_valid, result.errors)
+        paragraph = result.topic["blocks"][0]
+        root = self._real_xml_root()
+        raw_paragraph = root.xpath(
+            ".//flt:para[@id='fm100-p03214']",
+            namespaces={"flt": XML_NAMESPACE},
+        )[0]
+        expected_segments = []
+        if raw_paragraph.text is not None:
+            expected_segments.append({"type": "text", "text": raw_paragraph.text})
+        for child in raw_paragraph:
+            if child.tag == f"{{{XML_NAMESPACE}}}xref":
+                expected_segments.append(
+                    {
+                        "type": "xref",
+                        "targetId": child.get("target"),
+                        "text": child.text or "",
+                    }
+                )
+                if child.tail is not None:
+                    expected_segments.append({"type": "text", "text": child.tail})
+
+        self.assertEqual(paragraph["segments"], expected_segments)
+        self.assertTrue(
+            any(
+                segment["type"] == "text" and segment["text"].endswith("See ")
+                for segment in paragraph["segments"]
+            )
+        )
+        self.assertEqual(paragraph["segments"][-1], {"type": "text", "text": "."})
+
+    def test_all_real_xref_targets_resolve_and_emitted_ids_exist_and_are_unique(self):
+        result = extract_all_topic_content()
+        self.assertTrue(result.is_valid, result.errors)
+        root = self._real_xml_root()
+        document_ids = {
+            element.get("id")
+            for element in root.iter()
+            if isinstance(element.tag, str) and element.get("id") is not None
+        }
+        emitted_ids = []
+        for topic in result.topics:
+            for block in topic["blocks"]:
+                emitted_ids.append(block["id"])
+                if block["type"] == "checklist":
+                    emitted_ids.extend(check["id"] for check in block["checks"])
+                if block["type"] in {"para", "note", "caution", "warning"}:
+                    for segment in block["segments"]:
+                        if segment["type"] == "xref":
+                            self.assertIn(segment["targetId"], document_ids)
+
+        self.assertEqual(len(emitted_ids), len(set(emitted_ids)))
+        self.assertTrue(set(emitted_ids).issubset(document_ids))
+
+    def test_warning_fixture_is_xsd_valid_and_extracted(self):
+        warning_manual = MINIMAL_VALID_MANUAL.replace(
+            '<para id="sample-p1">Sample paragraph.</para>',
+            '<warning id="sample-p2">  Warning text.  </warning>',
+        )
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "warning.xml"
+            xml_path.write_text(warning_manual, encoding="utf-8")
+            self.assertTrue(validate_xml(xml_path=xml_path).is_valid)
+
+            result = extract_topic_content("sample-t1", xml_path=xml_path)
+
+        self.assertTrue(result.is_valid, result.errors)
+        self.assertEqual(
+            result.topic["blocks"],
+            [
+                {
+                    "type": "warning",
+                    "id": "sample-p2",
+                    "segments": [{"type": "text", "text": "  Warning text.  "}],
+                }
+            ],
+        )
+
+    def test_xsd_valid_mel_item_is_reported_as_skipped_with_topic_id(self):
+        mel_manual = MINIMAL_VALID_MANUAL.replace(
+            '<para id="sample-p1">Sample paragraph.</para>',
+            '<melItem id="sample-p2" category="A"><remarks>Not in contract</remarks></melItem>',
+        )
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "mel-item.xml"
+            xml_path.write_text(mel_manual, encoding="utf-8")
+            self.assertTrue(validate_xml(xml_path=xml_path).is_valid)
+
+            result = extract_all_topic_content(xml_path=xml_path)
+
+        self.assertTrue(result.is_valid, result.errors)
+        self.assertEqual(
+            result.skipped_blocks,
+            [SkippedContentBlock(type="melItem", id="sample-p2", topic_id="sample-t1")],
+        )
+        self.assertEqual(result.topics[0]["blocks"], [])
+
+    def test_unresolved_xref_returns_structured_issue(self):
+        unresolved_manual = MINIMAL_VALID_MANUAL.replace(
+            '<para id="sample-p1">Sample paragraph.</para>',
+            '<para id="sample-p1">See <xref target="missing-t9">missing topic</xref>.</para>',
+        )
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "unresolved-xref.xml"
+            xml_path.write_text(unresolved_manual, encoding="utf-8")
+            self.assertTrue(validate_xml(xml_path=xml_path).is_valid)
+
+            result = extract_all_topic_content(xml_path=xml_path)
+
+        self.assertFalse(result.is_valid)
+        self.assertTrue(
+            any("references unknown ID 'missing-t9'" in error.message for error in result.errors)
+        )
+
+    def test_invalid_input_returns_structured_validation_errors(self):
+        invalid_manual = (
+            '<manual xmlns="urn:sample:fltpub:1.0" '
+            'id="FM-SAMPLE" docType="FM"><unexpected /></manual>'
+        )
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "invalid.xml"
+            xml_path.write_text(invalid_manual, encoding="utf-8")
+
+            result = extract_all_topic_content(xml_path=xml_path)
+
+        self.assertFalse(result.is_valid)
+        self.assertEqual(result.topics, [])
+        self.assertTrue(result.errors)
+        self.assertTrue(all(error.message for error in result.errors))
+
+    def test_validation_failure_prevents_extraction_parsing(self):
+        issue = XmlValidationIssue(
+            line=1,
+            column=1,
+            message="Fixture validation failure.",
+        )
+        with (
+            patch(
+                "documents.xml_content.validate_xml",
+                return_value=ValidationResult(is_valid=False, errors=[issue]),
+            ),
+            patch("documents.xml_content.secure_xml_parser") as parser,
+        ):
+            result = extract_all_topic_content(xml_path="/missing/should-not-parse.xml")
+
+        self.assertFalse(result.is_valid)
+        self.assertEqual(result.errors, [issue])
+        parser.assert_not_called()
+
+    def test_unknown_topic_returns_a_structured_issue(self):
+        result = extract_topic_content("not-a-topic")
+
+        self.assertFalse(result.is_valid)
+        self.assertIsNone(result.topic)
+        self.assertIn("was not found", result.errors[0].message)
