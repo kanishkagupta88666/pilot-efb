@@ -1,5 +1,6 @@
 from collections import Counter
 from datetime import date
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -10,6 +11,7 @@ from rest_framework.test import APITestCase
 
 from documents.xml_hierarchy import extract_hierarchy
 from documents.xml_metadata import extract_metadata
+from documents.xml_normalization import assemble_normalized_document
 from documents.xml_content import (
     SkippedContentBlock,
     SUPPORTED_BLOCK_TYPES,
@@ -637,3 +639,178 @@ class XMLContentExtractionTests(TestCase):
         self.assertFalse(result.is_valid)
         self.assertIsNone(result.topic)
         self.assertIn("was not found", result.errors[0].message)
+
+
+class XMLNormalizationTests(TestCase):
+    def test_real_normalized_document_counts_and_topic_id_join(self):
+        result = assemble_normalized_document()
+
+        self.assertIsNotNone(result["payload"])
+        self.assertTrue(result["ingestionReport"]["is_valid"])
+        payload = result["payload"]
+        chapters = payload["chapters"]
+        topic_ids = [
+            topic["id"]
+            for chapter in chapters
+            for section in chapter["sections"]
+            for topic in section["topics"]
+        ]
+        topic_content = payload["topicContentById"]
+
+        self.assertEqual(len(chapters), 19)
+        self.assertEqual(
+            sum(len(chapter["sections"]) for chapter in chapters),
+            71,
+        )
+        self.assertEqual(len(topic_ids), 1193)
+        self.assertEqual(len(set(topic_ids)), 1193)
+        self.assertEqual(len(topic_content), 1193)
+        self.assertEqual(set(topic_ids), set(topic_content))
+        self.assertTrue(
+            all(topic_id == topic["id"] for topic_id, topic in topic_content.items())
+        )
+
+    def test_real_payload_matches_provisional_topic_and_table_examples(self):
+        result = assemble_normalized_document()
+        self.assertIsNotNone(result["payload"])
+        payload = result["payload"]
+        contract_path = Path(__file__).resolve().parents[2] / "contracts" / "provisional-sample.json"
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        topic_example = contract["topicContentExample"]["topic"]
+        topic_id = topic_example["id"]
+
+        self.assertEqual(payload["topicContentById"][topic_id], topic_example)
+        table_example = contract["tableExample"]
+        table_topic = payload["topicContentById"][table_example["sourceTopic"]["topicId"]]
+        table_block = next(
+            block
+            for block in table_topic["blocks"]
+            if block["id"] == table_example["block"]["id"]
+        )
+        self.assertEqual(table_block, table_example["block"])
+
+    def test_output_is_json_serializable_and_round_trips(self):
+        result = assemble_normalized_document()
+        encoded = json.dumps(result, ensure_ascii=False)
+        decoded = json.loads(encoded)
+
+        self.assertEqual(decoded, result)
+
+    def test_repeated_assembly_is_deterministic(self):
+        first = assemble_normalized_document()
+        second = assemble_normalized_document()
+
+        self.assertEqual(first, second)
+
+    def test_document_identity_and_metadata_follow_contract_types(self):
+        result = assemble_normalized_document()
+        self.assertIsNotNone(result["payload"])
+        payload = result["payload"]
+        self.assertEqual(
+            payload["document"],
+            {
+                "id": "FM-S100",
+                "namespace": XML_NAMESPACE,
+                "docType": "FM",
+            },
+        )
+        self.assertEqual(payload["version"]["revision"], 2)
+        metadata = payload["version"]["metadata"]
+        self.assertEqual(metadata["docId"], "FM-S100")
+        self.assertEqual(metadata["revision"], 2)
+        self.assertIsInstance(metadata["revision"], int)
+        self.assertEqual(metadata["revisionDate"], "2026-07-01")
+        self.assertEqual(metadata["effectiveDate"], "2026-07-15")
+
+    def test_emitted_permanent_ids_are_source_ids_and_unique(self):
+        result = assemble_normalized_document()
+        self.assertIsNotNone(result["payload"])
+        topic_content = result["payload"]["topicContentById"]
+        emitted_ids = list(topic_content)
+        for topic in topic_content.values():
+            emitted_ids.extend(block["id"] for block in topic["blocks"])
+            for block in topic["blocks"]:
+                if block["type"] == "checklist":
+                    emitted_ids.extend(check["id"] for check in block["checks"])
+
+        root = etree.parse(
+            str(DEFAULT_XML_PATH),
+            parser=secure_xml_parser(),
+        ).getroot()
+        source_ids = {
+            element.get("id")
+            for element in root.iter()
+            if isinstance(element.tag, str) and element.get("id") is not None
+        }
+        self.assertEqual(len(emitted_ids), len(set(emitted_ids)))
+        self.assertTrue(set(emitted_ids).issubset(source_ids))
+
+    def test_schema_invalid_and_missing_xml_return_structured_failure(self):
+        with TemporaryDirectory() as temporary_directory:
+            invalid_path = Path(temporary_directory) / "invalid.xml"
+            invalid_path.write_text(
+                '<manual xmlns="urn:sample:fltpub:1.0" id="bad" docType="FM">'
+                "<unexpected /></manual>",
+                encoding="utf-8",
+            )
+            invalid = assemble_normalized_document(xml_path=invalid_path)
+            missing = assemble_normalized_document(
+                xml_path=Path(temporary_directory) / "missing.xml"
+            )
+
+        for result in (invalid, missing):
+            self.assertIsNone(result["payload"])
+            self.assertFalse(result["ingestionReport"]["is_valid"])
+            self.assertTrue(result["ingestionReport"]["errors"])
+            self.assertTrue(
+                all(
+                    set(issue) == {"line", "column", "message"}
+                    for issue in result["ingestionReport"]["errors"]
+                )
+            )
+
+    def test_unresolved_xrefs_stay_in_report_and_preserve_payload(self):
+        unresolved_manual = MINIMAL_VALID_MANUAL.replace(
+            '<para id="sample-p1">Sample paragraph.</para>',
+            '<para id="sample-p1">See <xref target="missing-t9">missing topic</xref>.</para>',
+        )
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "unresolved-xref.xml"
+            xml_path.write_text(unresolved_manual, encoding="utf-8")
+            self.assertTrue(validate_xml(xml_path=xml_path).is_valid)
+
+            result = assemble_normalized_document(xml_path=xml_path)
+
+        self.assertIsNotNone(result["payload"])
+        report = result["ingestionReport"]
+        self.assertFalse(report["is_valid"])
+        self.assertEqual(len(report["unresolvedXrefs"]), 1)
+        self.assertIn("missing-t9", report["unresolvedXrefs"][0]["message"])
+        self.assertEqual(
+            result["payload"]["topicContentById"]["sample-t1"]["blocks"][0]["segments"][1][
+                "targetId"
+            ],
+            "missing-t9",
+        )
+
+    def test_skipped_blocks_are_reported_separately_from_payload(self):
+        mel_manual = MINIMAL_VALID_MANUAL.replace(
+            '<para id="sample-p1">Sample paragraph.</para>',
+            '<melItem id="sample-p2" category="A"><remarks>Not in contract</remarks></melItem>',
+        )
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "mel-item.xml"
+            xml_path.write_text(mel_manual, encoding="utf-8")
+            self.assertTrue(validate_xml(xml_path=xml_path).is_valid)
+
+            result = assemble_normalized_document(xml_path=xml_path)
+
+        self.assertIsNotNone(result["payload"])
+        self.assertEqual(
+            result["ingestionReport"]["skippedBlocks"],
+            [{"type": "melItem", "id": "sample-p2", "topicId": "sample-t1"}],
+        )
+        self.assertNotIn(
+            "skippedBlocks",
+            result["payload"],
+        )
