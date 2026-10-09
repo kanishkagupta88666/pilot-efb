@@ -1,12 +1,19 @@
+from collections import Counter
 from datetime import date
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from django.test import TestCase
 from rest_framework.test import APITestCase
 
+from documents.xml_hierarchy import extract_hierarchy
 from documents.xml_metadata import extract_metadata
-from documents.xml_validation import validate_xml
+from documents.xml_validation import (
+    ValidationResult,
+    XmlValidationIssue,
+    validate_xml,
+)
 
 
 MINIMAL_VALID_MANUAL = """\
@@ -223,3 +230,142 @@ class MetadataExtractionTests(TestCase):
         self.assertFalse(result.is_valid)
         self.assertIsNone(result.metadata)
         self.assertTrue(result.errors)
+
+
+class HierarchyExtractionTests(TestCase):
+    def test_real_fm_s100_revision_2_hierarchy_counts(self):
+        result = extract_hierarchy()
+
+        self.assertTrue(result.is_valid, result.errors)
+        counts = Counter(node["nodeType"] for node in result.nodes)
+        self.assertEqual(counts, {"chapter": 19, "section": 71, "topic": 1193})
+
+    def test_sample_topics_preserve_source_ids_and_parents(self):
+        result = extract_hierarchy()
+        self.assertTrue(result.is_valid, result.errors)
+        nodes_by_id = {node["id"]: node for node in result.nodes}
+
+        self.assertEqual(nodes_by_id["fm100-t1193"]["parentId"], "fm100-s001")
+        self.assertEqual(nodes_by_id["fm100-t0340"]["parentId"], "fm100-s019")
+        self.assertEqual(nodes_by_id["fm100-t0097"]["parentId"], "fm100-s008")
+        self.assertEqual(nodes_by_id["fm100-t1193"]["title"], "New Sample Topic: Engine Anti-Ice")
+        self.assertEqual(nodes_by_id["fm100-t0340"]["title"], "Autothrottle Crew Awareness")
+        self.assertEqual(nodes_by_id["fm100-t0097"]["title"], "Briefing: Fuel Crossfeed")
+
+    def test_ids_are_unique_and_parent_types_are_correct(self):
+        result = extract_hierarchy()
+        self.assertTrue(result.is_valid, result.errors)
+        nodes_by_id = {node["id"]: node for node in result.nodes}
+
+        self.assertEqual(len(nodes_by_id), len(result.nodes))
+        for node in result.nodes:
+            self.assertEqual(
+                set(node),
+                {"id", "nodeType", "number", "title", "parentId", "sequence"},
+            )
+            if node["nodeType"] == "chapter":
+                self.assertIsNone(node["parentId"])
+            elif node["nodeType"] == "section":
+                self.assertEqual(
+                    nodes_by_id[node["parentId"]]["nodeType"],
+                    "chapter",
+                )
+            else:
+                self.assertEqual(
+                    nodes_by_id[node["parentId"]]["nodeType"],
+                    "section",
+                )
+
+    def test_flat_nodes_preserve_document_order_and_sibling_sequence(self):
+        result = extract_hierarchy()
+
+        self.assertTrue(result.is_valid, result.errors)
+        self.assertEqual(
+            [node["id"] for node in result.nodes[:6]],
+            [
+                "fm100-c01",
+                "fm100-s001",
+                "fm100-t1193",
+                "fm100-t0001",
+                "fm100-t0002",
+                "fm100-t0003",
+            ],
+        )
+        nodes_by_id = {node["id"]: node for node in result.nodes}
+        self.assertEqual(nodes_by_id["fm100-c01"]["sequence"], 1)
+        self.assertEqual(nodes_by_id["fm100-s001"]["sequence"], 1)
+        self.assertEqual(nodes_by_id["fm100-t1193"]["sequence"], 1)
+        self.assertEqual(nodes_by_id["fm100-t0340"]["sequence"], 16)
+
+    def test_nested_navigation_has_contract_shape_and_matching_counts(self):
+        result = extract_hierarchy()
+
+        self.assertTrue(result.is_valid, result.errors)
+        self.assertEqual(len(result.navigation), 19)
+        section_count = sum(len(chapter["sections"]) for chapter in result.navigation)
+        topic_count = sum(
+            len(section["topics"])
+            for chapter in result.navigation
+            for section in chapter["sections"]
+        )
+        self.assertEqual(section_count, 71)
+        self.assertEqual(topic_count, 1193)
+        self.assertEqual(
+            set(result.navigation[0]),
+            {"id", "number", "title", "sections"},
+        )
+        self.assertEqual(
+            set(result.navigation[0]["sections"][0]),
+            {"id", "number", "title", "topics"},
+        )
+        self.assertEqual(
+            set(result.navigation[0]["sections"][0]["topics"][0]),
+            {"id", "number", "title"},
+        )
+
+    def test_schema_invalid_xml_returns_validation_issues_without_nodes(self):
+        invalid_xml = (
+            '<manual xmlns="urn:sample:fltpub:1.0" '
+            'id="FM-SAMPLE" docType="FM"><unexpected /></manual>'
+        )
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "invalid.xml"
+            xml_path.write_text(invalid_xml, encoding="utf-8")
+
+            result = extract_hierarchy(xml_path=xml_path)
+
+        self.assertFalse(result.is_valid)
+        self.assertEqual(result.nodes, [])
+        self.assertEqual(result.navigation, [])
+        self.assertTrue(result.errors)
+
+    def test_missing_xml_returns_structured_validation_issue(self):
+        with TemporaryDirectory() as temporary_directory:
+            result = extract_hierarchy(
+                xml_path=Path(temporary_directory) / "missing.xml",
+            )
+
+        self.assertFalse(result.is_valid)
+        self.assertEqual(result.nodes, [])
+        self.assertEqual(result.navigation, [])
+        self.assertTrue(result.errors)
+        self.assertIn("Unable to read XML file", result.errors[0].message)
+
+    def test_validation_failure_prevents_xml_parsing(self):
+        issue = XmlValidationIssue(
+            line=1,
+            column=1,
+            message="Fixture validation failure.",
+        )
+        with (
+            patch(
+                "documents.xml_hierarchy.validate_xml",
+                return_value=ValidationResult(is_valid=False, errors=[issue]),
+            ),
+            patch("documents.xml_hierarchy.secure_xml_parser") as parser,
+        ):
+            result = extract_hierarchy(xml_path="/missing/should-not-be-parsed.xml")
+
+        self.assertFalse(result.is_valid)
+        self.assertEqual(result.errors, [issue])
+        parser.assert_not_called()
