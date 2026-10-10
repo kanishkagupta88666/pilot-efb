@@ -1,6 +1,6 @@
 # Pilot EFB
 
-Pilot EFB is a prototype of an iPad-friendly web app that lets pilots read aviation manuals. It was built for a university consulting project and uses **synthetic (entirely fictional) data only**.
+Pilot EFB is a prototype of an iPad-friendly web app that lets pilots read aviation manuals. It is being built for a university consulting project and uses **synthetic (entirely fictional) data only**.
 
 > **Status in one sentence:** the backend can validate an XML manual, store it in a database and serve it through a read-only REST API; the frontend is a working reader that still runs on built-in mock data and is not yet connected to that API.
 
