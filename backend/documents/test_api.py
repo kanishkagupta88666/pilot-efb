@@ -2,6 +2,7 @@ from datetime import date
 import json
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import urlencode
 
 from django.contrib.auth import get_user_model
 from django.db import OperationalError, connection
@@ -12,7 +13,7 @@ from rest_framework.test import APIClient, APITestCase
 
 from documents import revision_status, views
 from documents.ingestion import DocumentTreeIntegrityError, ingest_xml
-from documents.models import Document, DocumentNode, DocumentVersion
+from documents.models import ContentAnchor, Document, DocumentNode, DocumentVersion
 from documents.xml_normalization import assemble_normalized_document
 from documents.xml_validation import DEFAULT_XML_PATH, PROJECT_ROOT
 
@@ -165,12 +166,32 @@ def make_node(
     )
 
 
-def make_small_tree(version):
+def resolve_url(doc_id, node_id, revision=None):
+    query = {"nodeId": node_id}
+    if revision is not None:
+        query["revision"] = revision
+    return f"/api/documents/{doc_id}/resolve-node/?{urlencode(query)}"
+
+
+def make_anchors(version, nodes, anchors):
+    ContentAnchor.objects.bulk_create(
+        ContentAnchor(
+            version=version,
+            topic=nodes[topic_id],
+            anchor_id=anchor_id,
+            anchor_type=anchor_type,
+        )
+        for anchor_id, anchor_type, topic_id in anchors
+    )
+
+
+def make_small_tree(version, navigation=None):
     """Store a tree whose source order differs from ID and number order."""
+    navigation = SMALL_TREE_NAVIGATION if navigation is None else navigation
     chapter, section, topic = DocumentNode.NodeType
     nodes = {}
     position = 0
-    for chapter_sequence, chapter_outline in enumerate(SMALL_TREE_NAVIGATION, 1):
+    for chapter_sequence, chapter_outline in enumerate(navigation, 1):
         position += 1
         chapter_node = nodes[chapter_outline["id"]] = make_node(
             version,
@@ -231,6 +252,14 @@ class ApiAssertionsMixin:
         self.assertIsInstance(body["error"]["message"], str)
         self.assertTrue(body["error"]["message"])
         return body
+
+    def assert_error_with_details(self, response, status_code, code, details):
+        body = self.assert_json(response, status_code)
+        self.assertEqual(set(body), {"error"})
+        self.assertEqual(set(body["error"]), {"code", "message", "details"})
+        self.assertEqual(body["error"]["code"], code)
+        self.assertTrue(body["error"]["message"])
+        self.assertEqual(body["error"]["details"], details)
 
     def assert_sanitized_internal_error(self, response, *secrets):
         self.assertEqual(self.assert_json(response, 500), INTERNAL_ERROR_BODY)
@@ -982,6 +1011,7 @@ class ApiMethodAndFormatTests(ApiAssertionsMixin, APITestCase):
             "library": LIBRARY_URL,
             "navigation": navigation_url("DOC-A", 2),
             "topic": topic_url("DOC-A", 2, "x-t-yankee"),
+            "resolve": resolve_url("DOC-A", "x-t-yankee", 2),
             "health": "/api/health/",
         }
 
@@ -1143,6 +1173,816 @@ class AdminAndSessionCompatibilityTests(ApiAssertionsMixin, APITestCase):
         response = client.post(LIBRARY_URL, {"title": "ignored"}, format="json")
 
         self.assert_error(response, 405, "METHOD_NOT_ALLOWED")
+
+
+SMALL_TREE_ANCHORS = [
+    ("x-p-0002", "para", "x-t-yankee"),
+    ("x-p-0001", "checklist", "x-t-yankee"),
+    ("x-p-0004", "check", "x-t-yankee"),
+    ("x-p-0003", "check", "x-t-yankee"),
+    ("x-p-note", "note", "x-t-alpha"),
+    ("x-p-caution", "caution", "x-t-alpha"),
+    ("x-p-warning", "warning", "x-t-alpha"),
+    ("x-p-list", "list", "x-t-alpha"),
+    ("x-p-table", "table", "x-t-alpha"),
+]
+REVISION_1_NAVIGATION = [
+    {
+        "id": "x-c-zulu",
+        "number": "01",
+        "title": "First chapter",
+        "sections": [
+            {
+                "id": "x-s-bravo",
+                "number": "01.10",
+                "title": "Second section",
+                "topics": [
+                    {"id": "x-t-kilo", "number": "01.10.1", "title": "Third topic"},
+                ],
+            },
+        ],
+    },
+]
+REVISION_3_NAVIGATION = [
+    {
+        "id": "x-c-zulu",
+        "number": "01",
+        "title": "First chapter",
+        "sections": [
+            {
+                "id": "x-s-mike",
+                "number": "01.10",
+                "title": "First section",
+                "topics": [
+                    {"id": "x-t-yankee", "number": "01.10.1", "title": "First topic"},
+                ],
+            },
+            {
+                "id": "x-s-bravo",
+                "number": "01.20",
+                "title": "Second section",
+                "topics": [
+                    {"id": "x-t-new", "number": "01.20.1", "title": "New topic"},
+                    {"id": "x-t-alpha", "number": "01.20.2", "title": "Second topic"},
+                ],
+            },
+        ],
+    },
+]
+TOPIC_SUMMARIES = {
+    "x-t-yankee": {"id": "x-t-yankee", "number": "01.10.1", "title": "First topic"},
+    "x-t-alpha": {"id": "x-t-alpha", "number": "01.10.2", "title": "Second topic"},
+    "x-t-kilo": {"id": "x-t-kilo", "number": "01.20.1", "title": "Third topic"},
+}
+NODE_NOT_FOUND_MESSAGE = (
+    "The node ID does not exist in the selected document revision."
+)
+
+
+def resolution(revision, chapter_id, section_id, topic, target_id, target_type):
+    return {
+        "documentId": "DOC-A",
+        "selectedRevision": revision,
+        "chapterId": chapter_id,
+        "sectionId": section_id,
+        "topicId": topic["id"],
+        "targetNodeId": target_id,
+        "targetType": target_type,
+        "topic": topic,
+    }
+
+
+class ResolveNodeApiTests(ApiAssertionsMixin, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.document = make_document("DOC-A")
+        cls.revision_1 = make_version(cls.document, 1, date(2026, 1, 1))
+        cls.revision_2 = make_version(cls.document, 2, date(2026, 7, 15))
+        cls.revision_3 = make_version(cls.document, 3, date(2026, 12, 1))
+        cls.nodes_1 = make_small_tree(cls.revision_1, REVISION_1_NAVIGATION)
+        cls.nodes_2 = make_small_tree(cls.revision_2)
+        cls.nodes_3 = make_small_tree(cls.revision_3, REVISION_3_NAVIGATION)
+        make_anchors(
+            cls.revision_1,
+            cls.nodes_1,
+            [("x-p-0001", "checklist", "x-t-kilo")],
+        )
+        make_anchors(cls.revision_2, cls.nodes_2, SMALL_TREE_ANCHORS)
+        make_anchors(
+            cls.revision_3,
+            cls.nodes_3,
+            [
+                ("x-p-0002", "para", "x-t-yankee"),
+                ("x-p-rev3", "note", "x-t-new"),
+            ],
+        )
+
+    def setUp(self):
+        today = fixed_today()
+        today.start()
+        self.addCleanup(today.stop)
+
+    def resolve(self, node_id, revision=None, *, queries=None, doc_id="DOC-A"):
+        with CaptureQueriesContext(connection) as captured:
+            response = self.client.get(resolve_url(doc_id, node_id, revision))
+        if queries is not None:
+            self.assertEqual(len(captured), queries, [q["sql"] for q in captured])
+        self.assertFalse(
+            [q["sql"] for q in captured if "content_blocks" in q["sql"]],
+            "the resolver must not read topic content",
+        )
+        return response
+
+    def test_topic_target(self):
+        for revision in (None, 2):
+            with self.subTest(revision=revision):
+                response = self.resolve("x-t-alpha", revision, queries=2)
+
+                self.assertEqual(
+                    self.assert_json(response),
+                    resolution(
+                        2,
+                        "x-c-zulu",
+                        "x-s-mike",
+                        TOPIC_SUMMARIES["x-t-alpha"],
+                        "x-t-alpha",
+                        "topic",
+                    ),
+                )
+                self.assertEqual(
+                    list(response.json()),
+                    [
+                        "documentId",
+                        "selectedRevision",
+                        "chapterId",
+                        "sectionId",
+                        "topicId",
+                        "targetNodeId",
+                        "targetType",
+                        "topic",
+                    ],
+                )
+
+    def test_every_block_type_and_check_target(self):
+        self.assertEqual(
+            {anchor_type for _, anchor_type, _ in SMALL_TREE_ANCHORS},
+            set(ContentAnchor.AnchorType.values),
+        )
+        for anchor_id, anchor_type, topic_id in SMALL_TREE_ANCHORS:
+            for revision in (None, 2):
+                with self.subTest(anchor_id=anchor_id, revision=revision):
+                    response = self.resolve(anchor_id, revision, queries=3)
+
+                    self.assertEqual(
+                        self.assert_json(response),
+                        resolution(
+                            2,
+                            "x-c-zulu",
+                            "x-s-mike",
+                            TOPIC_SUMMARIES[topic_id],
+                            anchor_id,
+                            anchor_type,
+                        ),
+                    )
+
+    def test_chapter_and_section_targets_open_their_first_topic(self):
+        expected = {
+            "x-c-zulu": ("x-s-mike", "x-t-yankee", "chapter"),
+            "x-s-mike": ("x-s-mike", "x-t-yankee", "section"),
+            "x-s-bravo": ("x-s-bravo", "x-t-kilo", "section"),
+        }
+        for node_id, (section_id, topic_id, target_type) in expected.items():
+            with self.subTest(node_id=node_id):
+                response = self.resolve(node_id, queries=3)
+
+                self.assertEqual(
+                    self.assert_json(response),
+                    resolution(
+                        2,
+                        "x-c-zulu",
+                        section_id,
+                        TOPIC_SUMMARIES[topic_id],
+                        node_id,
+                        target_type,
+                    ),
+                )
+
+    def test_chapter_target_uses_document_order_past_an_empty_section(self):
+        version = make_version(self.document, 4, date(2027, 6, 1))
+        chapter = make_node(version, "e-c1", DocumentNode.NodeType.CHAPTER, 1)
+        make_node(
+            version,
+            "e-s-empty",
+            DocumentNode.NodeType.SECTION,
+            2,
+            sequence=1,
+            parent=chapter,
+        )
+        section = make_node(
+            version,
+            "e-s-full",
+            DocumentNode.NodeType.SECTION,
+            3,
+            sequence=2,
+            parent=chapter,
+        )
+        make_node(
+            version,
+            "e-t-zulu",
+            DocumentNode.NodeType.TOPIC,
+            4,
+            sequence=1,
+            parent=section,
+            number="01.20.1",
+            title="Earlier in the document",
+            blocks=[],
+        )
+        make_node(
+            version,
+            "e-t-alpha",
+            DocumentNode.NodeType.TOPIC,
+            5,
+            sequence=2,
+            parent=section,
+            blocks=[],
+        )
+
+        response = self.resolve("e-c1", 4, queries=3)
+
+        self.assertEqual(
+            self.assert_json(response),
+            resolution(
+                4,
+                "e-c1",
+                "e-s-full",
+                {
+                    "id": "e-t-zulu",
+                    "number": "01.20.1",
+                    "title": "Earlier in the document",
+                },
+                "e-c1",
+                "chapter",
+            ),
+        )
+        self.assert_error(
+            self.resolve("e-s-empty", 4, queries=3),
+            422,
+            "UNSUPPORTED_NODE_TYPE",
+        )
+
+    def test_chapter_or_section_without_a_topic_is_unsupported(self):
+        for node_id in ("x-c-alpha", "x-s-zulu"):
+            with self.subTest(node_id=node_id):
+                self.assert_error(
+                    self.resolve(node_id, queries=3),
+                    422,
+                    "UNSUPPORTED_NODE_TYPE",
+                )
+
+    def test_omitted_revision_follows_the_effective_date(self):
+        expected = {
+            date(2026, 1, 1): 1,
+            date(2026, 7, 14): 1,
+            date(2026, 7, 15): 2,
+            date(2026, 11, 30): 2,
+            date(2026, 12, 1): 3,
+            date(2030, 1, 1): 3,
+        }
+        for day, revision in expected.items():
+            with self.subTest(day=day), fixed_today(day):
+                node_id = "x-t-yankee" if revision > 1 else "x-t-kilo"
+                body = self.assert_json(self.resolve(node_id, queries=2))
+                self.assertEqual(body["selectedRevision"], revision)
+
+    def test_omitted_revision_agrees_with_the_library_status(self):
+        for day in (date(2026, 3, 1), FIXED_TODAY, date(2026, 12, 1)):
+            with self.subTest(day=day), fixed_today(day):
+                library = self.assert_json(self.client.get(LIBRARY_URL))
+                current = [
+                    entry["revision"]
+                    for entry in library["documents"][0]["availableRevisions"]
+                    if entry["status"] == "current"
+                ]
+                node_id = "x-t-kilo" if current == [1] else "x-t-yankee"
+                resolved = self.assert_json(self.resolve(node_id))
+                self.assertEqual([resolved["selectedRevision"]], current)
+
+    def test_explicit_revision_is_never_substituted(self):
+        for day in (date(2025, 1, 1), FIXED_TODAY, date(2030, 1, 1)):
+            for revision, node_id in ((1, "x-t-kilo"), (2, "x-t-kilo"), (3, "x-t-new")):
+                with self.subTest(day=day, revision=revision), fixed_today(day):
+                    body = self.assert_json(self.resolve(node_id, revision, queries=2))
+                    self.assertEqual(body["selectedRevision"], revision)
+
+    def test_moved_topic_resolves_to_its_section_in_each_revision(self):
+        in_revision_2 = self.assert_json(self.resolve("x-t-alpha", 2))
+        in_revision_3 = self.assert_json(self.resolve("x-t-alpha", 3))
+
+        self.assertEqual(
+            (in_revision_2["sectionId"], in_revision_2["topic"]["number"]),
+            ("x-s-mike", "01.10.2"),
+        )
+        self.assertEqual(
+            (in_revision_3["sectionId"], in_revision_3["topic"]["number"]),
+            ("x-s-bravo", "01.20.2"),
+        )
+
+    def test_node_held_only_by_other_revisions_reports_them(self):
+        cases = [
+            ("x-t-new", None, [3]),
+            ("x-t-new", 2, [3]),
+            ("x-p-rev3", 2, [3]),
+            ("x-t-kilo", 3, [1, 2]),
+            ("x-p-0001", 3, [1, 2]),
+            ("x-p-0004", 1, [2]),
+            ("x-t-yankee", 1, [2, 3]),
+        ]
+        for node_id, revision, available in cases:
+            with self.subTest(node_id=node_id, revision=revision):
+                response = self.resolve(node_id, revision, queries=5)
+
+                self.assertEqual(
+                    self.assert_json(response, 404),
+                    {
+                        "error": {
+                            "code": "NODE_NOT_FOUND",
+                            "message": NODE_NOT_FOUND_MESSAGE,
+                            "details": {"availableRevisions": available},
+                        }
+                    },
+                )
+
+    def test_other_documents_are_never_reported_as_available(self):
+        other = make_document("DOC-B")
+        version = make_version(other, 7, date(2026, 1, 1))
+        nodes = make_small_tree(version, REVISION_1_NAVIGATION)
+        make_anchors(version, nodes, [("b-only", "para", "x-t-kilo")])
+
+        for doc_id, node_id, revision in (
+            ("DOC-A", "b-only", 2),
+            ("DOC-B", "x-t-yankee", 7),
+        ):
+            with self.subTest(doc_id=doc_id, node_id=node_id):
+                response = self.resolve(node_id, revision, doc_id=doc_id, queries=5)
+
+                self.assertEqual(
+                    self.assert_json(response, 404),
+                    {
+                        "error": {
+                            "code": "NODE_NOT_FOUND",
+                            "message": NODE_NOT_FOUND_MESSAGE,
+                        }
+                    },
+                )
+
+    def test_node_in_no_revision_has_no_details(self):
+        for revision in (None, 2):
+            with self.subTest(revision=revision):
+                response = self.resolve("x-t-nowhere", revision, queries=5)
+
+                self.assertEqual(
+                    self.assert_json(response, 404),
+                    {
+                        "error": {
+                            "code": "NODE_NOT_FOUND",
+                            "message": NODE_NOT_FOUND_MESSAGE,
+                        }
+                    },
+                )
+
+    def test_invalid_requests_are_rejected_without_queries(self):
+        base = "/api/documents/DOC-A/resolve-node/"
+        invalid = [
+            base,
+            f"{base}?revision=2",
+            f"{base}?nodeId=",
+            f"{base}?nodeId=&revision=2",
+            f"{base}?nodeId=x-t%00yankee",
+            f"{base}?nodeId=x-t-yankee&revision=",
+            f"{base}?nodeId=x-t-yankee&revision=abc",
+            f"{base}?nodeId=x-t-yankee&revision=2.0",
+            f"{base}?nodeId=x-t-yankee&revision=-2",
+            f"{base}?nodeId=x-t-yankee&revision=%2B2",
+            f"{base}?nodeId=x-t-yankee&revision=02",
+            f"{base}?nodeId=x-t-yankee&revision=%202",
+            f"{base}?nodeId=x-t-yankee&revision=%D9%A2",
+            "/api/documents/DOC%00A/resolve-node/?nodeId=x-t-yankee",
+            "/api/documents/DOC%00A/resolve-node/?nodeId=x-t-yankee&revision=2",
+            "/api/documents/NO-SUCH-DOC/resolve-node/?nodeId=x-t-yankee&revision=abc",
+            "/api/documents/NO-SUCH-DOC/resolve-node/",
+        ]
+        for url in invalid:
+            with self.subTest(url=url), self.assertNumQueries(0):
+                self.assert_error(self.client.get(url), 400, "INVALID_REQUEST")
+
+    def test_repeated_node_id_or_revision_parameters_are_rejected(self):
+        base = "/api/documents/DOC-A/resolve-node/"
+        repeated = [
+            f"{base}?nodeId=x-t-yankee&nodeId=x-t-alpha",
+            f"{base}?nodeId=x-t-yankee&nodeId=x-t-yankee",
+            f"{base}?nodeId=x-t-yankee&nodeId=",
+            f"{base}?nodeId=&nodeId=x-t-yankee",
+            f"{base}?nodeId=x-t-yankee&revision=2&revision=3",
+            f"{base}?nodeId=x-t-yankee&revision=2&revision=2",
+            f"{base}?revision=2&nodeId=x-t-yankee&revision=",
+            f"{base}?nodeId=x-t-yankee&nodeId=x-t-alpha&revision=2&revision=3",
+            "/api/documents/NO-SUCH-DOC/resolve-node/?nodeId=a&nodeId=b",
+        ]
+        for url in repeated:
+            with self.subTest(url=url), self.assertNumQueries(0):
+                body = self.assert_error(self.client.get(url), 400, "INVALID_REQUEST")
+                self.assertIn("only once", body["error"]["message"])
+
+        unrelated = self.client.get(f"{base}?nodeId=x-t-yankee&other=1&other=2")
+        self.assertEqual(self.assert_json(unrelated)["topicId"], "x-t-yankee")
+
+    def test_unknown_document(self):
+        self.assert_error(
+            self.resolve("x-t-yankee", doc_id="NO-SUCH-DOC", queries=2),
+            404,
+            "DOCUMENT_NOT_FOUND",
+        )
+        self.assert_error(
+            self.resolve("x-t-yankee", 2, doc_id="NO-SUCH-DOC", queries=2),
+            404,
+            "DOCUMENT_NOT_FOUND",
+        )
+
+    def test_explicit_revision_that_does_not_exist(self):
+        for revision in ("0", "99", "2147483648", "9" * 5000):
+            with self.subTest(revision=revision[:12]):
+                self.assert_error(
+                    self.resolve("x-t-yankee", revision),
+                    404,
+                    "REVISION_NOT_FOUND",
+                )
+
+    def test_no_current_revision(self):
+        with fixed_today(date(2025, 12, 31)):
+            self.assert_error(
+                self.resolve("x-t-kilo", queries=1),
+                404,
+                "NO_CURRENT_REVISION",
+            )
+            self.assertEqual(
+                self.assert_json(self.resolve("x-t-kilo", 1))["selectedRevision"],
+                1,
+            )
+
+        make_document("DOC-EMPTY")
+        self.assert_error(
+            self.resolve("x-t-kilo", doc_id="DOC-EMPTY", queries=2),
+            404,
+            "NO_CURRENT_REVISION",
+        )
+
+    def test_corrupt_parent_chains_return_sanitized_errors(self):
+        section, topic = DocumentNode.NodeType.SECTION, DocumentNode.NodeType.TOPIC
+        version = self.revision_2
+        topic_under_chapter = make_node(
+            version,
+            "bad-t-under-chapter",
+            topic,
+            90,
+            sequence=90,
+            parent=self.nodes_2["x-c-alpha"],
+            blocks=[],
+        )
+        foreign_chapter_section = make_node(
+            version,
+            "bad-s-foreign-chapter",
+            section,
+            91,
+            sequence=91,
+            parent=self.nodes_3["x-c-zulu"],
+        )
+        make_node(
+            version,
+            "bad-t-foreign-chapter",
+            topic,
+            92,
+            sequence=92,
+            parent=foreign_chapter_section,
+            blocks=[],
+        )
+        nested_section = make_node(
+            version,
+            "bad-s-nested",
+            section,
+            93,
+            sequence=93,
+            parent=self.nodes_2["x-s-mike"],
+        )
+        make_node(
+            version,
+            "bad-t-nested",
+            topic,
+            94,
+            sequence=94,
+            parent=nested_section,
+            blocks=[],
+        )
+        topic_from_another_revision = make_node(
+            self.revision_3,
+            "bad-t-other-revision",
+            topic,
+            95,
+            sequence=95,
+            parent=self.nodes_2["x-s-bravo"],
+            blocks=[],
+        )
+        make_anchors(
+            version,
+            {
+                **self.nodes_2,
+                "bad-t-under-chapter": topic_under_chapter,
+                "bad-s-nested": nested_section,
+                "bad-t-other-revision": topic_from_another_revision,
+                "x-t-foreign": self.nodes_3["x-t-new"],
+            },
+            [
+                ("bad-p-under-chapter", "para", "bad-t-under-chapter"),
+                ("bad-p-foreign-topic", "para", "x-t-foreign"),
+                ("bad-p-other-revision-topic", "para", "bad-t-other-revision"),
+                ("bad-p-on-nested-section", "para", "bad-s-nested"),
+                ("bad-p-on-section", "para", "x-s-mike"),
+                ("bad-p-on-chapter", "para", "x-c-zulu"),
+            ],
+        )
+
+        corrupt = {
+            "bad-t-under-chapter": 2,
+            "bad-t-foreign-chapter": 2,
+            "bad-s-foreign-chapter": 3,
+            "bad-t-nested": 2,
+            "bad-s-nested": 3,
+            "bad-p-under-chapter": 3,
+            "bad-p-foreign-topic": 3,
+            "bad-p-other-revision-topic": 3,
+            "bad-p-on-nested-section": 3,
+            "bad-p-on-section": 3,
+            "bad-p-on-chapter": 3,
+        }
+        for node_id, queries in corrupt.items():
+            with (
+                self.subTest(node_id=node_id),
+                self.assertLogs("documents.api_errors", level="ERROR") as logs,
+            ):
+                response = self.resolve(node_id, 2, queries=queries)
+                self.assert_sanitized_internal_error(
+                    response,
+                    node_id,
+                    "parent chain",
+                    "Anchor",
+                    "Traceback",
+                )
+                self.assertIn("DocumentTreeIntegrityError", "\n".join(logs.output))
+
+    def test_query_counts_do_not_grow_with_the_tree(self):
+        version = make_version(self.document, 5, date(2027, 1, 1))
+        navigation = [
+            {
+                "id": f"big-c{chapter}",
+                "number": f"{chapter:02d}",
+                "title": f"Chapter {chapter}",
+                "sections": [
+                    {
+                        "id": f"big-s{chapter}{section}",
+                        "number": f"{chapter:02d}.{section}0",
+                        "title": f"Section {chapter}.{section}",
+                        "topics": [
+                            {
+                                "id": f"big-t{chapter}{section}{topic}",
+                                "number": f"{chapter:02d}.{section}0.{topic}",
+                                "title": f"Topic {chapter}.{section}.{topic}",
+                            }
+                            for topic in range(1, 9)
+                        ],
+                    }
+                    for section in range(1, 5)
+                ],
+            }
+            for chapter in range(1, 5)
+        ]
+        nodes = make_small_tree(version, navigation)
+        topic_ids = [node_id for node_id in nodes if node_id.startswith("big-t")]
+        make_anchors(
+            version,
+            nodes,
+            [
+                (f"{topic_id}-p{index}", "para", topic_id)
+                for topic_id in topic_ids
+                for index in range(1, 9)
+            ],
+        )
+        self.assertEqual(len(topic_ids), 128)
+        self.assertEqual(ContentAnchor.objects.filter(version=version).count(), 1024)
+
+        counts = {
+            "big-t448": (200, 2),
+            "big-t448-p8": (200, 3),
+            "big-c4": (200, 3),
+            "big-s44": (200, 3),
+            "big-t999": (404, 5),
+            "x-t-yankee": (404, 5),
+        }
+        for node_id, (status_code, queries) in counts.items():
+            with self.subTest(node_id=node_id):
+                response = self.resolve(node_id, 5, queries=queries)
+                self.assertEqual(response.status_code, status_code)
+
+        last = self.assert_json(self.resolve("big-t448-p8", 5))
+        self.assertEqual(
+            (last["chapterId"], last["sectionId"], last["topicId"]),
+            ("big-c4", "big-s44", "big-t448"),
+        )
+
+
+class RealSampleResolveApiTests(ApiAssertionsMixin, APITestCase):
+    SAMPLE_PARENTS = {
+        "fm100-t1193": ("fm100-c01", "fm100-s001", "fm100-t1193"),
+        "fm100-t0098": ("fm100-c03", "fm100-s008", "fm100-t0098"),
+        "fm100-t0196": ("fm100-c03", "fm100-s012", "fm100-t0196"),
+        "fm100-t0294": ("fm100-c04", "fm100-s016", "fm100-t0294"),
+        "fm100-t0391": ("fm100-c05", "fm100-s022", "fm100-t0391"),
+        "fm100-t0488": ("fm100-c06", "fm100-s027", "fm100-t0488"),
+        "fm100-p00673": ("fm100-c03", "fm100-s008", "fm100-t0097"),
+    }
+
+    @classmethod
+    def setUpTestData(cls):
+        xml_directory = PROJECT_ROOT / "sample-data" / "xml"
+        for name in ("FM-S100_Rev2.xml", "FM-S100_Rev3.xml"):
+            result = ingest_xml(xml_directory / name)
+            if not result.success:
+                raise AssertionError(result.message)
+        cls.contract_sample = json.loads(
+            (PROJECT_ROOT / "contracts" / "provisional-sample.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        cls.client_samples = json.loads(
+            (PROJECT_ROOT / "sample-data" / "deep_link_samples.json").read_text(
+                encoding="utf-8"
+            )
+        )["links"]
+
+    def setUp(self):
+        failure = AssertionError("XML must not be parsed while serving the API")
+        for target in (
+            patch.object(etree, "parse", side_effect=failure),
+            patch.object(etree, "XMLSchema", side_effect=failure),
+            patch(
+                "documents.ingestion.assemble_normalized_document",
+                side_effect=failure,
+            ),
+            fixed_today(),
+        ):
+            target.start()
+            self.addCleanup(target.stop)
+
+    def resolve(self, node_id, revision=None, *, queries=None):
+        with CaptureQueriesContext(connection) as captured:
+            response = self.client.get(resolve_url("FM-S100", node_id, revision))
+        if queries is not None:
+            self.assertEqual(len(captured), queries, [q["sql"] for q in captured])
+        self.assertFalse(
+            [q["sql"] for q in captured if "content_blocks" in q["sql"]],
+            "the resolver must not read topic content",
+        )
+        return response
+
+    def test_all_client_sample_links_resolve_in_the_current_revision(self):
+        self.assertEqual(len(self.client_samples), 7)
+        self.assertEqual(
+            {link["nodeId"] for link in self.client_samples},
+            set(self.SAMPLE_PARENTS),
+        )
+        for link in self.client_samples:
+            node_id = link["nodeId"]
+            chapter_id, section_id, topic_id = self.SAMPLE_PARENTS[node_id]
+            is_topic = node_id == topic_id
+            with self.subTest(node_id=node_id):
+                response = self.client.get(resolve_url(link["docId"], node_id))
+                body = self.assert_json(response)
+
+                self.assertEqual(
+                    {key: value for key, value in body.items() if key != "topic"},
+                    {
+                        "documentId": "FM-S100",
+                        "selectedRevision": 2,
+                        "chapterId": chapter_id,
+                        "sectionId": section_id,
+                        "topicId": topic_id,
+                        "targetNodeId": node_id,
+                        "targetType": "topic" if is_topic else "para",
+                    },
+                )
+                self.assertEqual(body["topic"]["id"], topic_id)
+                self.assertEqual(body["topic"]["number"], link["expectedNumber"])
+                if is_topic:
+                    self.assertEqual(body["topic"]["title"], link["expectedTitle"])
+                self.resolve(node_id, queries=2 if is_topic else 3)
+
+    def test_contract_deep_link_examples_are_reproduced_exactly(self):
+        for name in ("paragraphDeepLinkExample", "checklistItemDeepLinkExample"):
+            example = self.contract_sample[name]
+            request = example["request"]
+            with self.subTest(example=name):
+                response = self.client.get(
+                    resolve_url(
+                        request["docId"],
+                        request["nodeId"],
+                        request["revision"],
+                    )
+                )
+
+                self.assertEqual(self.assert_json(response), example["response"])
+                self.assertEqual(
+                    json.dumps(response.json()),
+                    json.dumps(example["response"]),
+                )
+
+    def test_each_target_type_on_the_real_manual(self):
+        expected = {
+            "fm100-t1193": ("topic", "fm100-c01", "fm100-s001", "fm100-t1193", 2),
+            "fm100-p00673": ("para", "fm100-c03", "fm100-s008", "fm100-t0097", 3),
+            "fm100-p03231": ("checklist", "fm100-c05", "fm100-s019", "fm100-t0340", 3),
+            "fm100-p03219": ("check", "fm100-c05", "fm100-s019", "fm100-t0340", 3),
+            "fm100-c03": ("chapter", "fm100-c03", "fm100-s008", "fm100-t0097", 3),
+            "fm100-s019": ("section", "fm100-c05", "fm100-s019", "fm100-t0324", 3),
+        }
+        for node_id, (target_type, chapter_id, section_id, topic_id, queries) in (
+            expected.items()
+        ):
+            with self.subTest(node_id=node_id):
+                body = self.assert_json(self.resolve(node_id, queries=queries))
+
+                self.assertEqual(
+                    (
+                        body["targetType"],
+                        body["chapterId"],
+                        body["sectionId"],
+                        body["topicId"],
+                        body["targetNodeId"],
+                        body["selectedRevision"],
+                    ),
+                    (target_type, chapter_id, section_id, topic_id, node_id, 2),
+                )
+
+    def test_omitted_revision_moves_to_revision_3_on_its_effective_date(self):
+        for day, revision in (
+            (FIXED_TODAY, 2),
+            (date(2026, 11, 30), 2),
+            (date(2026, 12, 1), 3),
+        ):
+            with self.subTest(day=day), fixed_today(day):
+                body = self.assert_json(self.resolve("fm100-t0340", queries=2))
+                self.assertEqual(body["selectedRevision"], revision)
+
+    def test_explicit_revision_never_falls_back(self):
+        for day in (FIXED_TODAY, date(2026, 12, 1)):
+            for revision in (2, 3):
+                with self.subTest(day=day, revision=revision), fixed_today(day):
+                    body = self.assert_json(self.resolve("fm100-t0340", revision))
+                    self.assertEqual(body["selectedRevision"], revision)
+
+    def test_topics_held_by_one_revision_name_the_other(self):
+        cases = [
+            ("fm100-t1199", None, FIXED_TODAY, [3]),
+            ("fm100-t1199", 2, FIXED_TODAY, [3]),
+            ("fm100-t0022", 3, FIXED_TODAY, [2]),
+            ("fm100-t0022", None, date(2026, 12, 1), [2]),
+        ]
+        for node_id, revision, day, available in cases:
+            with self.subTest(node_id=node_id, revision=revision), fixed_today(day):
+                self.assert_error_with_details(
+                    self.resolve(node_id, revision, queries=5),
+                    404,
+                    "NODE_NOT_FOUND",
+                    {"availableRevisions": available},
+                )
+
+        self.assertEqual(
+            self.assert_json(self.resolve("fm100-t1199", 3))["selectedRevision"],
+            3,
+        )
+        self.assertEqual(
+            self.assert_json(self.resolve("fm100-t0022", 2))["selectedRevision"],
+            2,
+        )
+
+    def test_moved_topic_resolves_to_a_different_section_in_each_revision(self):
+        in_revision_2 = self.assert_json(self.resolve("fm100-t0043", 2))
+        in_revision_3 = self.assert_json(self.resolve("fm100-t0043", 3))
+
+        self.assertEqual(in_revision_2["topic"]["number"], "02.20.3")
+        self.assertEqual(in_revision_3["topic"]["number"], "03.50.4")
+        self.assertEqual(in_revision_2["topic"]["title"], "Weight Limitation 3")
+        self.assertEqual(in_revision_3["topic"]["title"], "Weight Limitation 3")
+        self.assertNotEqual(in_revision_2["sectionId"], in_revision_3["sectionId"])
+        self.assertNotEqual(in_revision_2["chapterId"], in_revision_3["chapterId"])
+        self.assertEqual(in_revision_2["topicId"], in_revision_3["topicId"])
 
 
 class RealSampleApiTests(ApiAssertionsMixin, APITestCase):
