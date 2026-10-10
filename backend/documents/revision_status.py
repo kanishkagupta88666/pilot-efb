@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import date
-from typing import Protocol
+from typing import Protocol, TypeVar
 
 from django.utils import timezone
 
@@ -14,12 +14,31 @@ class _DatedRevision(Protocol):
     effective_date: date
 
 
+_DatedRevisionT = TypeVar("_DatedRevisionT", bound=_DatedRevision)
+
+
 def current_date() -> date:
     """Return today's date in the configured Django time zone.
 
     This is the only clock used for revision status, so tests override it here.
     """
     return timezone.localdate()
+
+
+def current_revision(
+    versions: Iterable[_DatedRevisionT],
+    today: date,
+) -> _DatedRevisionT | None:
+    """Return the current revision of one document, or None if there is none.
+
+    Only revisions whose effective date is not after ``today`` qualify. The
+    latest effective date wins, then the highest revision number.
+    """
+    return max(
+        (version for version in versions if version.effective_date <= today),
+        key=lambda version: (version.effective_date, version.revision),
+        default=None,
+    )
 
 
 def derive_statuses(
@@ -29,23 +48,17 @@ def derive_statuses(
     """Map each revision number of one document to its derived status.
 
     A revision whose effective date is after ``today`` is upcoming. Of the
-    rest, the one with the latest effective date is current and the others are
-    superseded. When several share that latest effective date, the highest
-    revision number is current.
+    rest, ``current_revision`` picks the current one and the others are
+    superseded.
     """
+    versions = list(versions)
+    current = current_revision(versions, today)
     statuses: dict[int, str] = {}
-    current: _DatedRevision | None = None
     for version in versions:
         if version.effective_date > today:
             statuses[version.revision] = UPCOMING
-            continue
-        statuses[version.revision] = SUPERSEDED
-        if current is None or (version.effective_date, version.revision) > (
-            current.effective_date,
-            current.revision,
-        ):
-            current = version
-
-    if current is not None:
-        statuses[current.revision] = CURRENT
+        elif version is current:
+            statuses[version.revision] = CURRENT
+        else:
+            statuses[version.revision] = SUPERSEDED
     return statuses
