@@ -14,11 +14,13 @@ logger = logging.getLogger(__name__)
 INVALID_REQUEST = "INVALID_REQUEST"
 DOCUMENT_NOT_FOUND = "DOCUMENT_NOT_FOUND"
 REVISION_NOT_FOUND = "REVISION_NOT_FOUND"
+NO_CURRENT_REVISION = "NO_CURRENT_REVISION"
 NODE_NOT_FOUND = "NODE_NOT_FOUND"
 NODE_NOT_A_TOPIC = "NODE_NOT_A_TOPIC"
 NOT_FOUND = "NOT_FOUND"
 METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED"
 NOT_ACCEPTABLE = "NOT_ACCEPTABLE"
+UNSUPPORTED_NODE_TYPE = "UNSUPPORTED_NODE_TYPE"
 INTERNAL_ERROR = "INTERNAL_ERROR"
 
 INTERNAL_ERROR_MESSAGE = "The server could not complete the request."
@@ -28,15 +30,29 @@ NOT_FOUND_MESSAGE = "The requested resource was not found."
 class ApiError(Exception):
     """An expected failure that maps directly to one contract error response."""
 
-    def __init__(self, status_code: int, code: str, message: str) -> None:
+    def __init__(
+        self,
+        status_code: int,
+        code: str,
+        message: str,
+        details: dict | None = None,
+    ) -> None:
         super().__init__(message)
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.details = details
 
 
-def error_body(code: str, message: str) -> dict[str, dict[str, str]]:
-    return {"error": {"code": code, "message": message}}
+def error_body(
+    code: str,
+    message: str,
+    details: dict | None = None,
+) -> dict[str, dict]:
+    error: dict = {"code": code, "message": message}
+    if details is not None:
+        error["details"] = details
+    return {"error": error}
 
 
 def api_exception_handler(exc: Exception, context: dict) -> Response:
@@ -46,7 +62,10 @@ def api_exception_handler(exc: Exception, context: dict) -> Response:
     on the server and returned as a fixed message with no internal detail.
     """
     if isinstance(exc, ApiError):
-        return Response(error_body(exc.code, exc.message), status=exc.status_code)
+        return Response(
+            error_body(exc.code, exc.message, exc.details),
+            status=exc.status_code,
+        )
     if isinstance(exc, (Http404, NotFound)):
         return Response(error_body(NOT_FOUND, NOT_FOUND_MESSAGE), status=404)
     if isinstance(exc, MethodNotAllowed):
