@@ -158,3 +158,41 @@ class DocumentNode(models.Model):
 
     def __str__(self) -> str:
         return f"{self.node_type}:{self.node_id}"
+
+
+class ContentAnchor(models.Model):
+    """One permanent block or checklist check ID and the topic that holds it."""
+
+    class AnchorType(models.TextChoices):
+        PARA = "para", "Para"
+        NOTE = "note", "Note"
+        CAUTION = "caution", "Caution"
+        WARNING = "warning", "Warning"
+        LIST = "list", "List"
+        TABLE = "table", "Table"
+        CHECKLIST = "checklist", "Checklist"
+        CHECK = "check", "Check"
+
+    version = models.ForeignKey(
+        DocumentVersion,
+        on_delete=models.CASCADE,
+        related_name="anchors",
+    )
+    topic = models.ForeignKey(
+        DocumentNode,
+        on_delete=models.CASCADE,
+        related_name="anchors",
+    )
+    anchor_id = models.CharField(max_length=128)
+    anchor_type = models.CharField(max_length=16, choices=AnchorType.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("version", "anchor_id"),
+                name="unique_version_anchor_id",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.anchor_type}:{self.anchor_id}"
