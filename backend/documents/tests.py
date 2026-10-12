@@ -1,16 +1,26 @@
 from collections import Counter
 from copy import deepcopy
 from datetime import date
+from importlib import import_module
+import inspect
 from io import StringIO
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 
+from django.apps import apps as django_apps
 from django.test import TestCase
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.db import DatabaseError, IntegrityError, transaction
+from django.db import (
+    DatabaseError,
+    IntegrityError,
+    connection,
+    migrations,
+    transaction,
+)
 from lxml import etree
 from rest_framework.test import APITestCase
 
@@ -21,7 +31,7 @@ from documents.ingestion import (
     ingest_xml,
     validate_version_tree,
 )
-from documents.models import Document, DocumentNode, DocumentVersion
+from documents.models import ContentAnchor, Document, DocumentNode, DocumentVersion
 from documents.xml_hierarchy import extract_hierarchy
 from documents.xml_metadata import extract_metadata
 from documents.xml_normalization import assemble_normalized_document
@@ -1187,6 +1197,150 @@ class DatabaseIngestionTests(TestCase):
             1283,
         )
 
+    def test_real_sample_writes_one_anchor_per_block_and_check(self):
+        anchors = ContentAnchor.objects.filter(version=self.version)
+        expected = set()
+        for topic_id, topic in self.normalized["payload"][
+            "topicContentById"
+        ].items():
+            for block in topic["blocks"]:
+                expected.add((block["id"], block["type"], topic_id))
+                for check in block.get("checks", []):
+                    expected.add((check["id"], "check", topic_id))
+
+        self.assertEqual(anchors.count(), 10041)
+        self.assertEqual(
+            dict(Counter(anchors.values_list("anchor_type", flat=True))),
+            {
+                "para": 4289,
+                "note": 1032,
+                "caution": 1031,
+                "list": 1045,
+                "table": 1011,
+                "checklist": 159,
+                "check": 1474,
+            },
+        )
+        self.assertEqual(anchors.exclude(anchor_type="check").count(), 8567)
+        self.assertEqual(
+            set(anchors.values_list("anchor_id", "anchor_type", "topic__node_id")),
+            expected,
+        )
+        self.assertFalse(
+            anchors.exclude(
+                topic__version=self.version,
+                topic__node_type=DocumentNode.NodeType.TOPIC,
+            ).exists()
+        )
+        self.assertFalse(
+            DocumentNode.objects.filter(
+                version=self.version,
+                node_id__in=anchors.values("anchor_id"),
+            ).exists()
+        )
+
+    def test_replace_rebuilds_anchors_and_leaves_none_stale(self):
+        topic = DocumentNode.objects.get(
+            version=self.version,
+            node_id="fm100-t0340",
+        )
+        ContentAnchor.objects.create(
+            version=self.version,
+            topic=topic,
+            anchor_id="stale-anchor",
+            anchor_type=ContentAnchor.AnchorType.PARA,
+        )
+        old_anchor_pks = set(
+            ContentAnchor.objects.filter(version=self.version).values_list(
+                "pk",
+                flat=True,
+            )
+        )
+        self.assertEqual(len(old_anchor_pks), 10042)
+
+        with patch(
+            "documents.ingestion.assemble_normalized_document",
+            return_value=self.normalized,
+        ):
+            result = ingest_xml(DEFAULT_XML_PATH, replace=True)
+
+        self.assertTrue(result.success, result.message)
+        anchors = ContentAnchor.objects.filter(version=self.version)
+        self.assertEqual(ContentAnchor.objects.count(), 10041)
+        self.assertEqual(anchors.count(), 10041)
+        self.assertFalse(anchors.filter(anchor_id="stale-anchor").exists())
+        self.assertFalse(anchors.filter(pk__in=old_anchor_pks).exists())
+        self.assertFalse(
+            anchors.exclude(
+                topic__in=DocumentNode.objects.filter(version=self.version)
+            ).exists()
+        )
+        self.assertEqual(
+            anchors.get(anchor_id="fm100-p03219").topic.node_id,
+            "fm100-t0340",
+        )
+
+    def test_database_rejects_duplicate_anchor_id_within_a_version(self):
+        topic = DocumentNode.objects.get(
+            version=self.version,
+            node_id="fm100-t0340",
+        )
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            ContentAnchor.objects.create(
+                version=self.version,
+                topic=topic,
+                anchor_id="fm100-p03219",
+                anchor_type=ContentAnchor.AnchorType.NOTE,
+            )
+
+        other_version = DocumentVersion.objects.create(
+            document=self.document,
+            revision=3,
+            revision_date=self.version.revision_date,
+            effective_date=self.version.effective_date,
+            metadata=self.version.metadata,
+            source_filename="other.xml",
+        )
+        other_topic = DocumentNode.objects.create(
+            version=other_version,
+            node_id="fm100-c01",
+            node_type=DocumentNode.NodeType.CHAPTER,
+            number="01",
+            title="Other revision",
+            sequence=1,
+            position=1,
+        )
+        same_id = ContentAnchor.objects.create(
+            version=other_version,
+            topic=other_topic,
+            anchor_id="fm100-p03219",
+            anchor_type=ContentAnchor.AnchorType.CHECK,
+        )
+        self.assertEqual(same_id.anchor_id, "fm100-p03219")
+
+    def test_backfill_migration_rebuilds_the_same_anchors_as_ingestion(self):
+        migration = import_module("documents.migrations.0004_contentanchor")
+        fields = ("version_id", "topic_id", "anchor_id", "anchor_type")
+        ingested = set(ContentAnchor.objects.values_list(*fields))
+        self.assertEqual(len(ingested), 10041)
+        ContentAnchor.objects.all().delete()
+
+        migration.backfill_content_anchors(
+            django_apps,
+            SimpleNamespace(connection=connection),
+        )
+
+        self.assertEqual(ContentAnchor.objects.count(), 10041)
+        self.assertEqual(set(ContentAnchor.objects.values_list(*fields)), ingested)
+        with patch(
+            "documents.xml_validation.etree.parse",
+            side_effect=AssertionError("XML parsing should not be needed"),
+        ):
+            self.assertEqual(
+                get_normalized_document("FM-S100", 2),
+                self.normalized["payload"],
+            )
+
     def test_command_reports_successful_replace(self):
         output = StringIO()
         with patch(
@@ -1298,6 +1452,9 @@ class IngestionFailureTests(TestCase):
         node_fields = [
             field.attname for field in DocumentNode._meta.concrete_fields
         ]
+        anchor_fields = [
+            field.attname for field in ContentAnchor._meta.concrete_fields
+        ]
         return (
             tuple(
                 DocumentVersion.objects.filter(pk=version.pk)
@@ -1307,6 +1464,10 @@ class IngestionFailureTests(TestCase):
             tuple(
                 tuple(row)
                 for row in version.nodes.order_by("pk").values_list(*node_fields)
+            ),
+            tuple(
+                tuple(row)
+                for row in version.anchors.order_by("pk").values_list(*anchor_fields)
             ),
         )
 
@@ -1463,6 +1624,77 @@ class IngestionFailureTests(TestCase):
         self.assertEqual(bulk_create_count, 2)
         self.assertEqual(self._version_snapshot(version), before)
         self.assertEqual(self._version_snapshot(other_version), other_before)
+
+    def test_anchors_are_written_inside_the_transaction_and_rolled_back(self):
+        normalized = assemble_normalized_document()
+        seen_at_validation = []
+
+        def reject_after_counting(version):
+            seen_at_validation.append(
+                ContentAnchor.objects.filter(version=version).count()
+            )
+            raise DocumentTreeIntegrityError("deliberate tree failure")
+
+        with (
+            patch(
+                "documents.ingestion.assemble_normalized_document",
+                return_value=normalized,
+            ),
+            patch(
+                "documents.ingestion.validate_version_tree",
+                side_effect=reject_after_counting,
+            ),
+        ):
+            result = ingest_xml(DEFAULT_XML_PATH)
+
+        self.assertFalse(result.success)
+        self.assertEqual(seen_at_validation, [10041])
+        self.assertEqual(ContentAnchor.objects.count(), 0)
+        self.assertEqual(DocumentNode.objects.count(), 0)
+        self.assertEqual(DocumentVersion.objects.count(), 0)
+
+    def test_anchor_write_failure_rolls_back_the_whole_ingest(self):
+        normalized = assemble_normalized_document()
+        failing_anchor_write = patch(
+            "documents.ingestion.ContentAnchor.objects.bulk_create",
+            side_effect=DatabaseError("deliberate anchor failure"),
+        )
+        with (
+            patch(
+                "documents.ingestion.assemble_normalized_document",
+                return_value=normalized,
+            ),
+            failing_anchor_write,
+            self.assertLogs("documents.ingestion", level="ERROR"),
+        ):
+            initial = ingest_xml(DEFAULT_XML_PATH)
+
+        self.assertFalse(initial.success)
+        self.assertEqual(Document.objects.count(), 0)
+        self.assertEqual(DocumentNode.objects.count(), 0)
+        self.assertEqual(ContentAnchor.objects.count(), 0)
+
+        with patch(
+            "documents.ingestion.assemble_normalized_document",
+            return_value=normalized,
+        ):
+            self.assertTrue(ingest_xml(DEFAULT_XML_PATH).success)
+        version = DocumentVersion.objects.get(document_id="FM-S100", revision=2)
+        before = self._version_snapshot(version)
+        self.assertEqual(len(before[2]), 10041)
+
+        with (
+            patch(
+                "documents.ingestion.assemble_normalized_document",
+                return_value=normalized,
+            ),
+            failing_anchor_write,
+            self.assertLogs("documents.ingestion", level="ERROR"),
+        ):
+            replacement = ingest_xml(DEFAULT_XML_PATH, replace=True)
+
+        self.assertFalse(replacement.success)
+        self.assertEqual(self._version_snapshot(version), before)
 
     def test_missing_xml_command_raises_readable_command_error(self):
         with TemporaryDirectory() as temporary_directory:
@@ -1630,6 +1862,397 @@ class IngestionFailureTests(TestCase):
             document_before,
         )
         self.assertNotEqual(document_before["title"], "Changed title")
+
+
+class ContentAnchorTests(TestCase):
+    ALL_BLOCK_TYPES_MANUAL = MINIMAL_VALID_MANUAL.replace(
+        '<para id="sample-p1">Sample paragraph.</para>',
+        '<para id="sample-p1">Sample paragraph.</para>'
+        '<note id="sample-p2">Sample note.</note>'
+        '<caution id="sample-p3">Sample caution.</caution>'
+        '<warning id="sample-p4">Sample warning.</warning>'
+        '<list id="sample-p5"><item>First</item><item>Second</item></list>'
+        '<table id="sample-p6"><row header="true"><cell>A</cell></row>'
+        "<row><cell>B</cell></row></table>"
+        '<checklist id="sample-p7">'
+        '<check id="sample-p9"><challenge>Switch</challenge>'
+        "<response>On</response></check>"
+        '<check id="sample-p8"><challenge>Valve</challenge>'
+        "<response>Closed</response></check>"
+        "</checklist>",
+    )
+    EXPECTED_ANCHORS = [
+        ("sample-p1", "para"),
+        ("sample-p2", "note"),
+        ("sample-p3", "caution"),
+        ("sample-p4", "warning"),
+        ("sample-p5", "list"),
+        ("sample-p6", "table"),
+        ("sample-p7", "checklist"),
+        ("sample-p9", "check"),
+        ("sample-p8", "check"),
+    ]
+
+    def _ingest(self, manual, *, replace=False):
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "FM-SAMPLE_Rev2.xml"
+            xml_path.write_text(manual, encoding="utf-8")
+            return ingest_xml(xml_path, replace=replace)
+
+    def test_every_block_type_and_check_gets_exactly_one_anchor(self):
+        result = self._ingest(self.ALL_BLOCK_TYPES_MANUAL)
+
+        self.assertTrue(result.success, result.message)
+        self.assertEqual(
+            list(
+                ContentAnchor.objects.order_by("pk").values_list(
+                    "anchor_id",
+                    "anchor_type",
+                    "topic__node_id",
+                    "version__document_id",
+                    "version__revision",
+                )
+            ),
+            [
+                (anchor_id, anchor_type, "sample-t1", "FM-SAMPLE", 2)
+                for anchor_id, anchor_type in self.EXPECTED_ANCHORS
+            ],
+        )
+        self.assertEqual(
+            {anchor_type for _, anchor_type in self.EXPECTED_ANCHORS},
+            set(ContentAnchor.AnchorType.values),
+        )
+
+    def test_replace_with_fewer_blocks_drops_the_removed_anchors(self):
+        self.assertTrue(self._ingest(self.ALL_BLOCK_TYPES_MANUAL).success)
+        self.assertEqual(ContentAnchor.objects.count(), 9)
+
+        result = self._ingest(MINIMAL_VALID_MANUAL, replace=True)
+
+        self.assertTrue(result.success, result.message)
+        self.assertEqual(
+            list(ContentAnchor.objects.values_list("anchor_id", "anchor_type")),
+            [("sample-p1", "para")],
+        )
+
+    def test_deleting_a_version_or_topic_cascades_to_its_anchors(self):
+        self.assertTrue(self._ingest(self.ALL_BLOCK_TYPES_MANUAL).success)
+
+        DocumentNode.objects.filter(node_id="sample-t1").delete()
+        self.assertEqual(ContentAnchor.objects.count(), 0)
+
+        self.assertTrue(
+            self._ingest(self.ALL_BLOCK_TYPES_MANUAL, replace=True).success
+        )
+        self.assertEqual(ContentAnchor.objects.count(), 9)
+        DocumentVersion.objects.all().delete()
+        self.assertEqual(ContentAnchor.objects.count(), 0)
+
+    def test_backfill_handles_an_empty_database_and_topics_without_blocks(self):
+        migration = import_module("documents.migrations.0004_contentanchor")
+        schema_editor = SimpleNamespace(connection=connection)
+
+        with self.assertNumQueries(1):
+            migration.backfill_content_anchors(django_apps, schema_editor)
+        self.assertEqual(ContentAnchor.objects.count(), 0)
+
+        document = Document.objects.create(
+            id="BACKFILL",
+            title="Backfill",
+            doc_type="FM",
+            namespace="urn:backfill",
+        )
+        version = DocumentVersion.objects.create(
+            document=document,
+            revision=1,
+            revision_date=date(2026, 7, 1),
+            effective_date=date(2026, 7, 15),
+            metadata={},
+            source_filename="backfill.xml",
+        )
+        chapter = DocumentNode.objects.create(
+            version=version,
+            node_id="b-c1",
+            node_type=DocumentNode.NodeType.CHAPTER,
+            number="01",
+            title="Chapter",
+            sequence=1,
+            position=1,
+        )
+        section = DocumentNode.objects.create(
+            version=version,
+            node_id="b-s1",
+            node_type=DocumentNode.NodeType.SECTION,
+            number="01.10",
+            title="Section",
+            parent=chapter,
+            sequence=1,
+            position=2,
+        )
+        for sequence, blocks in enumerate(
+            (None, [], [{"type": "para", "id": "b-p1", "segments": []}]),
+            start=1,
+        ):
+            DocumentNode.objects.create(
+                version=version,
+                node_id=f"b-t{sequence}",
+                node_type=DocumentNode.NodeType.TOPIC,
+                number=f"01.10.{sequence}",
+                title="Topic",
+                parent=section,
+                sequence=sequence,
+                position=2 + sequence,
+                content_blocks=blocks,
+            )
+
+        migration.backfill_content_anchors(django_apps, schema_editor)
+
+        self.assertEqual(
+            list(
+                ContentAnchor.objects.values_list(
+                    "anchor_id",
+                    "anchor_type",
+                    "topic__node_id",
+                )
+            ),
+            [("b-p1", "para", "b-t3")],
+        )
+
+    @staticmethod
+    def _stored_rows():
+        return (
+            list(DocumentNode.objects.order_by("pk").values_list("pk", "node_id")),
+            list(
+                ContentAnchor.objects.order_by("pk").values_list(
+                    "pk",
+                    "anchor_id",
+                    "anchor_type",
+                    "topic_id",
+                )
+            ),
+        )
+
+    def test_xml_that_reuses_an_id_is_refused_on_ingest_and_on_replace(self):
+        para = '<para id="sample-p1">'
+        ambiguous_manuals = {
+            "block reuses the chapter ID": self.ALL_BLOCK_TYPES_MANUAL.replace(
+                para, '<para id="sample-c1">'
+            ),
+            "block reuses the section ID": self.ALL_BLOCK_TYPES_MANUAL.replace(
+                para, '<para id="sample-s1">'
+            ),
+            "block reuses the topic ID": self.ALL_BLOCK_TYPES_MANUAL.replace(
+                para, '<para id="sample-t1">'
+            ),
+            "check reuses the topic ID": self.ALL_BLOCK_TYPES_MANUAL.replace(
+                '<check id="sample-p9">', '<check id="sample-t1">'
+            ),
+            "check reuses a block ID": self.ALL_BLOCK_TYPES_MANUAL.replace(
+                '<check id="sample-p9">', '<check id="sample-p1">'
+            ),
+        }
+        for label, manual in ambiguous_manuals.items():
+            with self.subTest(case=label, mode="fresh ingest"):
+                self.assertNotEqual(manual, self.ALL_BLOCK_TYPES_MANUAL)
+                result = self._ingest(manual)
+
+                self.assertFalse(result.success)
+                self.assertTrue(result.errors)
+                self.assertEqual(Document.objects.count(), 0)
+                self.assertEqual(DocumentNode.objects.count(), 0)
+                self.assertEqual(ContentAnchor.objects.count(), 0)
+
+        self.assertTrue(self._ingest(self.ALL_BLOCK_TYPES_MANUAL).success)
+        before = self._stored_rows()
+        self.assertEqual((len(before[0]), len(before[1])), (3, 9))
+        for label, manual in ambiguous_manuals.items():
+            with self.subTest(case=label, mode="replace"):
+                result = self._ingest(manual, replace=True)
+
+                self.assertFalse(result.success)
+                self.assertTrue(result.errors)
+                self.assertEqual(self._stored_rows(), before)
+
+    def test_assembled_payload_with_an_ambiguous_id_is_refused_and_rolled_back(self):
+        with TemporaryDirectory() as temporary_directory:
+            xml_path = Path(temporary_directory) / "FM-SAMPLE_Rev2.xml"
+            xml_path.write_text(self.ALL_BLOCK_TYPES_MANUAL, encoding="utf-8")
+            valid = assemble_normalized_document(xml_path)
+        self.assertTrue(valid["ingestionReport"]["is_valid"])
+
+        def reuse(block_index, new_id, check_index=None):
+            def corrupt(blocks):
+                target = blocks[block_index]
+                if check_index is not None:
+                    target = target["checks"][check_index]
+                target["id"] = new_id
+
+            return corrupt
+
+        cases = {
+            "block reuses the topic ID": (reuse(0, "sample-t1"), "sample-t1"),
+            "block reuses the section ID": (reuse(4, "sample-s1"), "sample-s1"),
+            "check reuses the chapter ID": (reuse(6, "sample-c1", 0), "sample-c1"),
+            "check reuses a block ID": (reuse(6, "sample-p5", 1), "sample-p5"),
+            "two blocks share an ID": (reuse(2, "sample-p1"), "sample-p1"),
+        }
+
+        def ingest(assembly, *, replace=False):
+            with patch(
+                "documents.ingestion.assemble_normalized_document",
+                return_value=assembly,
+            ):
+                return ingest_xml("FM-SAMPLE_Rev2.xml", replace=replace)
+
+        def ambiguous(corrupt):
+            assembly = deepcopy(valid)
+            corrupt(assembly["payload"]["topicContentById"]["sample-t1"]["blocks"])
+            self.assertTrue(assembly["ingestionReport"]["is_valid"])
+            return assembly
+
+        for label, (corrupt, repeated_id) in cases.items():
+            with self.subTest(case=label, mode="fresh ingest"):
+                result = ingest(ambiguous(corrupt))
+
+                self.assertFalse(result.success)
+                self.assertIn("IDs used more than once", result.message)
+                self.assertIn(repeated_id, result.message)
+                self.assertEqual(Document.objects.count(), 0)
+                self.assertEqual(DocumentVersion.objects.count(), 0)
+                self.assertEqual(DocumentNode.objects.count(), 0)
+                self.assertEqual(ContentAnchor.objects.count(), 0)
+
+        self.assertTrue(ingest(valid).success)
+        version = DocumentVersion.objects.get(document_id="FM-SAMPLE", revision=2)
+        before = IngestionFailureTests._version_snapshot(version)
+        self.assertEqual(len(before[2]), 9)
+        for label, (corrupt, repeated_id) in cases.items():
+            with self.subTest(case=label, mode="replace"):
+                result = ingest(ambiguous(corrupt), replace=True)
+
+                self.assertFalse(result.success)
+                self.assertIn(repeated_id, result.message)
+                self.assertEqual(
+                    IngestionFailureTests._version_snapshot(version),
+                    before,
+                )
+
+    def test_backfill_refuses_a_revision_with_an_ambiguous_id(self):
+        migration = import_module("documents.migrations.0004_contentanchor")
+        schema_editor = SimpleNamespace(connection=connection)
+        document = Document.objects.create(
+            id="AMBIGUOUS",
+            title="Ambiguous",
+            doc_type="FM",
+            namespace="urn:ambiguous",
+        )
+
+        def store_revision(revision, first_blocks, second_blocks):
+            version = DocumentVersion.objects.create(
+                document=document,
+                revision=revision,
+                revision_date=date(2026, 7, 1),
+                effective_date=date(2026, 7, 15),
+                metadata={},
+                source_filename="ambiguous.xml",
+            )
+            chapter = DocumentNode.objects.create(
+                version=version,
+                node_id="a-c1",
+                node_type=DocumentNode.NodeType.CHAPTER,
+                number="01",
+                title="Chapter",
+                sequence=1,
+                position=1,
+            )
+            section = DocumentNode.objects.create(
+                version=version,
+                node_id="a-s1",
+                node_type=DocumentNode.NodeType.SECTION,
+                number="01.10",
+                title="Section",
+                parent=chapter,
+                sequence=1,
+                position=2,
+            )
+            for sequence, blocks in enumerate((first_blocks, second_blocks), 1):
+                DocumentNode.objects.create(
+                    version=version,
+                    node_id=f"a-t{sequence}",
+                    node_type=DocumentNode.NodeType.TOPIC,
+                    number=f"01.10.{sequence}",
+                    title="Topic",
+                    parent=section,
+                    sequence=sequence,
+                    position=2 + sequence,
+                    content_blocks=blocks,
+                )
+            return version
+
+        def para(block_id):
+            return {"type": "para", "id": block_id, "segments": []}
+
+        def checklist(block_id, check_id):
+            return {
+                "type": "checklist",
+                "id": block_id,
+                "checks": [{"id": check_id, "challenge": "A", "response": "B"}],
+            }
+
+        cases = {
+            "block reuses the chapter ID": ([para("a-c1")], [], "a-c1"),
+            "block reuses the section ID": ([para("a-p1")], [para("a-s1")], "a-s1"),
+            "block reuses another topic's ID": ([para("a-t2")], [], "a-t2"),
+            "check reuses its own topic's ID": (
+                [checklist("a-p1", "a-t1")],
+                [],
+                "a-t1",
+            ),
+            "two topics share a block ID": ([para("a-p1")], [para("a-p1")], "a-p1"),
+            "check reuses a block ID": (
+                [para("a-p1")],
+                [checklist("a-p2", "a-p1")],
+                "a-p1",
+            ),
+        }
+        for revision, (label, (first, second, repeated_id)) in enumerate(
+            cases.items(),
+            start=1,
+        ):
+            with self.subTest(case=label):
+                version = store_revision(revision, first, second)
+
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    rf"AMBIGUOUS revision {revision}: .*{repeated_id}",
+                ):
+                    migration.backfill_content_anchors(django_apps, schema_editor)
+
+                self.assertEqual(ContentAnchor.objects.count(), 0)
+                version.delete()
+
+        store_revision(99, [para("a-p1")], [checklist("a-p2", "a-p3")])
+        migration.backfill_content_anchors(django_apps, schema_editor)
+        self.assertEqual(
+            list(ContentAnchor.objects.values_list("anchor_id", "anchor_type")),
+            [("a-p1", "para"), ("a-p2", "checklist"), ("a-p3", "check")],
+        )
+
+    def test_backfill_is_reversible_and_self_contained(self):
+        migration = import_module("documents.migrations.0004_contentanchor")
+        operations = migration.Migration.operations
+        backfill = operations[-1]
+
+        self.assertEqual(
+            [type(operation) for operation in operations],
+            [migrations.CreateModel, migrations.RunPython],
+        )
+        self.assertIs(backfill.code, migration.backfill_content_anchors)
+        self.assertIs(backfill.reverse_code, migrations.RunPython.noop)
+        self.assertTrue(backfill.reversible)
+        source = inspect.getsource(migration)
+        self.assertNotIn("from documents", source)
+        self.assertNotIn("import documents", source)
 
 
 class VersionTreeValidationTests(TestCase):

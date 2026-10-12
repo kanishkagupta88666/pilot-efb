@@ -8,7 +8,7 @@ from typing import TypedDict
 from django.db import DatabaseError, IntegrityError, transaction
 from django.utils import timezone
 
-from documents.models import Document, DocumentNode, DocumentVersion
+from documents.models import ContentAnchor, Document, DocumentNode, DocumentVersion
 from documents.xml_content import TopicContent
 from documents.xml_normalization import assemble_normalized_document
 from documents.xml_normalization import (
@@ -284,6 +284,59 @@ def _node_records(
     return chapter_records, section_records, topic_records
 
 
+def _anchor_records(
+    version: DocumentVersion,
+    topic_records: list[DocumentNode],
+) -> list[ContentAnchor]:
+    """Build one anchor per stored block and per checklist check."""
+    anchor_records: list[ContentAnchor] = []
+    for topic_node in topic_records:
+        for block in topic_node.content_blocks:
+            anchor_records.append(
+                ContentAnchor(
+                    version=version,
+                    topic=topic_node,
+                    anchor_id=block["id"],
+                    anchor_type=block["type"],
+                )
+            )
+            if block["type"] != ContentAnchor.AnchorType.CHECKLIST:
+                continue
+            for check in block["checks"]:
+                anchor_records.append(
+                    ContentAnchor(
+                        version=version,
+                        topic=topic_node,
+                        anchor_id=check["id"],
+                        anchor_type=ContentAnchor.AnchorType.CHECK,
+                    )
+                )
+    return anchor_records
+
+
+def _require_unambiguous_ids(
+    node_records: list[DocumentNode],
+    anchor_records: list[ContentAnchor],
+) -> None:
+    """Refuse a revision in which one ID would name two different targets.
+
+    A node ID and a block or check ID live in different tables, so the
+    database cannot keep them apart. The same pass also catches a block or
+    check ID that is repeated.
+    """
+    seen = {record.node_id for record in node_records}
+    repeated: set[str] = set()
+    for anchor in anchor_records:
+        if anchor.anchor_id in seen:
+            repeated.add(anchor.anchor_id)
+        seen.add(anchor.anchor_id)
+    if repeated:
+        raise DocumentTreeIntegrityError(
+            "IDs used more than once in this revision: "
+            f"{', '.join(sorted(repeated)[:5])}."
+        )
+
+
 def ingest_xml(
     xml_path: str | Path,
     *,
@@ -397,6 +450,13 @@ def ingest_xml(
                 DocumentNode.objects.bulk_create(section_records)
             if topic_records:
                 DocumentNode.objects.bulk_create(topic_records)
+            anchor_records = _anchor_records(version, topic_records)
+            _require_unambiguous_ids(
+                [*chapter_records, *section_records, *topic_records],
+                anchor_records,
+            )
+            if anchor_records:
+                ContentAnchor.objects.bulk_create(anchor_records)
 
             validate_version_tree(version)
 
