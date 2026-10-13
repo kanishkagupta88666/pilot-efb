@@ -51,8 +51,8 @@ describe("document library", () => {
       }),
     ).toBeTruthy();
     expect(screen.getByRole("link", { name: "Back to library" })).toBeTruthy();
-    expect(screen.getByText("Revision date 2026-07-01")).toBeTruthy();
-    expect(screen.getByText("Effective date 2026-07-15")).toBeTruthy();
+    expect(screen.getByText("1 Jul 2026")).toBeTruthy();
+    expect(screen.getByText("15 Jul 2026")).toBeTruthy();
   });
 });
 

@@ -304,6 +304,7 @@ function ChecklistView({
               <span className="checklist-item__challenge">
                 {check.challenge}
               </span>
+              <span aria-hidden="true" className="checklist-item__leader" />
               <span className="checklist-item__response">{check.response}</span>
             </label>
           </li>

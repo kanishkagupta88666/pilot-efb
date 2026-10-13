@@ -19,6 +19,7 @@ import { ContentBlocks } from "./ContentBlocks";
 import { Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { RevisionSelector } from "./RevisionSelector";
+import { TopicHeader } from "./TopicHeader";
 
 function firstTopicId(chapters: MockChapterOutline[]): string {
   for (const chapter of chapters) {
@@ -222,9 +223,21 @@ function ReaderWorkspace({
       }
       title={title}
     >
-      <div className="document-heading">
-        <p className="eyebrow">{docId} · Revision {revision}</p>
-        <h1>{topicResponse.topic.number} {topicResponse.topic.title}</h1>
+      <TopicHeader
+        effectiveDate={metadata.effectiveDate}
+        number={topicResponse.topic.number}
+        revisionDate={metadata.revisionDate}
+        revisionSelector={
+          <RevisionSelector
+            onChange={(nextRevision) =>
+              navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
+            }
+            revisions={availableRevisions}
+            selectedRevision={revision}
+          />
+        }
+        title={topicResponse.topic.title}
+      >
         {topicResponse.topic.mock && (
           <span className="mock-badge mock-badge--large">Mock table example</span>
         )}
@@ -233,18 +246,7 @@ function ReaderWorkspace({
             This target is not available in this prototype.
           </p>
         )}
-        <div className="revision-details">
-          <RevisionSelector
-            onChange={(nextRevision) =>
-              navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
-            }
-            revisions={availableRevisions}
-            selectedRevision={revision}
-          />
-          <span>Revision date {metadata.revisionDate}</span>
-          <span>Effective date {metadata.effectiveDate}</span>
-        </div>
-      </div>
+      </TopicHeader>
       {selectedOutline?.mock && (
         <p className="mock-notice">
           MOCK — separate table example from the provisional contract.
