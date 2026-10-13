@@ -16,7 +16,7 @@ import { DATA_SOURCE } from "../config/dataSource";
 import type { DocumentRevision } from "../types/api";
 import { ApiReader } from "./ApiReader";
 import { ContentBlocks } from "./ContentBlocks";
-import { Outline, topicTrail } from "./Outline";
+import { Outline, SectionTopics, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { RevisionSelector } from "./RevisionSelector";
 import { TopicHeader } from "./TopicHeader";
@@ -203,6 +203,13 @@ function ReaderWorkspace({
 
   return (
     <ReaderLayout
+      aside={
+        <SectionTopics
+          activeTopicId={selectedTopicId}
+          chapters={navigation.chapters}
+          onSelectTopic={selectTopic}
+        />
+      }
       breadcrumbs={[
         navigation.document.docType,
         ...topicTrail(navigation.chapters, selectedTopicId),
