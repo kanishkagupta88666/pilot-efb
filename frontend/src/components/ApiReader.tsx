@@ -22,6 +22,7 @@ import { Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
+import { TopicHeader } from "./TopicHeader";
 
 type PageData =
   | { key: string; status: "loading" }
@@ -379,6 +380,10 @@ export function ApiReader() {
     targetIsOutlineNode &&
     Boolean(requestedChapterId || requestedSectionId);
 
+  // The loaded topic once it is ready; until then, the entry selected in the outline.
+  const headingTopic =
+    topicData.status === "ready" ? topicData.topic : selectedOutlineTopic;
+
   return (
     <ReaderLayout
       breadcrumbs={[
@@ -406,18 +411,26 @@ export function ApiReader() {
       }
       title={metadata.title}
     >
-      <div className="document-heading">
-        <p className="eyebrow">{docId} · Revision {revision}</p>
-        {topicData.status === "ready" ? (
-          <h1
-            className={highlightedTargetId === topicData.topic.id ? "content-block--targeted" : ""}
-            id={topicData.topic.id}
-          >
-            {topicData.topic.number} {topicData.topic.title}
-          </h1>
-        ) : (
-          <h1>{selectedOutlineTopic?.number} {selectedOutlineTopic?.title ?? metadata.title}</h1>
-        )}
+      <TopicHeader
+        effectiveDate={metadata.effectiveDate}
+        id={headingTopic === selectedOutlineTopic ? undefined : headingTopic?.id}
+        number={headingTopic?.number}
+        revisionDate={metadata.revisionDate}
+        revisionSelector={
+          <RevisionSelector
+            onChange={(nextRevision) =>
+              navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
+            }
+            revisions={pageData.revisions}
+            selectedRevision={pageData.navigation.version.revision}
+          />
+        }
+        targeted={
+          topicData.status === "ready" &&
+          highlightedTargetId === topicData.topic.id
+        }
+        title={headingTopic?.title ?? metadata.title}
+      >
         {targetNodeId && !isChapterOrSectionTarget && topicData.status === "ready" &&
           targetNodeId !== topicData.topic.id &&
           !topicData.topic.blocks.some(
@@ -430,18 +443,7 @@ export function ApiReader() {
               This target is not available in the selected revision.
             </p>
           )}
-        <div className="revision-details">
-          <RevisionSelector
-            onChange={(nextRevision) =>
-              navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
-            }
-            revisions={pageData.revisions}
-            selectedRevision={pageData.navigation.version.revision}
-          />
-          <span>Revision date {metadata.revisionDate}</span>
-          <span>Effective date {metadata.effectiveDate}</span>
-        </div>
-      </div>
+      </TopicHeader>
       {topicData.status === "loading" || topicData.status === "idle" ? (
         <LoadingState label="Loading topic content…" />
       ) : topicData.status === "error" ? (
