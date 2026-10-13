@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import type { MouseEvent, ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { getDocumentLibrary } from "../data/mockData";
 import { getDocumentLibraryFromApi, type ApiClientError } from "../api/client";
 import { DATA_SOURCE } from "../config/dataSource";
-import type { DocumentSummary } from "../types/api";
+import type { DocumentSummary, RevisionStatus } from "../types/api";
+import { formatDate } from "../utils/formatDate";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
 
-function DocumentCard({
-  document,
-}: {
-  document: DocumentSummary;
-}) {
+const statusLabels: Record<RevisionStatus, string> = {
+  current: "Current",
+  upcoming: "Upcoming",
+  superseded: "Superseded",
+};
+
+function DocumentRow({ document }: { document: DocumentSummary }) {
+  const navigate = useNavigate();
   const initialRevision = document.availableRevisions[0];
   const [selectedRevision, setSelectedRevision] = useState(
     initialRevision?.revision,
@@ -23,61 +27,89 @@ function DocumentCard({
 
   if (!selected) {
     return (
-      <article className="document-card">
-        <h2>{document.id}</h2>
-        <p role="status">No revisions are available.</p>
-      </article>
+      <tr>
+        <td className="document-table__type">{document.docType}</td>
+        <td>
+          <h2>{document.id}</h2>
+        </td>
+        <td colSpan={5} role="status">No revisions are available.</td>
+      </tr>
     );
   }
 
+  const readerPath = `/reader/${encodeURIComponent(document.id)}/${selected.revision}`;
+  // The whole row opens the reader; taps on the link or revision selector keep their own behaviour.
+  const openFromRow = (event: MouseEvent<HTMLTableRowElement>) => {
+    if ((event.target as HTMLElement).closest("a, select, label")) return;
+    navigate(readerPath);
+  };
+
   return (
-    <article className="document-card" key={document.id}>
-      <div className="document-card__heading">
-        <div>
-          <h2>{selected.metadata.title}</h2>
-          <p className="document-id">{document.id}</p>
-        </div>
-        <span className="document-type">{selected.metadata.docType}</span>
-      </div>
-      <dl className="document-details">
-        <div>
-          <dt>Revision</dt>
-          <dd>{selected.revision}</dd>
-        </div>
-        <div>
-          <dt>Revision date</dt>
-          <dd>{selected.metadata.revisionDate}</dd>
-        </div>
-        <div>
-          <dt>Effective date</dt>
-          <dd>{selected.metadata.effectiveDate}</dd>
-        </div>
-        <div>
-          <dt>Document type</dt>
-          <dd>{selected.metadata.docType}</dd>
-        </div>
-      </dl>
-      <RevisionSelector
-        onChange={setSelectedRevision}
-        revisions={document.availableRevisions}
-        selectedRevision={selected.revision}
-      />
-      <Link
-        className="button button--primary"
-        to={`/reader/${encodeURIComponent(document.id)}/${selected.revision}`}
-      >
-        Open reader
-      </Link>
-    </article>
+    <tr className="document-table__row" onClick={openFromRow}>
+      <td className="document-table__type">{selected.metadata.docType}</td>
+      <td>
+        <h2>{selected.metadata.title}</h2>
+        <p className="document-id">{document.id}</p>
+      </td>
+      <td className="document-table__revision">
+        {document.availableRevisions.length > 1 ? (
+          <RevisionSelector
+            onChange={setSelectedRevision}
+            revisions={document.availableRevisions}
+            selectedRevision={selected.revision}
+          />
+        ) : (
+          selected.revision
+        )}
+      </td>
+      <td>
+        <time dateTime={selected.metadata.revisionDate}>
+          {formatDate(selected.metadata.revisionDate)}
+        </time>
+      </td>
+      <td>
+        <time dateTime={selected.metadata.effectiveDate}>
+          {formatDate(selected.metadata.effectiveDate)}
+        </time>
+      </td>
+      <td>
+        <span className={`status-chip status-chip--${selected.status}`}>
+          {statusLabels[selected.status]}
+        </span>
+      </td>
+      <td className="document-table__open">
+        <Link
+          aria-label={`Open ${selected.metadata.title}`}
+          className="button button--primary"
+          to={readerPath}
+        >
+          Open
+        </Link>
+      </td>
+    </tr>
   );
 }
 
 function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
   return (
     <section className="document-list" aria-label="Available documents">
-      {documents.map((document) => (
-        <DocumentCard document={document} key={document.id} />
-      ))}
+      <table className="document-table">
+        <thead>
+          <tr>
+            <th colSpan={2} scope="col">Document</th>
+            <th scope="col">Revision</th>
+            <th scope="col">Revision date</th>
+            <th scope="col">Effective date</th>
+            <th scope="col">Status</th>
+            <th scope="col"><span className="visually-hidden">Open</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {documents.map((document) => (
+            <DocumentRow document={document} key={document.id} />
+          ))}
+        </tbody>
+      </table>
     </section>
   );
 }
@@ -85,12 +117,17 @@ function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
 function LibraryFrame({ children }: { children: ReactNode }) {
   return (
     <main className="library-page">
-      <header className="library-header">
-        <p className="eyebrow">Pilot EFB</p>
-        <h1>Document library</h1>
-        <p className="intro">Choose an available manual revision to read.</p>
-      </header>
-      {children}
+      <div className="app-bar">
+        <span className="app-bar__brand">Pilot EFB</span>
+        <span className="app-bar__title">Library</span>
+      </div>
+      <div className="library-body">
+        <header className="library-header">
+          <h1>Document library</h1>
+          <p className="intro">Choose an available manual revision to read.</p>
+        </header>
+        {children}
+      </div>
     </main>
   );
 }

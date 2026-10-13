@@ -11,6 +11,8 @@
   --surface: #fff;
   --soft-surface: #f6f7f8;
   --accent: #254760;
+  --accent-soft: #e4ebf1;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 * {
@@ -47,13 +49,41 @@ input:focus-visible,
 }
 
 .library-page {
-  width: min(100%, 58rem);
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+.app-bar {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 clamp(1rem, 3vw, 2.5rem);
+  border-bottom: 1px solid var(--line);
+  background: var(--soft-surface);
+}
+
+.app-bar__brand {
+  padding-right: 0.75rem;
+  border-right: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.app-bar__title {
+  font-weight: 600;
+}
+
+.library-body {
+  width: min(100%, 80rem);
   margin: 0 auto;
-  padding: clamp(1.25rem, 4vw, 3rem);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
 }
 
 .library-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .eyebrow {
@@ -73,75 +103,120 @@ p {
 
 .library-header h1 {
   margin: 0;
-  font-size: clamp(2rem, 6vw, 3rem);
-  letter-spacing: -0.035em;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
 }
 
 .intro {
-  margin: 0.75rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--muted);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 
 .document-list {
-  display: grid;
-  gap: 1rem;
+  overflow-x: auto;
 }
 
-.document-card {
-  padding: clamp(1.25rem, 3vw, 1.75rem);
-  border: 1px solid var(--line);
-  border-radius: 1rem;
-  background: var(--surface);
-  box-shadow: 0 0.4rem 1.4rem rgb(24 39 54 / 5%);
+.document-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
 }
 
-.document-card__heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+.document-table th {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  background: var(--soft-surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.document-card h2 {
+.document-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.document-table td:nth-child(2) {
+  width: 100%;
+  white-space: normal;
+}
+
+.document-table__row {
+  cursor: pointer;
+}
+
+.document-table__row:hover,
+.document-table__row:active {
+  background: var(--soft-surface);
+}
+
+.document-table h2 {
   margin: 0;
-  font-size: clamp(1.25rem, 4vw, 1.65rem);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.document-table__type,
+.document-table__revision,
+.document-table time,
+.document-id {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+
+.document-table__type {
+  font-weight: 700;
 }
 
 .document-id,
 .prototype-note {
-  margin: 0.4rem 0 0;
+  margin: 0.2rem 0 0;
   color: var(--muted);
 }
 
-.document-type {
-  flex: 0 0 auto;
-  padding: 0.35rem 0.6rem;
+.document-table .revision-selector span {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+}
+
+.document-table .button {
+  min-height: 2.75rem;
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
   border: 1px solid var(--line);
-  border-radius: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.document-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-  gap: 0.75rem;
-  margin: 1.5rem 0;
-}
-
-.document-details div {
-  min-width: 0;
-}
-
-.document-details dt {
+  border-radius: 0.3rem;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-.document-details dd {
-  margin: 0.25rem 0 0;
-  font-weight: 650;
+.status-chip--current {
+  border-color: transparent;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.status-chip--superseded {
+  background: var(--soft-surface);
+}
+
+.visually-hidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .button {
@@ -663,15 +738,5 @@ p {
   .navigation-close,
   .navigation-backdrop {
     display: none;
-  }
-}
-
-@media (max-width: 420px) {
-  .document-card__heading {
-    flex-direction: column;
-  }
-
-  .document-details {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
