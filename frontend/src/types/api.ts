@@ -246,3 +246,70 @@ export interface PdfOutlineResponse {
   nodes: Record<string, { page: number; endPage: number; heading: string }>;
   unmatched: string[];
 }
+
+export type SearchCategory = "master" | "fleet";
+
+export interface SearchableDocument {
+  docId: string;
+  title: string;
+  docType: string;
+  applicability: string;
+  category: SearchCategory;
+  revision: number;
+  effectiveDate: string;
+}
+
+export interface SearchResult {
+  docId: string;
+  docTitle: string;
+  docType: string;
+  revision: number;
+  topicId: string;
+  nodeId: string;
+  nodeType: string;
+  number: string;
+  title: string;
+  section: { number: string; title: string };
+  snippet: string;
+  score: number;
+  /** Matching entries (topic heading and blocks) in this topic. */
+  matchCount: number;
+}
+
+export interface SearchResponse {
+  query: string;
+  terms: string[];
+  total: number;
+  byDocument: Record<string, number>;
+  results: SearchResult[];
+  documents: SearchableDocument[];
+}
+
+export type SearchContentType = "warnings" | "procedures";
+
+export interface SearchFilters {
+  docTypes?: string[];
+  fleet?: string;
+  categories?: SearchCategory[];
+  contentTypes?: SearchContentType[];
+}
+
+/** [node ID, node type, text] */
+export type IndexedBlock = [string, string, string];
+
+export interface IndexedTopic {
+  id: string;
+  number: string;
+  title: string;
+  sectionNumber: string;
+  sectionTitle: string;
+  blocks: IndexedBlock[];
+}
+
+export interface SearchIndexDocument extends SearchableDocument {
+  topics: IndexedTopic[];
+}
+
+export interface SearchIndexResponse {
+  documents: SearchIndexDocument[];
+}

@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import {
   Link,
+  useLocation,
   useNavigate,
   useParams,
   useSearchParams,
@@ -171,6 +172,13 @@ export function ApiReader() {
   const revision = parseRevision(revisionParam);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Set when the reader was opened from a search result, so the pilot can
+  // go back to the same results.
+  const fromSearch =
+    typeof (location.state as { fromSearch?: unknown } | null)?.fromSearch === "string"
+      ? (location.state as { fromSearch: string }).fromSearch
+      : undefined;
   const topicIdParam = searchParams.get("topicId") ?? undefined;
   const targetNodeId = searchParams.get("nodeId") ?? undefined;
   const targetTypeParam = searchParams.get("targetType") ?? undefined;
@@ -466,7 +474,7 @@ export function ApiReader() {
   const selectTopic = (id: string) => {
     setSelectedTopicId(id);
     setTopicData({ status: "loading" });
-    setSearchParams({});
+    setSearchParams({}, { state: location.state });
     setHighlightedTargetId(undefined);
     setNavigationOpen(false);
   };
@@ -519,7 +527,12 @@ export function ApiReader() {
     <main className={`reader-page${navigationOpen ? " reader-page--navigation-open" : ""}`}>
       <header className="reader-toolbar">
         <Link className="reader-brand" to="/">Pilot EFB</Link>
-        <Link className="button button--secondary" to="/">Back to library</Link>
+        {fromSearch ? (
+          <Link className="button button--secondary" to={fromSearch}>Back to search results</Link>
+        ) : (
+          <Link className="button button--secondary" to="/">Back to library</Link>
+        )}
+        <Link className="button button--secondary" to="/search">Search</Link>
         <button
           aria-expanded={navigationOpen}
           className="button button--secondary navigation-toggle"

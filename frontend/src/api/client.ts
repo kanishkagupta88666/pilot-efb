@@ -8,6 +8,9 @@ import type {
   DocumentSummary,
   NodeChangesResponse,
   PdfOutlineResponse,
+  SearchFilters,
+  SearchIndexResponse,
+  SearchResponse,
   ResolveNodeResponse,
   ResolvedNodeType,
   RevisionChangesResponse,
@@ -554,4 +557,58 @@ export function getPdfOutlineFromApi(
     isPdfOutlineResponse,
     signal,
   );
+}
+
+function isSearchResponse(value: unknown): value is SearchResponse {
+  return (
+    isRecord(value) &&
+    isString(value.query) &&
+    isInteger(value.total) &&
+    Array.isArray(value.results) &&
+    value.results.every(
+      (result: unknown) =>
+        isRecord(result) &&
+        isString(result.docId) &&
+        isInteger(result.revision) &&
+        isString(result.topicId) &&
+        isString(result.nodeId) &&
+        isString(result.number) &&
+        isString(result.title) &&
+        isString(result.snippet),
+    ) &&
+    Array.isArray(value.documents)
+  );
+}
+
+function isSearchIndexResponse(value: unknown): value is SearchIndexResponse {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.documents) &&
+    value.documents.every(
+      (document: unknown) =>
+        isRecord(document) &&
+        isString(document.docId) &&
+        isInteger(document.revision) &&
+        Array.isArray(document.topics),
+    )
+  );
+}
+
+export function searchFromApi(
+  query: string,
+  filters: SearchFilters,
+  signal?: AbortSignal,
+): Promise<ApiResult<SearchResponse>> {
+  const params = new URLSearchParams({ q: query });
+  for (const docType of filters.docTypes ?? []) params.append("docType", docType);
+  for (const category of filters.categories ?? []) params.append("category", category);
+  for (const contentType of filters.contentTypes ?? []) params.append("contentType", contentType);
+  if (filters.fleet) params.set("fleet", filters.fleet);
+  return request(`/api/search/?${params.toString()}`, isSearchResponse, signal);
+}
+
+export function getSearchIndexFromApi(
+  signal?: AbortSignal,
+): Promise<ApiResult<SearchIndexResponse>> {
+  return request("/api/search/index/", isSearchIndexResponse, signal);
 }

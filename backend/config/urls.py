@@ -10,6 +10,8 @@ from documents.views import (
     pdf_outline,
     resolve_node,
     revision_changes,
+    search_documents,
+    search_index,
     topic_content,
 )
 
@@ -18,6 +20,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/health/", health, name="health"),
     path("api/documents/", document_library, name="document-library"),
+    path("api/search/", search_documents, name="search"),
+    path("api/search/index/", search_index, name="search-index"),
     path(
         "api/documents/<str:doc_id>/revisions/<str:revision>/navigation/",
         navigation,
