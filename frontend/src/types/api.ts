@@ -171,3 +171,78 @@ export interface ResolveNodeResponse {
   targetType: ResolvedNodeType;
   topic: Topic;
 }
+
+/** Change status of a topic or block between two revisions, by permanent ID. */
+export type ChangeStatus = "unchanged" | "modified" | "added" | "removed" | "moved";
+
+export interface DiffRun {
+  op: "equal" | "insert" | "delete";
+  text: string;
+}
+
+export interface BlockChange {
+  id: string;
+  type: ContentBlock["type"];
+  status: Exclude<ChangeStatus, "moved">;
+  previous: ContentBlock | null;
+  current: ContentBlock | null;
+  /** Word-level runs, present only for modified blocks. */
+  diff?: DiffRun[];
+}
+
+export interface ChangedTopicRef {
+  id: string;
+  number: string;
+  title: string;
+  section: { id: string; number: string; title: string };
+  chapterId: string;
+}
+
+export interface RemovedTopicChange extends ChangedTopicRef {
+  status: ChangeStatus[];
+  blocks: BlockChange[];
+}
+
+export interface NodeChangesResponse {
+  docId: string;
+  fromRevision: number;
+  toRevision: number;
+  nodeId: string;
+  topicId: string;
+  status: ChangeStatus[];
+  previous: ChangedTopicRef | null;
+  current: ChangedTopicRef | null;
+  blocks: BlockChange[];
+  /** Topics of the same section removed right after this topic. */
+  removedTopicsAfter: RemovedTopicChange[];
+}
+
+export interface ManifestTopic {
+  id: string;
+  number: string;
+  title: string;
+  sectionId: string;
+  chapterId: string;
+  /** Present on moved topics. */
+  from?: string;
+  to?: string;
+  fromSectionId?: string;
+}
+
+export interface RevisionChangesResponse {
+  docId: string;
+  fromRevision: number;
+  toRevision: number;
+  summary: Record<"modified" | "added" | "removed" | "moved", number>;
+  topics: Record<"modified" | "added" | "removed" | "moved", ManifestTopic[]>;
+  blocks: Record<"modified" | "added" | "removed", string[]>;
+}
+
+export interface PdfOutlineResponse {
+  documentId: string;
+  revision: number;
+  pageCount: number;
+  /** Node ID -> first and last PDF page (1-based) of its outline entry, in document order. */
+  nodes: Record<string, { page: number; endPage: number; heading: string }>;
+  unmatched: string[];
+}

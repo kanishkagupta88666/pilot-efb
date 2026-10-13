@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import {
   Link,
   useNavigate,
@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import {
   getDocumentLibraryFromApi,
+  getNodeChangesFromApi,
   getRevisionNavigationFromApi,
   getTopicContentFromApi,
   type ApiClientError,
@@ -14,12 +15,15 @@ import {
 import type {
   Chapter,
   DocumentRevision,
+  NodeChangesResponse,
   RevisionNavigationResponse,
   TopicContentResponse,
 } from "../types/api";
 import { ContentBlocks } from "./ContentBlocks";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
+
+const PdfPrintView = lazy(() => import("./PdfPrintView"));
 
 type PageData =
   | { key: string; status: "loading" }
@@ -30,6 +34,12 @@ type PageData =
       navigation: RevisionNavigationResponse;
       revisions: DocumentRevision[];
     };
+
+type ChangesData =
+  | { status: "none" }
+  | { status: "loading" }
+  | { status: "unavailable"; message: string }
+  | { status: "ready"; changes: NodeChangesResponse };
 
 type TopicData =
   | { status: "idle" }
@@ -184,6 +194,9 @@ export function ApiReader() {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [completedChecks, setCompletedChecks] = useState<Record<string, boolean>>({});
   const [highlightedTargetId, setHighlightedTargetId] = useState<string>();
+  const [changesData, setChangesData] = useState<ChangesData>({ status: "none" });
+  const [showChanges, setShowChanges] = useState(true);
+  const [viewMode, setViewMode] = useState<"interactive" | "print">("interactive");
 
   useEffect(() => {
     if (!docId || revision === undefined) {
@@ -372,6 +385,45 @@ export function ApiReader() {
     return () => controller.abort();
   }, [docId, navigation, selectedTopicId, retryTopic]);
 
+  const previousRevision = useMemo(() => {
+    if (pageData.status !== "ready" || revision === undefined) return undefined;
+    const earlier = pageData.revisions
+      .map((entry) => entry.revision)
+      .filter((value) => value < revision);
+    return earlier.length ? Math.max(...earlier) : undefined;
+  }, [pageData, revision]);
+
+  useEffect(() => {
+    if (!navigation || !selectedTopicId || previousRevision === undefined) {
+      setChangesData({ status: "none" });
+      return;
+    }
+    const controller = new AbortController();
+    setChangesData({ status: "loading" });
+    void getNodeChangesFromApi(
+      docId,
+      selectedTopicId,
+      previousRevision,
+      navigation.version.revision,
+      controller.signal,
+    ).then((result) => {
+      if (controller.signal.aborted) return;
+      if (
+        !result.ok ||
+        result.data.topicId !== selectedTopicId ||
+        result.data.toRevision !== navigation.version.revision
+      ) {
+        setChangesData({
+          status: "unavailable",
+          message: "Changes since the previous revision could not be loaded.",
+        });
+        return;
+      }
+      setChangesData({ status: "ready", changes: result.data });
+    });
+    return () => controller.abort();
+  }, [docId, navigation, selectedTopicId, previousRevision]);
+
   useEffect(() => {
     if (pageData.status !== "ready" || topicData.status !== "ready" || !targetNodeId) {
       return;
@@ -453,6 +505,7 @@ export function ApiReader() {
   }
 
   const metadata = pageData.navigation.version.metadata;
+  const changes = changesData.status === "ready" ? changesData.changes : undefined;
   const targetIsOutlineNode = pageData.navigation.chapters.some(
     (chapter) =>
       chapter.id === targetNodeId ||
@@ -529,6 +582,17 @@ export function ApiReader() {
             ) : (
               <h1>{selectedOutlineTopic?.number} {selectedOutlineTopic?.title ?? metadata.title}</h1>
             )}
+            {showChanges && changes && changes.status.includes("moved") && changes.previous && (
+              <p className="topic-change-note topic-change-note--moved">
+                Moved in this revision from {changes.previous.number} (
+                {changes.previous.section.number} {changes.previous.section.title}).
+              </p>
+            )}
+            {showChanges && changes && changes.status.includes("added") && (
+              <p className="topic-change-note topic-change-note--added">
+                New topic in Revision {changes.toRevision}.
+              </p>
+            )}
             {targetNodeId && !isChapterOrSectionTarget && topicData.status === "ready" &&
               targetNodeId !== topicData.topic.id &&
               !topicData.topic.blocks.some(
@@ -552,6 +616,24 @@ export function ApiReader() {
               <span>Revision date {metadata.revisionDate}</span>
               <span>Effective date {metadata.effectiveDate}</span>
             </div>
+            <div className="view-mode" role="group" aria-label="View">
+              <button
+                aria-pressed={viewMode === "interactive"}
+                className="view-mode__option"
+                onClick={() => setViewMode("interactive")}
+                type="button"
+              >
+                Interactive
+              </button>
+              <button
+                aria-pressed={viewMode === "print"}
+                className="view-mode__option"
+                onClick={() => setViewMode("print")}
+                type="button"
+              >
+                Print view (PDF)
+              </button>
+            </div>
           </div>
           {topicData.status === "loading" || topicData.status === "idle" ? (
             <LoadingState label="Loading topic content…" />
@@ -561,15 +643,54 @@ export function ApiReader() {
               onRetry={() => setRetryTopic((value) => value + 1)}
             />
           ) : (
-            <ContentBlocks
-              completedChecks={completedChecks}
-              dataSource="api"
-              docId={docId}
-              onToggleCheck={toggleCheck}
-              revision={pageData.navigation.version.revision}
-              targetNodeId={highlightedTargetId}
-              topic={topicData.topic}
-            />
+            <div className="reader-body">
+              {viewMode === "print" ? (
+                <Suspense fallback={<LoadingState label="Loading PDF viewer…" />}>
+                  <PdfPrintView
+                    changes={changes}
+                    comparedRevisions={
+                      changes
+                        ? { from: changes.fromRevision, to: changes.toRevision }
+                        : undefined
+                    }
+                    docId={docId}
+                    revision={pageData.navigation.version.revision}
+                    showChanges={showChanges}
+                    targetNodeId={targetNodeId}
+                    topicId={topicData.topic.id}
+                  />
+                </Suspense>
+              ) : (
+              <ContentBlocks
+                changes={
+                  showChanges && changes ? changes.blocks : undefined
+                }
+                comparedRevisions={
+                  changes
+                    ? { from: changes.fromRevision, to: changes.toRevision }
+                    : undefined
+                }
+                completedChecks={completedChecks}
+                dataSource="api"
+                docId={docId}
+                onToggleCheck={toggleCheck}
+                removedTopicsAfter={
+                  showChanges && changes ? changes.removedTopicsAfter : []
+                }
+                revision={pageData.navigation.version.revision}
+                targetNodeId={highlightedTargetId}
+                topic={topicData.topic}
+              />
+              )}
+              <RevisionRail
+                changesData={changesData}
+                docId={docId}
+                onToggleChanges={() => setShowChanges((value) => !value)}
+                previousRevision={previousRevision}
+                revision={pageData.navigation.version.revision}
+                showChanges={showChanges}
+              />
+            </div>
           )}
           <footer className="reader-footer">
             <span>{metadata.classification}</span>
@@ -581,5 +702,62 @@ export function ApiReader() {
         </section>
       </div>
     </main>
+  );
+}
+
+function RevisionRail({
+  changesData,
+  docId,
+  previousRevision,
+  revision,
+  showChanges,
+  onToggleChanges,
+}: {
+  changesData: ChangesData;
+  docId: string;
+  previousRevision?: number;
+  revision: number;
+  showChanges: boolean;
+  onToggleChanges: () => void;
+}) {
+  let summary: string;
+  let count = 0;
+  if (previousRevision === undefined) {
+    summary = "This is the earliest revision available, so there is nothing to compare with.";
+  } else if (changesData.status === "ready") {
+    const changes = changesData.changes;
+    count =
+      changes.blocks.filter((block) => block.status !== "unchanged").length +
+      changes.removedTopicsAfter.length +
+      (changes.status.includes("moved") ? 1 : 0);
+    summary =
+      count === 0
+        ? `No changes in this topic since Revision ${previousRevision}.`
+        : `${count} ${count === 1 ? "change" : "changes"} in this topic since Revision ${previousRevision}. Select a change badge to compare in place.`;
+  } else if (changesData.status === "unavailable") {
+    summary = changesData.message;
+  } else {
+    summary = "Checking for changes…";
+  }
+
+  return (
+    <aside aria-label="Revision" className="reader-context">
+      <h2 className="reader-context__heading">
+        Revision <span className="reader-context__count">{count || ""}</span>
+      </h2>
+      <p>{summary}</p>
+      {previousRevision !== undefined && (
+        <div className="reader-context__actions">
+          <button className="text-button" onClick={onToggleChanges} type="button">
+            {showChanges ? "Hide change bars" : "Show change bars"}
+          </button>
+          <Link
+            to={`/compare/${encodeURIComponent(docId)}?from=${previousRevision}&to=${revision}`}
+          >
+            Compare with previous
+          </Link>
+        </div>
+      )}
+    </aside>
   );
 }

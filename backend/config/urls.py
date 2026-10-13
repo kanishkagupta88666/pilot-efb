@@ -5,7 +5,11 @@ from documents.views import (
     document_library,
     health,
     navigation,
+    node_changes,
+    pdf_file,
+    pdf_outline,
     resolve_node,
+    revision_changes,
     topic_content,
 )
 
@@ -28,5 +32,25 @@ urlpatterns = [
         "api/documents/<str:doc_id>/resolve-node/",
         resolve_node,
         name="document-resolve-node",
+    ),
+    path(
+        "api/documents/<str:doc_id>/changes/",
+        revision_changes,
+        name="document-changes",
+    ),
+    path(
+        "api/documents/<str:doc_id>/changes/nodes/<str:node_id>/",
+        node_changes,
+        name="document-node-changes",
+    ),
+    path(
+        "api/documents/<str:doc_id>/revisions/<str:revision>/pdf/",
+        pdf_file,
+        name="document-pdf-file",
+    ),
+    path(
+        "api/documents/<str:doc_id>/revisions/<str:revision>/pdf/outline/",
+        pdf_outline,
+        name="document-pdf-outline",
     ),
 ]
