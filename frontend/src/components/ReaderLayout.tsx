@@ -10,6 +10,7 @@ export function ReaderLayout({
   navigationOpen,
   onNavigationOpenChange,
   outline,
+  aside,
   children,
 }: {
   title: string;
@@ -18,6 +19,7 @@ export function ReaderLayout({
   navigationOpen: boolean;
   onNavigationOpenChange: (open: boolean) => void;
   outline: ReactNode;
+  aside: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -75,8 +77,8 @@ export function ReaderLayout({
           </nav>
           <div className="reader-content">{children}</div>
         </section>
-        <aside aria-label="On this page" className="reader-aside">
-          <h2>On this page</h2>
+        <aside aria-label="In this section" className="reader-aside">
+          {aside}
         </aside>
       </div>
     </main>
