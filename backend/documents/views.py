@@ -1,14 +1,17 @@
 import re
 
 from django.db.models import Prefetch
+from django.http import FileResponse, Http404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from documents import revision_status
+from documents import pdf_rendition, revision_diff, revision_status
 from documents.api_errors import (
     DOCUMENT_NOT_FOUND,
     INVALID_REQUEST,
     NO_CURRENT_REVISION,
+    NO_PREVIOUS_REVISION,
+    PDF_NOT_AVAILABLE,
     NODE_NOT_A_TOPIC,
     NODE_NOT_FOUND,
     REVISION_NOT_FOUND,
@@ -373,3 +376,92 @@ def resolve_node(request, doc_id: str):
             },
         }
     )
+
+
+def _comparison_versions(request, doc_id: str) -> tuple[DocumentVersion, DocumentVersion]:
+    """Return the (from, to) revisions named by the query, with defaults.
+
+    ``to`` defaults to the current revision and ``from`` to the latest
+    revision before ``to``. Only an older revision can be compared with a
+    newer one.
+    """
+    for parameter in ("from", "to"):
+        if len(request.query_params.getlist(parameter)) > 1:
+            raise ApiError(
+                400,
+                INVALID_REQUEST,
+                f"The {parameter} query parameter must be given only once.",
+            )
+    if "to" in request.query_params:
+        new = _get_version(doc_id, request.query_params["to"])
+    else:
+        new = _get_current_version(doc_id)
+
+    if "from" in request.query_params:
+        old = _get_version(doc_id, request.query_params["from"])
+        if old.revision >= new.revision:
+            raise ApiError(
+                400,
+                INVALID_REQUEST,
+                "The from revision must be earlier than the to revision.",
+            )
+        return old, new
+
+    old = (
+        DocumentVersion.objects.select_related("document")
+        .filter(document_id=doc_id, revision__lt=new.revision)
+        .order_by("-revision")
+        .first()
+    )
+    if old is None:
+        raise ApiError(
+            404,
+            NO_PREVIOUS_REVISION,
+            "There is no earlier revision to compare with.",
+        )
+    return old, new
+
+
+@api_view(READ_METHODS)
+def revision_changes(request, doc_id: str):
+    old, new = _comparison_versions(request, doc_id)
+    return Response(revision_diff.compare_versions(old, new))
+
+
+@api_view(READ_METHODS)
+def node_changes(request, doc_id: str, node_id: str):
+    _require_well_formed(node_id, "node ID")
+    old, new = _comparison_versions(request, doc_id)
+    comparison = revision_diff.compare_node(old, new, node_id)
+    if comparison is None:
+        raise ApiError(
+            404,
+            NODE_NOT_FOUND,
+            "The node ID does not exist in either compared revision.",
+        )
+    return Response(comparison)
+
+
+@api_view(READ_METHODS)
+def pdf_outline(request, doc_id: str, revision: str):
+    version = _get_version(doc_id, revision)
+    try:
+        return Response(pdf_rendition.outline_map(version))
+    except pdf_rendition.PdfNotAvailableError as error:
+        raise ApiError(
+            404,
+            PDF_NOT_AVAILABLE,
+            "This revision has no PDF rendition.",
+        ) from error
+
+
+def pdf_file(request, doc_id: str, revision: str):
+    """Serve the rendition itself. Not a DRF view: the body is a PDF, not JSON."""
+    if request.method not in READ_METHODS:
+        raise Http404
+    try:
+        version = _get_version(doc_id, revision)
+        path = pdf_rendition.pdf_path(version.document_id, version.revision)
+    except (ApiError, pdf_rendition.PdfNotAvailableError) as error:
+        raise Http404 from error
+    return FileResponse(path.open("rb"), content_type="application/pdf")
