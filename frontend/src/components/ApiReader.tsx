@@ -18,6 +18,8 @@ import type {
   TopicContentResponse,
 } from "../types/api";
 import { ContentBlocks } from "./ContentBlocks";
+import { Outline, topicTrail } from "./Outline";
+import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
 
@@ -69,91 +71,6 @@ function findTopicParents(chapters: Chapter[], topicId: string) {
     }
   }
   return undefined;
-}
-
-function Outline({
-  chapters,
-  activeTopicId,
-  expandedChapters,
-  expandedSections,
-  targetId,
-  onToggleChapter,
-  onToggleSection,
-  onSelectTopic,
-}: {
-  chapters: Chapter[];
-  activeTopicId: string;
-  expandedChapters: Set<string>;
-  expandedSections: Set<string>;
-  targetId?: string;
-  onToggleChapter: (id: string) => void;
-  onToggleSection: (id: string) => void;
-  onSelectTopic: (id: string) => void;
-}) {
-  return (
-    <ul className="outline-chapter-list">
-      {chapters.map((chapter) => {
-        const chapterExpanded = expandedChapters.has(chapter.id);
-        return (
-          <li className="outline-chapter" key={chapter.id}>
-            <button
-              aria-expanded={chapterExpanded}
-              className={`outline-toggle outline-toggle--chapter${targetId === chapter.id ? " content-block--targeted" : ""}`}
-              id={chapter.id}
-              onClick={() => onToggleChapter(chapter.id)}
-              type="button"
-            >
-              <span aria-hidden="true" className="disclosure-indicator">
-                {chapterExpanded ? "−" : "+"}
-              </span>
-              <span>{chapter.number} {chapter.title}</span>
-            </button>
-            {chapterExpanded && (
-              <ul className="outline-section-list">
-                {chapter.sections.map((section) => {
-                  const sectionExpanded = expandedSections.has(section.id);
-                  return (
-                    <li className="outline-section" key={section.id}>
-                      <button
-                        aria-expanded={sectionExpanded}
-                        className={`outline-toggle outline-toggle--section${targetId === section.id ? " content-block--targeted" : ""}`}
-                        id={section.id}
-                        onClick={() => onToggleSection(section.id)}
-                        type="button"
-                      >
-                        <span aria-hidden="true" className="disclosure-indicator">
-                          {sectionExpanded ? "−" : "+"}
-                        </span>
-                        <span>{section.number} {section.title}</span>
-                      </button>
-                      {sectionExpanded && (
-                        <ul className="outline-topic-list">
-                          {section.topics.map((topic) => (
-                            <li key={topic.id}>
-                              <button
-                                aria-current={activeTopicId === topic.id ? "page" : undefined}
-                                className={`outline-item${activeTopicId === topic.id ? " outline-item--active" : ""}`}
-                                onClick={() => onSelectTopic(topic.id)}
-                                type="button"
-                              >
-                                <span className="outline-item__title">
-                                  {topic.number} {topic.title}
-                                </span>
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  );
 }
 
 export function ApiReader() {
@@ -463,123 +380,93 @@ export function ApiReader() {
     Boolean(requestedChapterId || requestedSectionId);
 
   return (
-    <main className={`reader-page${navigationOpen ? " reader-page--navigation-open" : ""}`}>
-      <header className="reader-toolbar">
-        <Link className="reader-brand" to="/">Pilot EFB</Link>
-        <Link className="button button--secondary" to="/">Back to library</Link>
-        <button
-          aria-expanded={navigationOpen}
-          className="button button--secondary navigation-toggle"
-          onClick={() => setNavigationOpen((open) => !open)}
-          type="button"
-        >
-          {navigationOpen ? "Close navigation" : "Open navigation"}
-        </button>
-      </header>
-      <div className="reader-layout">
-        <aside
-          aria-label="Document navigation"
-          className={`reader-navigation${navigationOpen ? " reader-navigation--open" : ""}`}
-        >
-          <div className="navigation-heading">
-            <h2>Contents</h2>
-            <button
-              aria-label="Close navigation"
-              className="icon-button navigation-close"
-              onClick={() => setNavigationOpen(false)}
-              type="button"
-            >
-              ×
-            </button>
-          </div>
-          <p className="navigation-document">{metadata.title}</p>
-          <Outline
-            activeTopicId={selectedTopicId ?? ""}
-            chapters={pageData.navigation.chapters}
-            expandedChapters={expandedChapters}
-            expandedSections={expandedSections}
-            onSelectTopic={selectTopic}
-            onToggleChapter={(id) =>
-              toggle(expandedChapters, id, setExpandedChapters)
-            }
-            onToggleSection={(id) =>
-              toggle(expandedSections, id, setExpandedSections)
-            }
-            targetId={highlightedTargetId}
-          />
-        </aside>
-        {navigationOpen && (
-          <button
-            aria-label="Close navigation drawer"
-            className="navigation-backdrop"
-            onClick={() => setNavigationOpen(false)}
-            type="button"
-          />
+    <ReaderLayout
+      breadcrumbs={[
+        pageData.navigation.document.docType,
+        ...topicTrail(pageData.navigation.chapters, selectedTopicId),
+      ]}
+      detail={`${docId} · Revision ${pageData.navigation.version.revision}`}
+      navigationOpen={navigationOpen}
+      onNavigationOpenChange={setNavigationOpen}
+      outline={
+        <Outline
+          activeTopicId={selectedTopicId ?? ""}
+          chapters={pageData.navigation.chapters}
+          expandedChapters={expandedChapters}
+          expandedSections={expandedSections}
+          onSelectTopic={selectTopic}
+          onToggleChapter={(id) =>
+            toggle(expandedChapters, id, setExpandedChapters)
+          }
+          onToggleSection={(id) =>
+            toggle(expandedSections, id, setExpandedSections)
+          }
+          targetId={highlightedTargetId}
+        />
+      }
+      title={metadata.title}
+    >
+      <div className="document-heading">
+        <p className="eyebrow">{docId} · Revision {revision}</p>
+        {topicData.status === "ready" ? (
+          <h1
+            className={highlightedTargetId === topicData.topic.id ? "content-block--targeted" : ""}
+            id={topicData.topic.id}
+          >
+            {topicData.topic.number} {topicData.topic.title}
+          </h1>
+        ) : (
+          <h1>{selectedOutlineTopic?.number} {selectedOutlineTopic?.title ?? metadata.title}</h1>
         )}
-        <section aria-label="Document content" className="reader-main">
-          <div className="document-heading">
-            <p className="eyebrow">{docId} · Revision {revision}</p>
-            {topicData.status === "ready" ? (
-              <h1
-                className={highlightedTargetId === topicData.topic.id ? "content-block--targeted" : ""}
-                id={topicData.topic.id}
-              >
-                {topicData.topic.number} {topicData.topic.title}
-              </h1>
-            ) : (
-              <h1>{selectedOutlineTopic?.number} {selectedOutlineTopic?.title ?? metadata.title}</h1>
-            )}
-            {targetNodeId && !isChapterOrSectionTarget && topicData.status === "ready" &&
-              targetNodeId !== topicData.topic.id &&
-              !topicData.topic.blocks.some(
-                (block) =>
-                  block.id === targetNodeId ||
-                  (block.type === "checklist" &&
-                    block.checks.some((check) => check.id === targetNodeId)),
-              ) && (
-                <p className="target-unavailable" role="status">
-                  This target is not available in the selected revision.
-                </p>
-              )}
-            <div className="revision-details">
-              <RevisionSelector
-                onChange={(nextRevision) =>
-                  navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
-                }
-                revisions={pageData.revisions}
-                selectedRevision={pageData.navigation.version.revision}
-              />
-              <span>Revision date {metadata.revisionDate}</span>
-              <span>Effective date {metadata.effectiveDate}</span>
-            </div>
-          </div>
-          {topicData.status === "loading" || topicData.status === "idle" ? (
-            <LoadingState label="Loading topic content…" />
-          ) : topicData.status === "error" ? (
-            <ApiErrorState
-              error={topicData.error}
-              onRetry={() => setRetryTopic((value) => value + 1)}
-            />
-          ) : (
-            <ContentBlocks
-              completedChecks={completedChecks}
-              dataSource="api"
-              docId={docId}
-              onToggleCheck={toggleCheck}
-              revision={pageData.navigation.version.revision}
-              targetNodeId={highlightedTargetId}
-              topic={topicData.topic}
-            />
+        {targetNodeId && !isChapterOrSectionTarget && topicData.status === "ready" &&
+          targetNodeId !== topicData.topic.id &&
+          !topicData.topic.blocks.some(
+            (block) =>
+              block.id === targetNodeId ||
+              (block.type === "checklist" &&
+                block.checks.some((check) => check.id === targetNodeId)),
+          ) && (
+            <p className="target-unavailable" role="status">
+              This target is not available in the selected revision.
+            </p>
           )}
-          <footer className="reader-footer">
-            <span>{metadata.classification}</span>
-            <span>
-              Revision {pageData.navigation.version.revision} · Revision date {metadata.revisionDate} ·
-              Effective date {metadata.effectiveDate}
-            </span>
-          </footer>
-        </section>
+        <div className="revision-details">
+          <RevisionSelector
+            onChange={(nextRevision) =>
+              navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
+            }
+            revisions={pageData.revisions}
+            selectedRevision={pageData.navigation.version.revision}
+          />
+          <span>Revision date {metadata.revisionDate}</span>
+          <span>Effective date {metadata.effectiveDate}</span>
+        </div>
       </div>
-    </main>
+      {topicData.status === "loading" || topicData.status === "idle" ? (
+        <LoadingState label="Loading topic content…" />
+      ) : topicData.status === "error" ? (
+        <ApiErrorState
+          error={topicData.error}
+          onRetry={() => setRetryTopic((value) => value + 1)}
+        />
+      ) : (
+        <ContentBlocks
+          completedChecks={completedChecks}
+          dataSource="api"
+          docId={docId}
+          onToggleCheck={toggleCheck}
+          revision={pageData.navigation.version.revision}
+          targetNodeId={highlightedTargetId}
+          topic={topicData.topic}
+        />
+      )}
+      <footer className="reader-footer">
+        <span>{metadata.classification}</span>
+        <span>
+          Revision {pageData.navigation.version.revision} · Revision date {metadata.revisionDate} ·
+          Effective date {metadata.effectiveDate}
+        </span>
+      </footer>
+    </ReaderLayout>
   );
 }
