@@ -8,6 +8,7 @@ import type { DocumentSummary, RevisionStatus } from "../types/api";
 import { formatDate } from "../utils/formatDate";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
+import { TopBar } from "./TopBar";
 
 const statusLabels: Record<RevisionStatus, string> = {
   current: "Current",
@@ -117,10 +118,7 @@ function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
 function LibraryFrame({ children }: { children: ReactNode }) {
   return (
     <main className="library-page">
-      <div className="app-bar">
-        <span className="app-bar__brand">Pilot EFB</span>
-        <span className="app-bar__title">Library</span>
-      </div>
+      <TopBar title="Library" />
       <div className="library-body">
         <header className="library-header">
           <h1>Document library</h1>

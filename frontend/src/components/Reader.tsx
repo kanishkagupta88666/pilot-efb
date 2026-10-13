@@ -11,131 +11,14 @@ import {
   getTopic,
   resolveAvailableTargetId,
   type MockChapterOutline,
-  type MockSectionOutline,
-  type MockTopicOutline,
 } from "../data/mockData";
 import { DATA_SOURCE } from "../config/dataSource";
 import type { DocumentRevision } from "../types/api";
 import { ApiReader } from "./ApiReader";
 import { ContentBlocks } from "./ContentBlocks";
+import { Outline, topicTrail } from "./Outline";
+import { ReaderLayout } from "./ReaderLayout";
 import { RevisionSelector } from "./RevisionSelector";
-
-function OutlineTopic({
-  topic,
-  active,
-  onSelect,
-}: {
-  topic: MockTopicOutline;
-  active: boolean;
-  onSelect: (topicId: string) => void;
-}) {
-  return (
-    <button
-      aria-current={active ? "page" : undefined}
-      className={`outline-item${active ? " outline-item--active" : ""}`}
-      onClick={() => onSelect(topic.id)}
-      type="button"
-    >
-      <span className="outline-item__title">
-        <span>{topic.number} {topic.title}</span>
-        {topic.mock && <span className="mock-badge">MOCK</span>}
-      </span>
-    </button>
-  );
-}
-
-function OutlineSection({
-  section,
-  activeTopicId,
-  expanded,
-  onToggle,
-  onSelectTopic,
-}: {
-  section: MockSectionOutline;
-  activeTopicId: string;
-  expanded: boolean;
-  onToggle: (sectionId: string) => void;
-  onSelectTopic: (topicId: string) => void;
-}) {
-  return (
-    <li className="outline-section" key={section.id}>
-      <button
-        aria-expanded={expanded}
-        className="outline-toggle outline-toggle--section"
-        onClick={() => onToggle(section.id)}
-        type="button"
-      >
-        <span aria-hidden="true" className="disclosure-indicator">
-          {expanded ? "−" : "+"}
-        </span>
-        <span>{section.number} {section.title}</span>
-        {section.mock && <span className="mock-badge">MOCK</span>}
-      </button>
-      {expanded && (
-        <ul className="outline-topic-list">
-          {section.topics.map((topic) => (
-            <li key={topic.id}>
-              <OutlineTopic
-                active={activeTopicId === topic.id}
-                onSelect={onSelectTopic}
-                topic={topic}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-    </li>
-  );
-}
-
-function OutlineChapter({
-  chapter,
-  activeTopicId,
-  expanded,
-  expandedSections,
-  onToggleChapter,
-  onToggleSection,
-  onSelectTopic,
-}: {
-  chapter: MockChapterOutline;
-  activeTopicId: string;
-  expanded: boolean;
-  expandedSections: Set<string>;
-  onToggleChapter: (chapterId: string) => void;
-  onToggleSection: (sectionId: string) => void;
-  onSelectTopic: (topicId: string) => void;
-}) {
-  return (
-    <li className="outline-chapter" key={chapter.id}>
-      <button
-        aria-expanded={expanded}
-        className="outline-toggle outline-toggle--chapter"
-        onClick={() => onToggleChapter(chapter.id)}
-        type="button"
-      >
-        <span aria-hidden="true" className="disclosure-indicator">
-          {expanded ? "−" : "+"}
-        </span>
-        <span>{chapter.number} {chapter.title}</span>
-        {chapter.mock && <span className="mock-badge">MOCK</span>}
-      </button>
-      {expanded && (
-        <ul className="outline-section-list">
-          {chapter.sections.map((section) => (
-            <OutlineSection
-              activeTopicId={activeTopicId}
-              expanded={expandedSections.has(section.id)}
-              key={section.id}
-              onSelectTopic={onSelectTopic}
-              onToggle={onToggleSection}
-              section={section}
-            />
-          ))}
-        </ul>
-      )}
-    </li>
-  );
-}
 
 function firstTopicId(chapters: MockChapterOutline[]): string {
   for (const chapter of chapters) {
@@ -318,108 +201,71 @@ function ReaderWorkspace({
     .find((topic) => topic.id === selectedTopicId);
 
   return (
-    <main className={`reader-page${navigationOpen ? " reader-page--navigation-open" : ""}`}>
-      <header className="reader-toolbar">
-        <Link className="reader-brand" to="/">Pilot EFB</Link>
-        <Link className="button button--secondary" to="/">
-          Back to library
-        </Link>
-        <button
-          aria-expanded={navigationOpen}
-          className="button button--secondary navigation-toggle"
-          onClick={() => setNavigationOpen((open) => !open)}
-          type="button"
-        >
-          {navigationOpen ? "Close navigation" : "Open navigation"}
-        </button>
-      </header>
-      <div className="reader-layout">
-        <aside
-          aria-label="Document navigation"
-          className={`reader-navigation${navigationOpen ? " reader-navigation--open" : ""}`}
-        >
-          <div className="navigation-heading">
-            <h2>Contents</h2>
-            <button
-              aria-label="Close navigation"
-              className="icon-button navigation-close"
-              onClick={() => setNavigationOpen(false)}
-              type="button"
-            >
-              ×
-            </button>
-          </div>
-          <p className="navigation-document">{title}</p>
-          <ul className="outline-chapter-list">
-            {navigation.chapters.map((chapter) => (
-              <OutlineChapter
-                activeTopicId={selectedTopicId}
-                chapter={chapter}
-                expanded={expandedChapters.has(chapter.id)}
-                expandedSections={expandedSections}
-                key={chapter.id}
-                onSelectTopic={selectTopic}
-                onToggleChapter={onToggleChapter}
-                onToggleSection={onToggleSection}
-              />
-            ))}
-          </ul>
-        </aside>
-        {navigationOpen && (
-          <button
-            aria-label="Close navigation drawer"
-            className="navigation-backdrop"
-            onClick={() => setNavigationOpen(false)}
-            type="button"
-          />
+    <ReaderLayout
+      breadcrumbs={[
+        navigation.document.docType,
+        ...topicTrail(navigation.chapters, selectedTopicId),
+      ]}
+      detail={`${docId} · Revision ${revision}`}
+      navigationOpen={navigationOpen}
+      onNavigationOpenChange={setNavigationOpen}
+      outline={
+        <Outline
+          activeTopicId={selectedTopicId}
+          chapters={navigation.chapters}
+          expandedChapters={expandedChapters}
+          expandedSections={expandedSections}
+          onSelectTopic={selectTopic}
+          onToggleChapter={onToggleChapter}
+          onToggleSection={onToggleSection}
+        />
+      }
+      title={title}
+    >
+      <div className="document-heading">
+        <p className="eyebrow">{docId} · Revision {revision}</p>
+        <h1>{topicResponse.topic.number} {topicResponse.topic.title}</h1>
+        {topicResponse.topic.mock && (
+          <span className="mock-badge mock-badge--large">Mock table example</span>
         )}
-        <section aria-label="Document content" className="reader-main">
-          <div className="document-heading">
-            <p className="eyebrow">{docId} · Revision {revision}</p>
-            <h1>{topicResponse.topic.number} {topicResponse.topic.title}</h1>
-            {topicResponse.topic.mock && (
-              <span className="mock-badge mock-badge--large">Mock table example</span>
-            )}
-            {requestedTargetId && !resolution && (
-              <p className="target-unavailable" role="status">
-                This target is not available in this prototype.
-              </p>
-            )}
-            <div className="revision-details">
-              <RevisionSelector
-                onChange={(nextRevision) =>
-                  navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
-                }
-                revisions={availableRevisions}
-                selectedRevision={revision}
-              />
-              <span>Revision date {metadata.revisionDate}</span>
-              <span>Effective date {metadata.effectiveDate}</span>
-            </div>
-          </div>
-          {selectedOutline?.mock && (
-            <p className="mock-notice">
-              MOCK — separate table example from the provisional contract.
-            </p>
-          )}
-          <ContentBlocks
-            completedChecks={completedChecks}
-            docId={docId}
-            onToggleCheck={toggleCheck}
-            revision={revision}
-            targetNodeId={highlightedTargetId}
-            topic={topicResponse.topic}
+        {requestedTargetId && !resolution && (
+          <p className="target-unavailable" role="status">
+            This target is not available in this prototype.
+          </p>
+        )}
+        <div className="revision-details">
+          <RevisionSelector
+            onChange={(nextRevision) =>
+              navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
+            }
+            revisions={availableRevisions}
+            selectedRevision={revision}
           />
-          <footer className="reader-footer">
-            <span>{metadata.classification}</span>
-            <span>
-              Revision {revision} · Revision date {metadata.revisionDate} ·
-              Effective date {metadata.effectiveDate}
-            </span>
-          </footer>
-        </section>
+          <span>Revision date {metadata.revisionDate}</span>
+          <span>Effective date {metadata.effectiveDate}</span>
+        </div>
       </div>
-    </main>
+      {selectedOutline?.mock && (
+        <p className="mock-notice">
+          MOCK — separate table example from the provisional contract.
+        </p>
+      )}
+      <ContentBlocks
+        completedChecks={completedChecks}
+        docId={docId}
+        onToggleCheck={toggleCheck}
+        revision={revision}
+        targetNodeId={highlightedTargetId}
+        topic={topicResponse.topic}
+      />
+      <footer className="reader-footer">
+        <span>{metadata.classification}</span>
+        <span>
+          Revision {revision} · Revision date {metadata.revisionDate} ·
+          Effective date {metadata.effectiveDate}
+        </span>
+      </footer>
+    </ReaderLayout>
   );
 }
 

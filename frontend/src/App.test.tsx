@@ -61,8 +61,8 @@ describe("reader", () => {
     renderApp("/reader/FM-S100/2");
 
     const navigation = screen.getByLabelText("Document navigation");
-    expect(within(navigation).getByText("05 Non-Normal Procedures")).toBeTruthy();
-    expect(within(navigation).getByText("05.10 Air Systems")).toBeTruthy();
+    expect(within(navigation).getByRole("button", { name: "05 Non-Normal Procedures" })).toBeTruthy();
+    expect(within(navigation).getByRole("button", { name: "05.10 Air Systems" })).toBeTruthy();
     expect(
       within(navigation).getByRole("button", {
         name: /05\.10\.16 Autothrottle Crew Awareness/,
