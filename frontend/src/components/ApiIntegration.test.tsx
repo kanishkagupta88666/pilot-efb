@@ -178,8 +178,8 @@ describe("API-backed frontend", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Synthetic manual" })).toBeTruthy();
-    expect(screen.getByText("2026-07-01")).toBeTruthy();
-    expect(screen.getByText("2026-07-15")).toBeTruthy();
+    expect(screen.getByText("1 Jul 2026")).toBeTruthy();
+    expect(screen.getByText("15 Jul 2026")).toBeTruthy();
   });
 
   it("shows an empty state when the API library has no documents", async () => {

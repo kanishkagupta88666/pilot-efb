@@ -34,16 +34,16 @@ describe("document library", () => {
       }),
     ).toBeTruthy();
     expect(screen.getByText("FM-S100")).toBeTruthy();
-    expect(screen.getByText("2026-07-01")).toBeTruthy();
-    expect(screen.getByText("2026-07-15")).toBeTruthy();
-    expect(screen.getByText("FM", { selector: "dd" })).toBeTruthy();
-    expect(screen.getByText("2", { selector: "dd" })).toBeTruthy();
+    expect(screen.getByText("1 Jul 2026")).toBeTruthy();
+    expect(screen.getByText("15 Jul 2026")).toBeTruthy();
+    expect(screen.getByText("FM", { selector: "td" })).toBeTruthy();
+    expect(screen.getByText("2", { selector: "td" })).toBeTruthy();
     expect(screen.queryByText("FM-S200")).toBeNull();
   });
 
   it("opens the selected revision in the reader", async () => {
     renderApp();
-    fireEvent.click(screen.getByRole("link", { name: "Open reader" }));
+    fireEvent.click(screen.getByRole("link", { name: "Open Sample Flight Manual - SAMPLE-100" }));
 
     expect(
       await screen.findByRole("heading", {
