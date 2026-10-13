@@ -2,10 +2,11 @@ import re
 
 from django.db.models import Prefetch
 from django.http import FileResponse, Http404
+from django.views.decorators.gzip import gzip_page
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from documents import pdf_rendition, revision_diff, revision_status
+from documents import pdf_rendition, revision_diff, revision_status, search
 from documents.api_errors import (
     DOCUMENT_NOT_FOUND,
     INVALID_REQUEST,
@@ -465,3 +466,78 @@ def pdf_file(request, doc_id: str, revision: str):
     except (ApiError, pdf_rendition.PdfNotAvailableError) as error:
         raise Http404 from error
     return FileResponse(path.open("rb"), content_type="application/pdf")
+
+
+_MAX_QUERY_LENGTH = 200
+_MAX_RESULTS = 200
+
+
+def _query_values(request, name: str) -> set[str]:
+    """Values of a filter given as repeated or comma-separated parameters."""
+    return {
+        value.strip()
+        for raw in request.query_params.getlist(name)
+        for value in raw.split(",")
+        if value.strip()
+    }
+
+
+@api_view(READ_METHODS)
+def search_documents(request):
+    query = request.query_params.get("q", "")
+    if len(query) > _MAX_QUERY_LENGTH:
+        raise ApiError(400, INVALID_REQUEST, "The search query is too long.")
+    if not search.words(query):
+        raise ApiError(400, INVALID_REQUEST, "Enter at least one word to search for.")
+    limit = request.query_params.get("limit", "50")
+    if not limit.isdigit() or not 1 <= int(limit) <= _MAX_RESULTS:
+        raise ApiError(
+            400,
+            INVALID_REQUEST,
+            f"The limit must be a whole number from 1 to {_MAX_RESULTS}.",
+        )
+    content_types = _query_values(request, "contentType")
+    unknown = content_types - set(search.CONTENT_TYPES)
+    if unknown:
+        raise ApiError(
+            400,
+            INVALID_REQUEST,
+            f"Unknown content type. Use one of: {', '.join(sorted(search.CONTENT_TYPES))}.",
+        )
+    fleets = _query_values(request, "fleet")
+    if len(fleets) > 1:
+        raise ApiError(400, INVALID_REQUEST, "Only one fleet can be selected.")
+
+    documents = search.published_documents()
+    result = search.search(
+        query,
+        documents,
+        doc_types=_query_values(request, "docType") or None,
+        fleet=next(iter(fleets), None),
+        categories=_query_values(request, "category") or None,
+        content_types=content_types or None,
+        limit=int(limit),
+    )
+    return Response(
+        {**result, "documents": [document.summary() for document in documents]}
+    )
+
+
+@gzip_page
+@api_view(READ_METHODS)
+def search_index(request):
+    """The searchable text of published revisions, for searching offline."""
+    wanted = _query_values(request, "docId")
+    documents = [
+        document
+        for document in search.published_documents()
+        if not wanted or document.doc_id in wanted
+    ]
+    return Response(
+        {
+            "documents": [
+                {**document.summary(), "topics": document.topics()}
+                for document in documents
+            ]
+        }
+    )
