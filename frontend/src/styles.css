@@ -948,6 +948,7 @@ p {
     top: var(--bar-height);
     display: block;
     height: calc(100vh - var(--bar-height) - var(--status-height));
+    overflow-y: auto;
     padding: 1.25rem 1.25rem;
     border-left: 1px solid var(--line);
   }
