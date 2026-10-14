@@ -57,7 +57,8 @@ flowchart TD
 | `src/components/ApiReader.tsx` | Reader page for API data, with loading, error and retry states |
 | `src/components/ReaderLayout.tsx` | Shared reader frame: top bar, sidebar, breadcrumbs, content area, right panel, status bar |
 | `src/components/TopBar.tsx` | The grey bar at the top of every page |
-| `src/components/Outline.tsx` | Chapter, section and topic sidebar; the "In this section" panel; breadcrumb helper |
+| `src/components/Outline.tsx` | Chapter, section and topic sidebar; breadcrumb helper |
+| `src/components/OnThisPage.tsx` | The "On this page" panel: jump links to the open topic's notes, cautions, warnings, tables and checklists |
 | `src/components/TopicHeader.tsx` | Topic number, title and revision details |
 | `src/components/ContentBlocks.tsx` | Renders a topic's blocks, including cross-reference links |
 | `src/components/OpenNodeRoute.tsx` | Resolves `/open?doc=…&node=…` links through the API |
@@ -136,10 +137,10 @@ The whole row opens the reader. Taps on the button or the dropdown keep their ow
 | Left sidebar | "Contents": chapters and sections expand and collapse; topics open. Numbers are shown in monospace. The open topic has a blue bar |
 | Breadcrumbs | Document type, then chapter, section and topic titles |
 | Content | `TopicHeader`, then `ContentBlocks` |
-| Right panel | "In this section": the section containing the open topic, and its topics. Tapping one opens it |
+| Right panel | "On this page": the open topic's notes, cautions, warnings, tables and checklists, each with a short preview. Tapping one scrolls to it |
 | Status bar | Pinned to the bottom: topic number, section and topic title, classification, revision and effective date |
 
-The right panel lists sibling topics rather than headings within the page, because a topic's blocks have no headings of their own. The Figma design calls this panel "On this page".
+Paragraphs and lists are left out of "On this page" because they have no headings; the panel lists only the blocks a pilot is likely to look for. An earlier version listed the other topics in the section, but with the real manual that repeated the left sidebar.
 
 The sidebar scrolls itself so the open topic stays visible, for example after a deep link opens a topic far down the list.
 
@@ -226,14 +227,14 @@ All styles are in `src/styles.css`: plain CSS, no framework. Shared values are c
 |---|---|
 | Narrow | The sidebar is hidden. "Open navigation" slides it in as a drawer over a dimmed backdrop |
 | 900px and wider, or 760px and wider in landscape | The sidebar is shown as a sticky column |
-| 1180px and wider | The "In this section" panel is shown as a third column |
+| 1180px and wider | The "On this page" panel is shown as a third column. It scrolls on its own when the list is long |
 | 700px and narrower | The status bar hides the revision text |
 
 Touch and accessibility details:
 
 - Buttons and rows are at least 44px tall.
 - Visible focus outlines on buttons, links, inputs and focusable regions.
-- Labelled regions for navigation, breadcrumbs, content, the section panel, tables and checklists.
+- Labelled regions for navigation, breadcrumbs, content, the "On this page" panel, tables and checklists.
 
 **Not verified:** the layout has not been tested on a real iPad. It has been checked in desktop Chrome at iPad sizes. Tests run in jsdom, which does not apply CSS layout or media queries.
 
@@ -247,11 +248,11 @@ npx tsc --noEmit -p .    # type check
 npm run build            # type check and production build
 ```
 
-Result at the time of writing: **42 tests in 4 files, all passing.** All tests use Vitest, React Testing Library and jsdom.
+Result at the time of writing: **43 tests in 4 files, all passing.** All tests use Vitest, React Testing Library and jsdom.
 
 | File | Covers |
 |---|---|
-| `src/App.test.tsx` | Library and reader in mock mode: outline, block order, lists, tables, checklists and checklist reset, deep-link highlight, warnings, cross-references |
+| `src/App.test.tsx` | Library and reader in mock mode: outline, block order, lists, tables, checklists and checklist reset, "On this page" jump links, deep-link highlight, warnings, cross-references |
 | `src/api/client.test.ts` | Endpoint URLs, response validation, error handling for 404s, malformed JSON, invalid shapes, network failures and non-JSON responses |
 | `src/components/ApiIntegration.test.tsx` | API mode: library loading, empty and retry states, revision handling, lazy cross-reference resolution, `/open` links |
 | `src/components/Preparation.test.tsx` | Data source default, revision selector, request states, not-found route, no fetches in mock mode |
@@ -261,7 +262,7 @@ Result at the time of writing: **42 tests in 4 files, all passing.** All tests u
 ## Known gaps
 
 - Manually selected topics are not stored in the reader URL, so reloading returns to the first topic. Only resolver-opened topics are in the query.
-- The right panel shows sibling topics, not headings within a topic.
+- "On this page" does not mark which block is currently on screen.
 - Mock-mode revision parsing is looser than API mode.
 - Whitespace in XML mixed text is passed through unchanged; the contract leaves normalisation open.
 - In production builds the Vite proxy does not exist, so `VITE_API_BASE_URL` must point at the API.

@@ -87,7 +87,7 @@ export function ReaderLayout({
           </nav>
           <div className="reader-content">{children}</div>
         </section>
-        <aside aria-label="In this section" className="reader-aside">
+        <aside aria-label="On this page" className="reader-aside">
           {aside}
         </aside>
       </div>
