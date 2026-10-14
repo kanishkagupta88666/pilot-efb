@@ -240,6 +240,9 @@ describe("API-backed frontend", () => {
       "content-block--targeted",
     );
     expect(screen.getByText("SYNTHETIC SAMPLE - NOT FOR OPERATIONAL USE")).toBeTruthy();
+    expect(
+      container.querySelector(".navigation-toggle")?.getAttribute("aria-expanded"),
+    ).toBe(targetType === "chapter" || targetType === "section" ? "true" : "false");
   });
 
   it("does not substitute another revision when the requested revision is unavailable", async () => {
