@@ -3,10 +3,19 @@ import type { MouseEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { resolveNodeFromApi } from "../api/client";
 import type {
+  BlockChange,
   ContentBlock,
+  RemovedTopicChange,
   TopicContentResponse,
   XrefSegment,
 } from "../types/api";
+import {
+  ChangeFrame,
+  RemovedBlockMarker,
+  RemovedTopicMarker,
+  changesMatchBlocks,
+  type ComparedRevisions,
+} from "./ChangeMarkers";
 import { DATA_SOURCE } from "../config/dataSource";
 import { resolveAvailableTargetId } from "../data/mockData";
 import { readerPathForResolution } from "../utils/readerLink";
@@ -342,6 +351,10 @@ interface ContentBlocksProps {
   completedChecks: Record<string, boolean>;
   onToggleCheck: (checkId: string) => void;
   onResetChecks: (checkIds: string[]) => void;
+  /** Block changes since an earlier revision; drawn only if they match the blocks. */
+  changes?: BlockChange[];
+  removedTopicsAfter?: RemovedTopicChange[];
+  comparedRevisions?: ComparedRevisions;
 }
 
 export function ContentBlocks({
@@ -353,63 +366,97 @@ export function ContentBlocks({
   completedChecks,
   onToggleCheck,
   onResetChecks,
+  changes,
+  removedTopicsAfter = [],
+  comparedRevisions,
 }: ContentBlocksProps) {
+  const renderBlock = (block: ContentBlock) => {
+    switch (block.type) {
+      case "para":
+      case "note":
+      case "caution":
+      case "warning":
+        return (
+          <TextBlockView
+            block={block}
+            docId={docId}
+            dataSource={dataSource}
+            key={block.id}
+            revision={revision}
+            targetNodeId={targetNodeId}
+          />
+        );
+      case "list":
+        return (
+          <ListView
+            block={block}
+            docId={docId}
+            dataSource={dataSource}
+            key={block.id}
+            revision={revision}
+            targetNodeId={targetNodeId}
+          />
+        );
+      case "table":
+        return (
+          <TableView
+            block={block}
+            docId={docId}
+            dataSource={dataSource}
+            key={block.id}
+            revision={revision}
+            targetNodeId={targetNodeId}
+          />
+        );
+      case "checklist":
+        return (
+          <ChecklistView
+            block={block}
+            completedChecks={completedChecks}
+            docId={docId}
+            dataSource={dataSource}
+            key={block.id}
+            onResetChecks={onResetChecks}
+            onToggleCheck={onToggleCheck}
+            revision={revision}
+            targetNodeId={targetNodeId}
+          />
+        );
+    }
+  };
+
+  if (!changes || !comparedRevisions || !changesMatchBlocks(changes, topic.blocks)) {
+    return <div className="topic-content">{topic.blocks.map(renderBlock)}</div>;
+  }
+
+  const blocksById = new Map(topic.blocks.map((block) => [block.id, block]));
   return (
     <div className="topic-content">
-      {topic.blocks.map((block) => {
-        switch (block.type) {
-          case "para":
-          case "note":
-          case "caution":
-          case "warning":
-            return (
-              <TextBlockView
-                block={block}
-                docId={docId}
-                dataSource={dataSource}
-                key={block.id}
-                revision={revision}
-                targetNodeId={targetNodeId}
-              />
-            );
-          case "list":
-            return (
-              <ListView
-                block={block}
-                docId={docId}
-                dataSource={dataSource}
-                key={block.id}
-                revision={revision}
-                targetNodeId={targetNodeId}
-              />
-            );
-          case "table":
-            return (
-              <TableView
-                block={block}
-                docId={docId}
-                dataSource={dataSource}
-                key={block.id}
-                revision={revision}
-                targetNodeId={targetNodeId}
-              />
-            );
-          case "checklist":
-            return (
-              <ChecklistView
-                block={block}
-                completedChecks={completedChecks}
-                docId={docId}
-                dataSource={dataSource}
-                key={block.id}
-                onResetChecks={onResetChecks}
-                onToggleCheck={onToggleCheck}
-                revision={revision}
-                targetNodeId={targetNodeId}
-              />
-            );
+      {changes.map((change) => {
+        if (change.status === "removed") {
+          return (
+            <RemovedBlockMarker
+              change={change}
+              key={`removed-${change.id}`}
+              revisions={comparedRevisions}
+            />
+          );
         }
+        const block = blocksById.get(change.id);
+        if (!block) return null;
+        return (
+          <ChangeFrame change={change} key={change.id} revisions={comparedRevisions}>
+            {renderBlock(block)}
+          </ChangeFrame>
+        );
       })}
+      {removedTopicsAfter.map((removed) => (
+        <RemovedTopicMarker
+          key={`removed-topic-${removed.id}`}
+          revisions={comparedRevisions}
+          topic={removed}
+        />
+      ))}
     </div>
   );
 }

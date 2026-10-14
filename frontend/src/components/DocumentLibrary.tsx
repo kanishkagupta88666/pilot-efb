@@ -123,6 +123,19 @@ function LibraryFrame({ children }: { children: ReactNode }) {
         <header className="library-header">
           <h1>Document library</h1>
           <p className="intro">Choose an available manual revision to read.</p>
+          <form action="/search" className="search-form search-form--library" role="search">
+            <label className="visually-hidden" htmlFor="library-search">Search published documents</label>
+            <input
+              autoComplete="off"
+              enterKeyHint="search"
+              id="library-search"
+              maxLength={200}
+              name="q"
+              placeholder="Search all published documents"
+              type="search"
+            />
+            <button className="button button--primary" type="submit">Search</button>
+          </form>
         </header>
         {children}
       </div>

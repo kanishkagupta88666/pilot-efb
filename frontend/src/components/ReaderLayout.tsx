@@ -11,6 +11,7 @@ export function ReaderLayout({
   navigationOpen,
   onNavigationOpenChange,
   outline,
+  actions,
   aside,
   status,
   children,
@@ -21,6 +22,8 @@ export function ReaderLayout({
   navigationOpen: boolean;
   onNavigationOpenChange: (open: boolean) => void;
   outline: ReactNode;
+  /** Top-bar buttons before the navigation toggle; defaults to Back to library. */
+  actions?: ReactNode;
   aside: ReactNode;
   /** Shown in the status bar pinned to the bottom of the screen. */
   status: {
@@ -35,7 +38,7 @@ export function ReaderLayout({
   return (
     <main className={`reader-page${navigationOpen ? " reader-page--navigation-open" : ""}`}>
       <TopBar detail={detail} title={title}>
-        <Link className="button button--secondary" to="/">Back to library</Link>
+        {actions ?? <Link className="button button--secondary" to="/">Back to library</Link>}
         <button
           aria-expanded={navigationOpen}
           className="button button--secondary navigation-toggle"
