@@ -1,11 +1,21 @@
-import { Link } from "react-router-dom";
-import type { ContentBlock, TopicResponse } from "../data/mockData";
+import { useEffect, useRef, useState } from "react";
+import type { MouseEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { resolveNodeFromApi } from "../api/client";
+import type {
+  ContentBlock,
+  TopicContentResponse,
+  XrefSegment,
+} from "../types/api";
+import { DATA_SOURCE } from "../config/dataSource";
 import { resolveAvailableTargetId } from "../data/mockData";
+import { readerPathForResolution } from "../utils/readerLink";
 
 interface BlockProps {
   block: ContentBlock;
   docId: string;
   revision: number;
+  dataSource?: "mock" | "api";
   targetNodeId?: string;
 }
 
@@ -13,10 +23,12 @@ function InlineSegments({
   segments,
   docId,
   revision,
+  dataSource,
 }: {
   segments: Extract<ContentBlock, { segments: unknown }>["segments"];
   docId: string;
   revision: number;
+  dataSource: "mock" | "api";
 }) {
   return (
     <>
@@ -25,39 +37,158 @@ function InlineSegments({
           return <span key={`${index}-text`}>{segment.text}</span>;
         }
 
-        const target = resolveAvailableTargetId(docId, revision, segment.targetId);
-        if (target) {
-          return (
-            <Link
-              className="xref-link"
-              key={`${index}-${segment.targetId}`}
-              to={`/reader/${encodeURIComponent(docId)}/${revision}?nodeId=${encodeURIComponent(segment.targetId)}`}
-            >
-              {segment.text}
-            </Link>
-          );
-        }
-
         return (
-          <span className="xref-unavailable" key={`${index}-${segment.targetId}`}>
-            <span>{segment.text}</span>
-            <span className="xref-unavailable__message">
-              {" "}Not available in this prototype.
-            </span>
-          </span>
+          <XrefSegmentView
+            dataSource={dataSource}
+            docId={docId}
+            key={`${index}-${segment.targetId}`}
+            revision={revision}
+            segment={segment}
+          />
         );
       })}
     </>
   );
 }
 
+function XrefSegmentView({
+  segment,
+  dataSource,
+  docId,
+  revision,
+}: {
+  segment: XrefSegment;
+  dataSource: "mock" | "api";
+  docId: string;
+  revision: number;
+}) {
+  const navigate = useNavigate();
+  const controller = useRef<AbortController | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<{ code: string; message: string }>();
+
+  useEffect(() => () => controller.current?.abort(), []);
+
+  if (dataSource === "mock") {
+    const target = resolveAvailableTargetId(docId, revision, segment.targetId);
+    return target ? (
+      <Link
+        className="xref-link"
+        to={`/reader/${encodeURIComponent(docId)}/${revision}?nodeId=${encodeURIComponent(segment.targetId)}`}
+      >
+        {segment.text}
+      </Link>
+    ) : (
+      <span className="xref-unavailable">
+        <span>{segment.text}</span>
+        <span className="xref-unavailable__message">
+          {" "}Not available in this prototype.
+        </span>
+      </span>
+    );
+  }
+
+  const openHref = `/open?${new URLSearchParams({
+    doc: docId,
+    node: segment.targetId,
+    rev: String(revision),
+  }).toString()}`;
+  const resolve = async () => {
+    if (loading) return;
+    controller.current?.abort();
+    const requestController = new AbortController();
+    controller.current = requestController;
+    setLoading(true);
+    setError(undefined);
+
+    const result = await resolveNodeFromApi(
+      docId,
+      segment.targetId,
+      revision,
+      requestController.signal,
+    );
+    if (requestController.signal.aborted) return;
+    setLoading(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    if (
+      result.data.documentId !== docId ||
+      result.data.selectedRevision !== revision ||
+      result.data.targetNodeId !== segment.targetId ||
+      result.data.topic.id !== result.data.topicId
+    ) {
+      setError({
+        code: "INVALID_RESPONSE",
+        message: "The resolver returned a different document revision.",
+      });
+      return;
+    }
+    navigate(readerPathForResolution(result.data));
+  };
+  const activate = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    event.preventDefault();
+    void resolve();
+  };
+
+  if (error?.code === "NODE_NOT_FOUND") {
+    return (
+      <span className="xref-unavailable">
+        <span>{segment.text}</span>
+        <span className="xref-unavailable__message">
+          {" "}Not available in this revision.
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <>
+      <Link
+        aria-busy={loading}
+        className="xref-link"
+        onClick={(event) => void activate(event)}
+        to={openHref}
+      >
+        {segment.text}
+      </Link>
+      {loading && <span role="status"> Resolving reference…</span>}
+      {error && (
+        <span className="xref-unavailable" role="alert">
+          {" "}Reference could not be resolved: {error.message}{" "}
+          <button
+            className="xref-retry"
+            onClick={() => void resolve()}
+            type="button"
+          >
+            Retry
+          </button>
+        </span>
+      )}
+    </>
+  );
+}
+
 function TextBlockView({ block, ...props }: BlockProps & { block: Extract<ContentBlock, { segments: unknown }> }) {
+  const dataSource = props.dataSource ?? DATA_SOURCE;
   const body = (
     <p>
       <InlineSegments
         segments={block.segments}
         docId={props.docId}
         revision={props.revision}
+        dataSource={dataSource}
       />
     </p>
   );
@@ -183,9 +314,10 @@ function ChecklistView({
 }
 
 interface ContentBlocksProps {
-  topic: TopicResponse["topic"];
+  topic: TopicContentResponse["topic"];
   docId: string;
   revision: number;
+  dataSource?: "mock" | "api";
   targetNodeId?: string;
   completedChecks: Record<string, boolean>;
   onToggleCheck: (checkId: string) => void;
@@ -195,6 +327,7 @@ export function ContentBlocks({
   topic,
   docId,
   revision,
+  dataSource = DATA_SOURCE,
   targetNodeId,
   completedChecks,
   onToggleCheck,
@@ -211,6 +344,7 @@ export function ContentBlocks({
               <TextBlockView
                 block={block}
                 docId={docId}
+                dataSource={dataSource}
                 key={block.id}
                 revision={revision}
                 targetNodeId={targetNodeId}
@@ -221,6 +355,7 @@ export function ContentBlocks({
               <ListView
                 block={block}
                 docId={docId}
+                dataSource={dataSource}
                 key={block.id}
                 revision={revision}
                 targetNodeId={targetNodeId}
@@ -231,6 +366,7 @@ export function ContentBlocks({
               <TableView
                 block={block}
                 docId={docId}
+                dataSource={dataSource}
                 key={block.id}
                 revision={revision}
                 targetNodeId={targetNodeId}
@@ -242,6 +378,7 @@ export function ContentBlocks({
                 block={block}
                 completedChecks={completedChecks}
                 docId={docId}
+                dataSource={dataSource}
                 key={block.id}
                 onToggleCheck={onToggleCheck}
                 revision={revision}
