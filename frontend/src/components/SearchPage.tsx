@@ -302,28 +302,30 @@ export function SearchPage() {
 
       <div className="search-box">
         <label className="visually-hidden" htmlFor="search-query">Search published documents</label>
-        <input
-          autoComplete="off"
-          autoCorrect="off"
-          enterKeyHint="search"
-          id="search-query"
-          maxLength={200}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") event.currentTarget.blur();
-          }}
-          placeholder="Search titles and text"
-          ref={inputRef}
-          spellCheck={false}
-          type="search"
-          value={draft}
-        />
-        {state.status === "ready" && (
-          <span aria-live="polite" className="search-box__meta">
-            {state.response.total} {state.response.total === 1 ? "result" : "results"} ·{" "}
-            {Math.max(1, Math.round(state.elapsedMs))} ms
-          </span>
-        )}
+        <div className="search-box__field">
+          <input
+            autoComplete="off"
+            autoCorrect="off"
+            enterKeyHint="search"
+            id="search-query"
+            maxLength={200}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.currentTarget.blur();
+            }}
+            placeholder="Search titles and text"
+            ref={inputRef}
+            spellCheck={false}
+            type="search"
+            value={draft}
+          />
+          {state.status === "ready" && (
+            <span aria-live="polite" className="search-box__meta">
+              {state.response.total} {state.response.total === 1 ? "result" : "results"} ·{" "}
+              {Math.max(1, Math.round(state.elapsedMs))} ms
+            </span>
+          )}
+        </div>
       </div>
 
       <div aria-label="Filter results" className="search-chips" role="group">
