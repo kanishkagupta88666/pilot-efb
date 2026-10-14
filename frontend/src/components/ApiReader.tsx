@@ -18,7 +18,8 @@ import type {
   TopicContentResponse,
 } from "../types/api";
 import { ContentBlocks } from "./ContentBlocks";
-import { Outline, SectionTopics, topicTrail } from "./Outline";
+import { OnThisPage } from "./OnThisPage";
+import { Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
@@ -394,13 +395,7 @@ export function ApiReader() {
 
   return (
     <ReaderLayout
-      aside={
-        <SectionTopics
-          activeTopicId={selectedTopicId ?? ""}
-          chapters={pageData.navigation.chapters}
-          onSelectTopic={selectTopic}
-        />
-      }
+      aside={<OnThisPage blocks={topicData.status === "ready" ? topicData.topic.blocks : []} />}
       breadcrumbs={[
         pageData.navigation.document.docType,
         ...topicTrail(pageData.navigation.chapters, selectedTopicId),

@@ -192,6 +192,31 @@ describe("reader", () => {
     expect(screen.queryByRole("button", { name: "Reset checklist" })).toBeNull();
   });
 
+  it("lists the topic's notes, cautions and checklist on this page and jumps to them", () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    renderApp("/reader/FM-S100/2");
+    const panel = screen.getByRole("complementary", { name: "On this page" });
+    const sourceBlocks = getTopic("FM-S100", 2, "fm100-t0340").topic.blocks;
+    const expectedLabels = sourceBlocks
+      .filter((block) => ["note", "caution", "warning", "table", "checklist"].includes(block.type))
+      .map((block) => block.type);
+    const entries = within(panel).getAllByRole("button");
+
+    expect(entries.map((entry) => entry.className.match(/page-nav__item--(\w+)/)?.[1])).toEqual(
+      expectedLabels,
+    );
+
+    fireEvent.click(entries[entries.length - 1]);
+    expect(scrollIntoView).toHaveBeenCalled();
+    expect(scrollIntoView.mock.contexts[0]).toBe(
+      document.getElementById(sourceBlocks.filter((block) => block.type === "checklist")[0].id),
+    );
+  });
+
   it("scrolls to and highlights a requested checklist check", async () => {
     const scrollIntoView = vi.fn();
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {

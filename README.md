@@ -257,7 +257,7 @@ Key guarantees: permanent IDs are stored exactly as they appear in the XML and a
 - **Data source:** mock data from `contracts/provisional-sample.json` by default; set `VITE_DATA_SOURCE=api` to use the Django API (proxied to port 8000 in development).
 - **Routing** (`src/App.tsx`): `/` shows the document library, `/reader/:docId/:revision` shows the reader, `/open?doc=…&node=…` resolves a permanent-ID link through the API, and any other path shows "Page not found".
 - **Document library** (`src/components/DocumentLibrary.tsx`): a compact table with one row per document, showing revision, dates and revision status, with a revision dropdown when several revisions exist.
-- **Reader** (`Reader.tsx` for mock data, `ApiReader.tsx` for API data, both using `ReaderLayout.tsx`): top bar, chapter/section/topic sidebar, breadcrumbs, the selected topic, an "In this section" panel, and a status bar.
+- **Reader** (`Reader.tsx` for mock data, `ApiReader.tsx` for API data, both using `ReaderLayout.tsx`): top bar, chapter/section/topic sidebar, breadcrumbs, the selected topic, an "On this page" panel, and a status bar.
 - **Content blocks** (`src/components/ContentBlocks.tsx`): paragraphs, note/caution/warning callouts, lists, tables and interactive checklists, plus inline cross-reference links.
 - **Deep links:** the reader opens the containing topic, scrolls to the target node and highlights it briefly. In API mode, resolution uses the backend resolver.
 - **Responsive layout** (`src/styles.css`): the sidebar is a slide-in drawer on narrow screens and a fixed column from 900px wide (760px in landscape); the right panel appears from 1180px.
