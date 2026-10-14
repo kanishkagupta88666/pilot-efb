@@ -416,6 +416,13 @@ export function ApiReader() {
           targetId={highlightedTargetId}
         />
       }
+      status={{
+        number: headingTopic?.number,
+        location: topicTrail(pageData.navigation.chapters, selectedTopicId).slice(1).join(" — "),
+        classification: metadata.classification,
+        revision: pageData.navigation.version.revision,
+        effectiveDate: metadata.effectiveDate,
+      }}
       title={metadata.title}
     >
       <TopicHeader
@@ -469,13 +476,6 @@ export function ApiReader() {
           topic={topicData.topic}
         />
       )}
-      <footer className="reader-footer">
-        <span>{metadata.classification}</span>
-        <span>
-          Revision {pageData.navigation.version.revision} · Revision date {metadata.revisionDate} ·
-          Effective date {metadata.effectiveDate}
-        </span>
-      </footer>
     </ReaderLayout>
   );
 }

@@ -197,7 +197,7 @@ describe("reader", () => {
     ).not.toContain("content-block--targeted");
   });
 
-  it("supports warning blocks without implying a severity colour", () => {
+  it("renders warning blocks with an accessible label", () => {
     const topic: TopicContent = {
       id: "warning-fixture",
       number: "test",

@@ -16,6 +16,7 @@
   --warning: #a3271f;
   --caution: #8a5a12;
   --bar-height: 3.25rem;
+  --status-height: 2.25rem;
 }
 
 * {
@@ -292,13 +293,13 @@ p {
 }
 
 .reader-layout {
-  min-height: calc(100vh - var(--bar-height));
+  min-height: calc(100vh - var(--bar-height) - var(--status-height));
 }
 
 .reader-navigation {
   position: fixed;
   z-index: 7;
-  inset: var(--bar-height) auto 0 0;
+  inset: var(--bar-height) auto var(--status-height) 0;
   display: none;
   width: min(88vw, 20rem);
   flex-direction: column;
@@ -448,7 +449,7 @@ p {
 .navigation-backdrop {
   position: fixed;
   z-index: 6;
-  inset: var(--bar-height) 0 0;
+  inset: var(--bar-height) 0 var(--status-height);
   display: block;
   width: 100%;
   border: 0;
@@ -741,15 +742,44 @@ p {
   font-size: 0.86em;
 }
 
-.reader-footer {
+.status-bar {
+  position: sticky;
+  z-index: 5;
+  bottom: 0;
   display: flex;
-  flex-wrap: wrap;
+  min-height: var(--status-height);
+  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
-  padding: 1rem 0;
+  gap: 1rem;
+  padding: 0 1rem;
   border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 0.78rem;
+  background: var(--soft-surface);
+  font-size: 0.8rem;
+}
+
+.status-bar__location {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-bar__meta {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 1rem;
+}
+
+.status-bar__revision {
+  font-family: var(--mono);
+}
+
+@media (max-width: 700px) {
+  .status-bar__revision {
+    display: none;
+  }
 }
 
 .reader-error {
@@ -866,7 +896,7 @@ p {
     top: var(--bar-height);
     display: flex;
     width: auto;
-    height: calc(100vh - var(--bar-height));
+    height: calc(100vh - var(--bar-height) - var(--status-height));
     box-shadow: none;
   }
 
@@ -886,7 +916,7 @@ p {
     position: sticky;
     top: var(--bar-height);
     display: block;
-    height: calc(100vh - var(--bar-height));
+    height: calc(100vh - var(--bar-height) - var(--status-height));
     padding: 1.25rem 1.25rem;
     border-left: 1px solid var(--line);
   }

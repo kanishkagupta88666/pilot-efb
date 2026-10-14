@@ -254,16 +254,15 @@ Key guarantees: permanent IDs are stored exactly as they appear in the XML and a
 ## Frontend architecture
 
 - **Entry point:** `frontend/index.html` loads `src/main.tsx`, which renders `App` in React strict mode.
-- **Routing** (`src/App.tsx`): `/` shows the document library, `/reader/:docId/:revision` shows the reader, and any other path falls back to the library.
-- **Document library** (`src/components/DocumentLibrary.tsx`): one card per document revision with an "Open reader" link.
-- **Reader** (`src/components/Reader.tsx`): a toolbar, a collapsible chapter/section/topic outline, and the selected topic.
-- **Content blocks** (`src/components/ContentBlocks.tsx`): renders paragraphs, note/caution/warning callouts, lists, tables and interactive checklists, plus inline cross-reference links.
-- **Mock data** (`src/data/mockData.ts`): TypeScript types and four functions that serve `contracts/provisional-sample.json`. It offers one document (FM-S100 Rev 2) and two topics.
-- **Deep links:** `/reader/FM-S100/2?nodeId=<id>` opens the containing topic, scrolls to the target and highlights it briefly. Resolution is local and limited to the two mock topics.
-- **Revision selection:** there is no revision switcher; each revision appears as its own library card.
-- **Responsive layout** (`src/styles.css`): the outline is a slide-in drawer on narrow screens and a fixed sidebar from 900px wide, or from 760px in landscape.
+- **Data source:** mock data from `contracts/provisional-sample.json` by default; set `VITE_DATA_SOURCE=api` to use the Django API (proxied to port 8000 in development).
+- **Routing** (`src/App.tsx`): `/` shows the document library, `/reader/:docId/:revision` shows the reader, `/open?doc=…&node=…` resolves a permanent-ID link through the API, and any other path shows "Page not found".
+- **Document library** (`src/components/DocumentLibrary.tsx`): a compact table with one row per document, showing revision, dates and revision status, with a revision dropdown when several revisions exist.
+- **Reader** (`Reader.tsx` for mock data, `ApiReader.tsx` for API data, both using `ReaderLayout.tsx`): top bar, chapter/section/topic sidebar, breadcrumbs, the selected topic, an "In this section" panel, and a status bar.
+- **Content blocks** (`src/components/ContentBlocks.tsx`): paragraphs, note/caution/warning callouts, lists, tables and interactive checklists, plus inline cross-reference links.
+- **Deep links:** the reader opens the containing topic, scrolls to the target node and highlights it briefly. In API mode, resolution uses the backend resolver.
+- **Responsive layout** (`src/styles.css`): the sidebar is a slide-in drawer on narrow screens and a fixed column from 900px wide (760px in landscape); the right panel appears from 1180px.
 
-**Still requires backend integration:** replacing the mock functions with calls to the API, loading and error states, showing revision status, and deep-link resolution against the full manual. See [docs/FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md).
+Not yet built: search, annotations, revision comparison, dark mode, offline storage, read-and-sign, integrity and admin screens. See [docs/FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md).
 
 ## Testing and validation
 
