@@ -1746,30 +1746,44 @@ button.pdf-mark__badge {
   border-bottom: 1px solid var(--line);
 }
 
-.search-box input {
-  width: 100%;
+/* The result count sits beside the input, not on top of it, so the browser's clear button never overlaps it. */
+.search-box__field {
+  display: flex;
   min-height: 3.25rem;
-  padding: 0.6rem 10rem 0.6rem 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1rem;
   border: 1.5px solid var(--accent);
   border-radius: 0.3rem;
   background: var(--surface);
+}
+
+.search-box__field:focus-within {
+  outline: 3px solid rgb(37 71 96 / 22%);
+}
+
+.search-box input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.6rem 0;
+  border: 0;
+  background: transparent;
   color: var(--ink);
   font: inherit;
   font-size: 1.2rem;
 }
 
-.search-box input:focus {
-  outline: 3px solid rgb(37 71 96 / 22%);
+.search-box input:focus,
+.search-box input:focus-visible {
+  outline: none;
 }
 
 .search-box__meta {
-  position: absolute;
-  top: 50%;
-  right: calc(clamp(1rem, 2.5vw, 1.75rem) + 1rem);
+  flex: 0 0 auto;
   color: var(--muted);
-  font-family: ui-monospace, monospace;
+  font-family: var(--mono);
   font-size: 0.85rem;
-  transform: translateY(-50%);
+  white-space: nowrap;
   pointer-events: none;
 }
 
