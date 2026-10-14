@@ -155,12 +155,13 @@ The sidebar scrolls itself so the open topic stays visible, for example after a 
 | `note`, `caution`, `warning` | An `<aside>` with a label and a coloured left bar: grey for note, amber for caution, red for warning |
 | `list` | A bulleted list |
 | `table` | A table in a keyboard-focusable scroll region. Rows flagged `header` render as column headers |
-| `checklist` | One row per check: a checkbox, the challenge, a dotted leader, and the response in monospace. Ticked rows turn grey |
+| `checklist` | One row per check: a checkbox, the challenge, a dotted leader, and the response in monospace. Ticked rows turn grey. The heading shows progress (for example "3 of 12") and a Reset button once anything is ticked |
 
 - **Element IDs:** every block and every checklist check is rendered with its permanent ID as the HTML `id`. This is what makes scroll-to-target work.
 - **Cross-references (mock):** a link is shown only if the target exists in the mock data. Otherwise the text is followed by "Not available in this prototype."
 - **Cross-references (API):** the link points at `/open?…`. Clicking it calls the resolver and then navigates. The resolver is not called until the link is used. A missing target shows "Not available in this revision."
 - **Checklist ticks** are kept in reader state, keyed by check ID. They survive switching topics but are lost on reload. Nothing is saved.
+- **Checklist reset:** Reset unticks every check in that one checklist. There is deliberately no "check all": each item should be confirmed individually.
 
 ## Deep links
 
@@ -246,11 +247,11 @@ npx tsc --noEmit -p .    # type check
 npm run build            # type check and production build
 ```
 
-Result at the time of writing: **41 tests in 4 files, all passing.** All tests use Vitest, React Testing Library and jsdom.
+Result at the time of writing: **42 tests in 4 files, all passing.** All tests use Vitest, React Testing Library and jsdom.
 
 | File | Covers |
 |---|---|
-| `src/App.test.tsx` | Library and reader in mock mode: outline, block order, lists, tables, checklists, deep-link highlight, warnings, cross-references |
+| `src/App.test.tsx` | Library and reader in mock mode: outline, block order, lists, tables, checklists and checklist reset, deep-link highlight, warnings, cross-references |
 | `src/api/client.test.ts` | Endpoint URLs, response validation, error handling for 404s, malformed JSON, invalid shapes, network failures and non-JSON responses |
 | `src/components/ApiIntegration.test.tsx` | API mode: library loading, empty and retry states, revision handling, lazy cross-reference resolution, `/open` links |
 | `src/components/Preparation.test.tsx` | Data source default, revision selector, request states, not-found route, no fetches in mock mode |
