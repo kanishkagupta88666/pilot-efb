@@ -318,6 +318,7 @@ describe("API-backed frontend", () => {
                   completedChecks={{}}
                   dataSource="api"
                   docId="FM-S100"
+                  onResetChecks={() => undefined}
                   onToggleCheck={() => undefined}
                   revision={2}
                   topic={topic.topic}
@@ -364,7 +365,8 @@ describe("API-backed frontend", () => {
           completedChecks={{}}
           dataSource="api"
           docId="FM-S100"
-          onToggleCheck={() => undefined}
+          onResetChecks={() => undefined}
+                  onToggleCheck={() => undefined}
           revision={2}
           topic={topic.topic}
         />

@@ -275,19 +275,38 @@ function ChecklistView({
   block,
   completedChecks,
   onToggleCheck,
+  onResetChecks,
   targetNodeId,
 }: BlockProps & {
   block: Extract<ContentBlock, { type: "checklist" }>;
   completedChecks: Record<string, boolean>;
   onToggleCheck: (checkId: string) => void;
+  onResetChecks: (checkIds: string[]) => void;
 }) {
+  const doneCount = block.checks.filter((check) => completedChecks[check.id]).length;
+
   return (
     <section
       aria-label="Checklist"
       className={`content-block content-block--checklist${targetNodeId === block.id ? " content-block--targeted" : ""}`}
       id={block.id}
     >
-      <h3>Checklist</h3>
+      <div className="checklist-header">
+        <h3>Checklist</h3>
+        <span aria-live="polite" className="checklist-progress">
+          {doneCount} of {block.checks.length}
+        </span>
+        {doneCount > 0 && (
+          <button
+            aria-label="Reset checklist"
+            className="checklist-reset"
+            onClick={() => onResetChecks(block.checks.map((check) => check.id))}
+            type="button"
+          >
+            Reset
+          </button>
+        )}
+      </div>
       <ul>
         {block.checks.map((check) => (
           <li
@@ -322,6 +341,7 @@ interface ContentBlocksProps {
   targetNodeId?: string;
   completedChecks: Record<string, boolean>;
   onToggleCheck: (checkId: string) => void;
+  onResetChecks: (checkIds: string[]) => void;
 }
 
 export function ContentBlocks({
@@ -332,6 +352,7 @@ export function ContentBlocks({
   targetNodeId,
   completedChecks,
   onToggleCheck,
+  onResetChecks,
 }: ContentBlocksProps) {
   return (
     <div className="topic-content">
@@ -381,6 +402,7 @@ export function ContentBlocks({
                 docId={docId}
                 dataSource={dataSource}
                 key={block.id}
+                onResetChecks={onResetChecks}
                 onToggleCheck={onToggleCheck}
                 revision={revision}
                 targetNodeId={targetNodeId}
