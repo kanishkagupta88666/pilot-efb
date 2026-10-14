@@ -19,5 +19,3 @@
 - Revision parsing in mock mode remains looser than API-mode route validation.
 - XML mixed-text whitespace rendering remains ambiguous under the provisional
   contract; API segments are rendered without client-side trimming.
-- The active outline item is not automatically scrolled into view after an
-  ordinary topic selection.
