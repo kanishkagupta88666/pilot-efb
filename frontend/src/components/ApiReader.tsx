@@ -237,7 +237,9 @@ export function ApiReader() {
     const sectionId = requestedSectionId ?? parents?.sectionId;
     setExpandedChapters(chapterId ? new Set([chapterId]) : new Set());
     setExpandedSections(sectionId ? new Set([sectionId]) : new Set());
-    if (requestedChapterId || requestedSectionId) setNavigationOpen(true);
+    // Show the sidebar only when the link targets a chapter or section, which is highlighted there.
+    // For anything else it would cover the content the link points at on narrow screens.
+    setNavigationOpen(targetTypeParam === "chapter" || targetTypeParam === "section");
   }, [
     navigation,
     topicIdParam,
