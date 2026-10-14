@@ -39,6 +39,10 @@ export function wordMatches(word: string, term: string): boolean {
   return lower === term || (term.length > 1 && lower.startsWith(term));
 }
 
+export function appliesToAll(applicability: string): boolean {
+  return applicability.trim().toUpperCase() === "ALL";
+}
+
 export interface Entry {
   docId: string;
   revision: number;
@@ -174,8 +178,8 @@ export function searchLocal(
   const included = (document: SearchableDocument) => {
     if (filters.docTypes?.length && !filters.docTypes.includes(document.docType)) return false;
     if (filters.categories?.length && !filters.categories.includes(document.category)) return false;
-    // A fleet filter keeps that fleet's manuals and the master documents.
-    if (filters.fleet && document.category !== "master" && document.applicability !== filters.fleet) {
+    // A fleet filter keeps that fleet's documents and those for all fleets.
+    if (filters.fleet && !appliesToAll(document.applicability) && document.applicability !== filters.fleet) {
       return false;
     }
     return true;

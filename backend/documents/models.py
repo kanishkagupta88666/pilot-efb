@@ -196,3 +196,30 @@ class ContentAnchor(models.Model):
 
     def __str__(self) -> str:
         return f"{self.anchor_type}:{self.anchor_id}"
+
+
+class Draft(models.Model):
+    """An unpublished revision being authored. Pilots never see it.
+
+    ``payload`` holds the whole document in the same shape ingestion uses:
+    ``{"chapters": [...outline...], "topics": {topic_id: {"blocks": [...]}}}``.
+    Publishing turns it into a new DocumentVersion; the base revision is
+    never changed. One draft per document at a time.
+    """
+
+    document = models.OneToOneField(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="draft",
+    )
+    base_version = models.ForeignKey(
+        DocumentVersion,
+        on_delete=models.CASCADE,
+        related_name="drafts",
+    )
+    payload = models.JSONField()
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self) -> str:
+        return f"Draft of {self.document_id} from Rev {self.base_version.revision}"

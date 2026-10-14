@@ -119,9 +119,13 @@ function boxesFor(runs: TextRun[], owners: number[], start: number, end: number)
  * block's closing words when they follow within reach; if they are not found,
  * only the opening is marked, which is still the right block.
  */
-export function locateText(runs: TextRun[], blockText: string): Placement {
+export function locateText(
+  runs: TextRun[],
+  blockText: string,
+  minWords = MIN_NEEDLE_WORDS,
+): Placement {
   const all = words(blockText);
-  if (all.length < MIN_NEEDLE_WORDS) return { placed: false, reason: "too-short" };
+  if (all.length < minWords) return { placed: false, reason: "too-short" };
   const haystack = buildHaystack(runs);
 
   const lengths = [...new Set([...NEEDLE_LENGTHS, all.length])]

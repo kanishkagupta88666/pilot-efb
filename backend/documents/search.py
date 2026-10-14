@@ -35,6 +35,7 @@ from documents.models import DocumentNode, DocumentVersion
 _WORD = re.compile(r"[^\W_]+", re.UNICODE)
 MASTER = "master"
 FLEET = "fleet"
+SUPPLEMENTAL = "supplemental"
 # Content filters: which block types each one keeps. The sample data has no
 # warnings, so the warnings filter also keeps cautions.
 CONTENT_TYPES = {
@@ -64,9 +65,16 @@ def block_text(block: dict) -> str:
     return ""
 
 
-def category_for(applicability: str) -> str:
-    """Master documents apply to all fleets; the rest are fleet manuals."""
-    return MASTER if applicability.strip().upper() == "ALL" else FLEET
+def applies_to_all(applicability: str) -> bool:
+    return applicability.strip().upper() == "ALL"
+
+
+def category_for(applicability: str, source: str | None = None) -> str:
+    """The client's three categories: supplemental documents (the PDF-only
+    bulletins), master documents (all fleets) and fleet manuals."""
+    if source == "pdf-only":
+        return SUPPLEMENTAL
+    return MASTER if applies_to_all(applicability) else FLEET
 
 
 @dataclass(frozen=True)
@@ -187,7 +195,7 @@ def _index_cached(pk: int, ingested_at: str, version: DocumentVersion) -> Indexe
         title=metadata.get("title", version.document_id),
         doc_type=metadata.get("docType", ""),
         applicability=applicability,
-        category=category_for(applicability),
+        category=category_for(applicability, metadata.get("source")),
         revision=version.revision,
         effective_date=version.effective_date.isoformat(),
         entries=tuple(entries),
@@ -316,8 +324,8 @@ def search(
             return False
         if categories and document.category not in categories:
             return False
-        # A fleet filter keeps that fleet's manuals and the master documents.
-        if fleet and document.category != MASTER and document.applicability != fleet:
+        # A fleet filter keeps that fleet's documents and those for all fleets.
+        if fleet and not applies_to_all(document.applicability) and document.applicability != fleet:
             return False
         return True
 

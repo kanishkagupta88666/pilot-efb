@@ -62,6 +62,11 @@ function parseRevision(value: string): number | undefined {
   return Number.isSafeInteger(parsed) ? parsed : undefined;
 }
 
+/** "number title", unless the title already carries the number ("Section 3"). */
+function numbered(number: string, title: string): string {
+  return title.split(/\s+/).includes(number) ? title : `${number} ${title}`;
+}
+
 function firstTopic(chapters: Chapter[]): string | undefined {
   for (const chapter of chapters) {
     for (const section of chapter.sections) {
@@ -148,7 +153,7 @@ function Outline({
                                 type="button"
                               >
                                 <span className="outline-item__title">
-                                  {topic.number} {topic.title}
+                                  {numbered(topic.number, topic.title)}
                                 </span>
                               </button>
                             </li>
@@ -533,6 +538,14 @@ export function ApiReader() {
           <Link className="button button--secondary" to="/">Back to library</Link>
         )}
         <Link className="button button--secondary" to="/search">Search</Link>
+        {pageData.navigation.version.metadata.source !== "pdf-only" && (
+          <Link
+            className="button button--secondary"
+            to={`/author/${encodeURIComponent(docId)}${selectedTopicId ? `?topicId=${encodeURIComponent(selectedTopicId)}` : ""}`}
+          >
+            Edit
+          </Link>
+        )}
         <button
           aria-expanded={navigationOpen}
           className="button button--secondary navigation-toggle"
@@ -590,10 +603,14 @@ export function ApiReader() {
                 className={highlightedTargetId === topicData.topic.id ? "content-block--targeted" : ""}
                 id={topicData.topic.id}
               >
-                {topicData.topic.number} {topicData.topic.title}
+                {numbered(topicData.topic.number, topicData.topic.title)}
               </h1>
             ) : (
-              <h1>{selectedOutlineTopic?.number} {selectedOutlineTopic?.title ?? metadata.title}</h1>
+              <h1>
+                {selectedOutlineTopic
+                  ? numbered(selectedOutlineTopic.number, selectedOutlineTopic.title)
+                  : metadata.title}
+              </h1>
             )}
             {showChanges && changes && changes.status.includes("moved") && changes.previous && (
               <p className="topic-change-note topic-change-note--moved">
@@ -699,6 +716,7 @@ export function ApiReader() {
                 changesData={changesData}
                 docId={docId}
                 onToggleChanges={() => setShowChanges((value) => !value)}
+                approximate={metadata.source === "pdf-only"}
                 previousRevision={previousRevision}
                 revision={pageData.navigation.version.revision}
                 showChanges={showChanges}
@@ -719,6 +737,7 @@ export function ApiReader() {
 }
 
 function RevisionRail({
+  approximate,
   changesData,
   docId,
   previousRevision,
@@ -726,6 +745,8 @@ function RevisionRail({
   showChanges,
   onToggleChanges,
 }: {
+  /** Changes found by comparing PDF text, not by client IDs. */
+  approximate: boolean;
   changesData: ChangesData;
   docId: string;
   previousRevision?: number;
@@ -758,6 +779,12 @@ function RevisionRail({
       <h2 className="reader-context__heading">
         Revision <span className="reader-context__count">{count || ""}</span>
       </h2>
+      {approximate && (
+        <p className="reader-context__approximate">
+          PDF-only document: changes are found by comparing the text of the two PDFs, so they are
+          approximate. A heavily rewritten paragraph shows as removed and added.
+        </p>
+      )}
       <p>{summary}</p>
       {previousRevision !== undefined && (
         <div className="reader-context__actions">

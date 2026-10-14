@@ -462,7 +462,7 @@ def pdf_file(request, doc_id: str, revision: str):
         raise Http404
     try:
         version = _get_version(doc_id, revision)
-        path = pdf_rendition.pdf_path(version.document_id, version.revision)
+        path = pdf_rendition.version_pdf_path(version)
     except (ApiError, pdf_rendition.PdfNotAvailableError) as error:
         raise Http404 from error
     return FileResponse(path.open("rb"), content_type="application/pdf")
