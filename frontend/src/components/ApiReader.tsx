@@ -341,6 +341,14 @@ export function ApiReader() {
     setCompletedChecks((previous) => ({ ...previous, [id]: !previous[id] }));
   };
 
+  const resetChecks = (checkIds: string[]) => {
+    setCompletedChecks((previous) => {
+      const next = { ...previous };
+      for (const id of checkIds) delete next[id];
+      return next;
+    });
+  };
+
   if (pageData.key !== routeKey || pageData.status === "loading") {
     return <LoadingState label="Loading document navigation…" />;
   }
@@ -470,6 +478,7 @@ export function ApiReader() {
           completedChecks={completedChecks}
           dataSource="api"
           docId={docId}
+          onResetChecks={resetChecks}
           onToggleCheck={toggleCheck}
           revision={pageData.navigation.version.revision}
           targetNodeId={highlightedTargetId}

@@ -174,6 +174,24 @@ describe("reader", () => {
     expect((checkboxes[0] as HTMLInputElement).checked).toBe(true);
   });
 
+  it("shows checklist progress and resets every check with one tap", () => {
+    renderApp("/reader/FM-S100/2");
+    const checkboxes = screen.getAllByRole("checkbox") as HTMLInputElement[];
+    const total = checkboxes.length;
+
+    expect(screen.getByText(`0 of ${total}`)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Reset checklist" })).toBeNull();
+
+    fireEvent.click(checkboxes[0]);
+    fireEvent.click(checkboxes[1]);
+    expect(screen.getByText(`2 of ${total}`)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset checklist" }));
+    expect(checkboxes.every((checkbox) => !checkbox.checked)).toBe(true);
+    expect(screen.getByText(`0 of ${total}`)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Reset checklist" })).toBeNull();
+  });
+
   it("scrolls to and highlights a requested checklist check", async () => {
     const scrollIntoView = vi.fn();
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
@@ -217,6 +235,7 @@ describe("reader", () => {
         <ContentBlocks
           completedChecks={{}}
           docId="FM-S100"
+          onResetChecks={() => undefined}
           onToggleCheck={() => undefined}
           revision={2}
           topic={topic}
@@ -256,6 +275,7 @@ describe("reader", () => {
         <ContentBlocks
           completedChecks={{}}
           docId="FM-S100"
+          onResetChecks={() => undefined}
           onToggleCheck={() => undefined}
           revision={2}
           topic={topic}

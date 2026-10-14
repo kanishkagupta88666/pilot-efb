@@ -196,6 +196,14 @@ function ReaderWorkspace({
     }));
   };
 
+  const resetChecks = (checkIds: string[]) => {
+    setCompletedChecks((previous) => {
+      const next = { ...previous };
+      for (const id of checkIds) delete next[id];
+      return next;
+    });
+  };
+
   const selectedOutline = navigation.chapters
     .flatMap((chapter) => chapter.sections)
     .flatMap((section) => section.topics)
@@ -269,6 +277,7 @@ function ReaderWorkspace({
       <ContentBlocks
         completedChecks={completedChecks}
         docId={docId}
+        onResetChecks={resetChecks}
         onToggleCheck={toggleCheck}
         revision={revision}
         targetNodeId={highlightedTargetId}
