@@ -171,3 +171,145 @@ export interface ResolveNodeResponse {
   targetType: ResolvedNodeType;
   topic: Topic;
 }
+
+/** Change status of a topic or block between two revisions, by permanent ID. */
+export type ChangeStatus = "unchanged" | "modified" | "added" | "removed" | "moved";
+
+export interface DiffRun {
+  op: "equal" | "insert" | "delete";
+  text: string;
+}
+
+export interface BlockChange {
+  id: string;
+  type: ContentBlock["type"];
+  status: Exclude<ChangeStatus, "moved">;
+  previous: ContentBlock | null;
+  current: ContentBlock | null;
+  /** Word-level runs, present only for modified blocks. */
+  diff?: DiffRun[];
+}
+
+export interface ChangedTopicRef {
+  id: string;
+  number: string;
+  title: string;
+  section: { id: string; number: string; title: string };
+  chapterId: string;
+}
+
+export interface RemovedTopicChange extends ChangedTopicRef {
+  status: ChangeStatus[];
+  blocks: BlockChange[];
+}
+
+export interface NodeChangesResponse {
+  docId: string;
+  fromRevision: number;
+  toRevision: number;
+  nodeId: string;
+  topicId: string;
+  status: ChangeStatus[];
+  previous: ChangedTopicRef | null;
+  current: ChangedTopicRef | null;
+  blocks: BlockChange[];
+  /** Topics of the same section removed right after this topic. */
+  removedTopicsAfter: RemovedTopicChange[];
+}
+
+export interface ManifestTopic {
+  id: string;
+  number: string;
+  title: string;
+  sectionId: string;
+  chapterId: string;
+  /** Present on moved topics. */
+  from?: string;
+  to?: string;
+  fromSectionId?: string;
+}
+
+export interface RevisionChangesResponse {
+  docId: string;
+  fromRevision: number;
+  toRevision: number;
+  summary: Record<"modified" | "added" | "removed" | "moved", number>;
+  topics: Record<"modified" | "added" | "removed" | "moved", ManifestTopic[]>;
+  blocks: Record<"modified" | "added" | "removed", string[]>;
+}
+
+export interface PdfOutlineResponse {
+  documentId: string;
+  revision: number;
+  pageCount: number;
+  /** Node ID -> first and last PDF page (1-based) of its outline entry, in document order. */
+  nodes: Record<string, { page: number; endPage: number; heading: string }>;
+  unmatched: string[];
+}
+
+export type SearchCategory = "master" | "fleet";
+
+export interface SearchableDocument {
+  docId: string;
+  title: string;
+  docType: string;
+  applicability: string;
+  category: SearchCategory;
+  revision: number;
+  effectiveDate: string;
+}
+
+export interface SearchResult {
+  docId: string;
+  docTitle: string;
+  docType: string;
+  revision: number;
+  topicId: string;
+  nodeId: string;
+  nodeType: string;
+  number: string;
+  title: string;
+  section: { number: string; title: string };
+  snippet: string;
+  score: number;
+  /** Matching entries (topic heading and blocks) in this topic. */
+  matchCount: number;
+}
+
+export interface SearchResponse {
+  query: string;
+  terms: string[];
+  total: number;
+  byDocument: Record<string, number>;
+  results: SearchResult[];
+  documents: SearchableDocument[];
+}
+
+export type SearchContentType = "warnings" | "procedures";
+
+export interface SearchFilters {
+  docTypes?: string[];
+  fleet?: string;
+  categories?: SearchCategory[];
+  contentTypes?: SearchContentType[];
+}
+
+/** [node ID, node type, text] */
+export type IndexedBlock = [string, string, string];
+
+export interface IndexedTopic {
+  id: string;
+  number: string;
+  title: string;
+  sectionNumber: string;
+  sectionTitle: string;
+  blocks: IndexedBlock[];
+}
+
+export interface SearchIndexDocument extends SearchableDocument {
+  topics: IndexedTopic[];
+}
+
+export interface SearchIndexResponse {
+  documents: SearchIndexDocument[];
+}

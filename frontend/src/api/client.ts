@@ -6,8 +6,14 @@ import type {
   DocumentMetadata,
   DocumentRevision,
   DocumentSummary,
+  NodeChangesResponse,
+  PdfOutlineResponse,
+  SearchFilters,
+  SearchIndexResponse,
+  SearchResponse,
   ResolveNodeResponse,
   ResolvedNodeType,
+  RevisionChangesResponse,
   RevisionNavigationResponse,
   RevisionStatus,
   TopicContentResponse,
@@ -442,4 +448,167 @@ export function resolveNodeFromApi(
     isResolveNodeResponse,
     signal,
   );
+}
+
+function isNodeChangesResponse(value: unknown): value is NodeChangesResponse {
+  return (
+    isRecord(value) &&
+    isString(value.docId) &&
+    isInteger(value.fromRevision) &&
+    isInteger(value.toRevision) &&
+    isString(value.topicId) &&
+    Array.isArray(value.status) &&
+    Array.isArray(value.blocks) &&
+    value.blocks.every(
+      (entry: unknown) =>
+        isRecord(entry) &&
+        isString(entry.id) &&
+        isString(entry.status) &&
+        (entry.previous === null || isContentBlock(entry.previous)) &&
+        (entry.current === null || isContentBlock(entry.current)),
+    ) &&
+    Array.isArray(value.removedTopicsAfter)
+  );
+}
+
+function isRevisionChangesResponse(
+  value: unknown,
+): value is RevisionChangesResponse {
+  return (
+    isRecord(value) &&
+    isString(value.docId) &&
+    isInteger(value.fromRevision) &&
+    isInteger(value.toRevision) &&
+    isRecord(value.summary) &&
+    isRecord(value.topics) &&
+    ["modified", "added", "removed", "moved"].every(
+      (status) =>
+        isRecord(value.topics) &&
+        Array.isArray(value.topics[status]) &&
+        (value.topics[status] as unknown[]).every(isTopicOutline),
+    )
+  );
+}
+
+function comparisonQuery(from?: number, to?: number): string {
+  const query = new URLSearchParams();
+  if (from !== undefined) query.set("from", String(from));
+  if (to !== undefined) query.set("to", String(to));
+  const text = query.toString();
+  return text ? `?${text}` : "";
+}
+
+export function getRevisionChangesFromApi(
+  docId: string,
+  from?: number,
+  to?: number,
+  signal?: AbortSignal,
+): Promise<ApiResult<RevisionChangesResponse>> {
+  return request(
+    `/api/documents/${encodeURIComponent(docId)}/changes/${comparisonQuery(from, to)}`,
+    isRevisionChangesResponse,
+    signal,
+  );
+}
+
+export function getNodeChangesFromApi(
+  docId: string,
+  nodeId: string,
+  from?: number,
+  to?: number,
+  signal?: AbortSignal,
+): Promise<ApiResult<NodeChangesResponse>> {
+  return request(
+    `/api/documents/${encodeURIComponent(docId)}/changes/nodes/${encodeURIComponent(nodeId)}/${comparisonQuery(from, to)}`,
+    isNodeChangesResponse,
+    signal,
+  );
+}
+
+function isPdfOutlineResponse(value: unknown): value is PdfOutlineResponse {
+  return (
+    isRecord(value) &&
+    isString(value.documentId) &&
+    isInteger(value.revision) &&
+    isInteger(value.pageCount) &&
+    isRecord(value.nodes) &&
+    Object.values(value.nodes).every(
+      (entry) =>
+        isRecord(entry) &&
+        isInteger(entry.page) &&
+        isInteger(entry.endPage) &&
+        isString(entry.heading),
+    ) &&
+    Array.isArray(value.unmatched)
+  );
+}
+
+export function pdfFileUrl(docId: string, revision: number): string {
+  return `${API_BASE_URL}/api/documents/${encodeURIComponent(docId)}/revisions/${revision}/pdf/`;
+}
+
+export function getPdfOutlineFromApi(
+  docId: string,
+  revision: number,
+  signal?: AbortSignal,
+): Promise<ApiResult<PdfOutlineResponse>> {
+  return request(
+    `/api/documents/${encodeURIComponent(docId)}/revisions/${revision}/pdf/outline/`,
+    isPdfOutlineResponse,
+    signal,
+  );
+}
+
+function isSearchResponse(value: unknown): value is SearchResponse {
+  return (
+    isRecord(value) &&
+    isString(value.query) &&
+    isInteger(value.total) &&
+    Array.isArray(value.results) &&
+    value.results.every(
+      (result: unknown) =>
+        isRecord(result) &&
+        isString(result.docId) &&
+        isInteger(result.revision) &&
+        isString(result.topicId) &&
+        isString(result.nodeId) &&
+        isString(result.number) &&
+        isString(result.title) &&
+        isString(result.snippet),
+    ) &&
+    Array.isArray(value.documents)
+  );
+}
+
+function isSearchIndexResponse(value: unknown): value is SearchIndexResponse {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.documents) &&
+    value.documents.every(
+      (document: unknown) =>
+        isRecord(document) &&
+        isString(document.docId) &&
+        isInteger(document.revision) &&
+        Array.isArray(document.topics),
+    )
+  );
+}
+
+export function searchFromApi(
+  query: string,
+  filters: SearchFilters,
+  signal?: AbortSignal,
+): Promise<ApiResult<SearchResponse>> {
+  const params = new URLSearchParams({ q: query });
+  for (const docType of filters.docTypes ?? []) params.append("docType", docType);
+  for (const category of filters.categories ?? []) params.append("category", category);
+  for (const contentType of filters.contentTypes ?? []) params.append("contentType", contentType);
+  if (filters.fleet) params.set("fleet", filters.fleet);
+  return request(`/api/search/?${params.toString()}`, isSearchResponse, signal);
+}
+
+export function getSearchIndexFromApi(
+  signal?: AbortSignal,
+): Promise<ApiResult<SearchIndexResponse>> {
+  return request("/api/search/index/", isSearchIndexResponse, signal);
 }
