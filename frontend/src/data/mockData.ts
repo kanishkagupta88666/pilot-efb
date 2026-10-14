@@ -1,123 +1,40 @@
 import provisionalSample from "../../../contracts/provisional-sample.json";
+import type {
+  Chapter,
+  DocumentLibraryResponse,
+  DocumentSummary,
+  RevisionNavigationResponse,
+  Section,
+  TableBlock,
+  Topic,
+  TopicContentResponse,
+} from "../types/api";
 
-export interface Metadata {
-  docId: string;
-  title: string;
-  docType: string;
-  applicability: string;
-  revision: number;
-  revisionDate: string;
-  effectiveDate: string;
-  owner: string;
-  changeSummary: string;
-  classification: string;
-}
-
-export interface TopicOutline {
-  id: string;
-  number: string;
-  title: string;
-  mock?: boolean;
-}
-
-export interface SectionOutline {
-  id: string;
-  number: string;
-  title: string;
-  topics: TopicOutline[];
-  mock?: boolean;
-}
-
-export interface ChapterOutline {
-  id: string;
-  number: string;
-  title: string;
-  sections: SectionOutline[];
-  mock?: boolean;
-}
-
-interface TextSegment {
-  type: "text";
-  text: string;
-}
-
-interface XrefSegment {
-  type: "xref";
-  targetId: string;
-  text: string;
-}
-
-type Segment = TextSegment | XrefSegment;
-
-interface TextBlock {
-  type: "para" | "note" | "caution" | "warning";
-  id: string;
-  segments: Segment[];
-}
-
-interface ListBlock {
-  type: "list";
-  id: string;
-  items: string[];
-}
-
-interface TableBlock {
-  type: "table";
-  id: string;
-  rows: Array<{ header?: boolean; cells: string[] }>;
-}
-
-interface ChecklistBlock {
-  type: "checklist";
-  id: string;
-  checks: Array<{ id: string; challenge: string; response: string }>;
-}
-
-export type ContentBlock =
-  | TextBlock
-  | ListBlock
-  | TableBlock
-  | ChecklistBlock;
-
-export interface TopicContent {
-  id: string;
-  number: string;
-  title: string;
-  chapterId: string;
-  sectionId: string;
-  blocks: ContentBlock[];
-  mock?: boolean;
-}
-
-export interface TopicResponse {
-  document: { id: string; namespace: string; docType: string };
-  version: { revision: number; revisionDate: string; effectiveDate: string };
+export type TopicContent = TopicContentResponse["topic"] & { mock?: true };
+export type TopicResponse = Omit<TopicContentResponse, "topic"> & {
   topic: TopicContent;
-}
+};
 
-export interface LibraryDocument {
-  id: string;
-  namespace: string;
-  docType: string;
-  availableRevisions: Array<{
-    revision: number;
-    revisionDate: string;
-    effectiveDate: string;
-    status: string;
-    metadata: Metadata;
-  }>;
-}
-
-export interface NavigationResponse {
-  document: { id: string; namespace: string; docType: string };
-  version: { revision: number; metadata: Metadata };
-  chapters: ChapterOutline[];
-}
+export type MockTopicOutline = Topic & { mock?: true };
+export type MockSectionOutline = Omit<Section, "topics"> & {
+  topics: MockTopicOutline[];
+  mock?: true;
+};
+export type MockChapterOutline = Omit<Chapter, "sections"> & {
+  sections: MockSectionOutline[];
+  mock?: true;
+};
+export type MockNavigationResponse = Omit<
+  RevisionNavigationResponse,
+  "chapters"
+> & {
+  chapters: MockChapterOutline[];
+};
 
 interface ProvisionalSample {
-  documentLibraryExample: { documents: LibraryDocument[] };
-  navigationExample: NavigationResponse;
-  topicContentExample: TopicResponse;
+  documentLibraryExample: DocumentLibraryResponse;
+  navigationExample: RevisionNavigationResponse;
+  topicContentExample: TopicContentResponse;
   tableExample: {
     sourceTopic: {
       chapterId: string;
@@ -135,12 +52,15 @@ const tableExample = sample.tableExample;
 
 const mockTableTopic: TopicContent = {
   id: tableExample.sourceTopic.topicId,
-  ...tableExample.sourceTopic,
+  number: tableExample.sourceTopic.number,
+  title: tableExample.sourceTopic.title,
+  chapterId: tableExample.sourceTopic.chapterId,
+  sectionId: tableExample.sourceTopic.sectionId,
   blocks: [tableExample.block],
   mock: true,
 };
 
-const mockTableChapter: ChapterOutline = {
+const mockTableChapter: MockChapterOutline = {
   id: tableExample.sourceTopic.chapterId,
   number: "MOCK",
   title: "Examples",
@@ -176,14 +96,14 @@ function assertSelectedVersion(docId: string, revision: number) {
   }
 }
 
-export function getDocumentLibrary(): LibraryDocument[] {
+export function getDocumentLibrary(): DocumentSummary[] {
   return sample.documentLibraryExample.documents;
 }
 
 export function getNavigationTree(
   docId: string,
   revision: number,
-): NavigationResponse {
+): MockNavigationResponse {
   assertSelectedVersion(docId, revision);
   const navigation = sample.navigationExample;
 

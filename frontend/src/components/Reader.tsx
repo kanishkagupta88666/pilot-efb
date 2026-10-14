@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Link,
+  useNavigate,
   useParams,
   useSearchParams,
 } from "react-router-dom";
@@ -9,18 +10,22 @@ import {
   getNavigationTree,
   getTopic,
   resolveAvailableTargetId,
-  type ChapterOutline,
-  type SectionOutline,
-  type TopicOutline,
+  type MockChapterOutline,
+  type MockSectionOutline,
+  type MockTopicOutline,
 } from "../data/mockData";
+import { DATA_SOURCE } from "../config/dataSource";
+import type { DocumentRevision } from "../types/api";
+import { ApiReader } from "./ApiReader";
 import { ContentBlocks } from "./ContentBlocks";
+import { RevisionSelector } from "./RevisionSelector";
 
 function OutlineTopic({
   topic,
   active,
   onSelect,
 }: {
-  topic: TopicOutline;
+  topic: MockTopicOutline;
   active: boolean;
   onSelect: (topicId: string) => void;
 }) {
@@ -46,7 +51,7 @@ function OutlineSection({
   onToggle,
   onSelectTopic,
 }: {
-  section: SectionOutline;
+  section: MockSectionOutline;
   activeTopicId: string;
   expanded: boolean;
   onToggle: (sectionId: string) => void;
@@ -92,7 +97,7 @@ function OutlineChapter({
   onToggleSection,
   onSelectTopic,
 }: {
-  chapter: ChapterOutline;
+  chapter: MockChapterOutline;
   activeTopicId: string;
   expanded: boolean;
   expandedSections: Set<string>;
@@ -132,7 +137,7 @@ function OutlineChapter({
   );
 }
 
-function firstTopicId(chapters: ChapterOutline[]): string {
+function firstTopicId(chapters: MockChapterOutline[]): string {
   for (const chapter of chapters) {
     for (const section of chapter.sections) {
       if (section.topics[0]) {
@@ -143,7 +148,7 @@ function firstTopicId(chapters: ChapterOutline[]): string {
   return "";
 }
 
-export function Reader() {
+function MockReader() {
   const { docId = "", revision: revisionParam = "" } = useParams();
   const revision = Number(revisionParam);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -155,6 +160,7 @@ export function Reader() {
       if (!Number.isInteger(revision)) {
         throw new Error("The selected revision is invalid.");
       }
+
       const navigation = getNavigationTree(docId, revision);
       return {
         document,
@@ -185,6 +191,7 @@ export function Reader() {
       docId={docId}
       navigation={pageData.navigation}
       requestedTargetId={requestedTargetId}
+      availableRevisions={pageData.document.availableRevisions}
       revision={revision}
       setSearchParams={setSearchParams}
       title={pageData.document.availableRevisions.find(
@@ -194,10 +201,13 @@ export function Reader() {
   );
 }
 
+
+
 function ReaderWorkspace({
   docId,
   navigation,
   requestedTargetId,
+  availableRevisions,
   revision,
   setSearchParams,
   title,
@@ -205,10 +215,12 @@ function ReaderWorkspace({
   docId: string;
   navigation: ReturnType<typeof getNavigationTree>;
   requestedTargetId?: string;
+  availableRevisions: DocumentRevision[];
   revision: number;
   setSearchParams: ReturnType<typeof useSearchParams>[1];
   title: string;
 }) {
+  const navigate = useNavigate();
   const resolution = requestedTargetId
     ? resolveAvailableTargetId(docId, revision, requestedTargetId)
     : undefined;
@@ -374,7 +386,13 @@ function ReaderWorkspace({
               </p>
             )}
             <div className="revision-details">
-              <span>Revision {revision}</span>
+              <RevisionSelector
+                onChange={(nextRevision) =>
+                  navigate(`/reader/${encodeURIComponent(docId)}/${nextRevision}`)
+                }
+                revisions={availableRevisions}
+                selectedRevision={revision}
+              />
               <span>Revision date {metadata.revisionDate}</span>
               <span>Effective date {metadata.effectiveDate}</span>
             </div>
@@ -403,4 +421,8 @@ function ReaderWorkspace({
       </div>
     </main>
   );
+}
+
+export function Reader() {
+  return DATA_SOURCE === "api" ? <ApiReader /> : <MockReader />;
 }

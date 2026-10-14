@@ -535,6 +535,7 @@ p {
   outline: 3px solid #71818e;
   outline-offset: 3px;
   background-color: #eef0f2;
+  scroll-margin-block: 5rem;
 }
 
 .xref-link {
@@ -544,6 +545,16 @@ p {
 
 .xref-unavailable {
   display: inline;
+}
+
+.xref-retry {
+  min-height: 2rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 0.35rem;
+  color: var(--ink);
+  background: var(--surface);
+  cursor: pointer;
 }
 
 .xref-unavailable__message {
@@ -577,6 +588,53 @@ p {
 
 .reader-error h1 {
   margin-top: 1rem;
+}
+
+.revision-status {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--soft-surface);
+  font-weight: 650;
+}
+
+.revision-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 650;
+}
+
+.revision-selector select {
+  min-height: 2.75rem;
+  max-width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+}
+
+.request-state {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.request-state--empty {
+  color: var(--muted);
+}
+
+.request-state--error {
+  border-color: #9ca7b0;
+}
+
+.request-state--error p {
+  margin: 0 0 0.75rem;
 }
 
 @media (min-width: 900px), (min-width: 760px) and (orientation: landscape) {
