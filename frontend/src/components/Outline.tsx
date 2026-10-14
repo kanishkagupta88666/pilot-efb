@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Chapter, Section, Topic } from "../types/api";
 
 type OutlineTopic = Topic & { mock?: true };
@@ -66,6 +67,20 @@ export function Outline({
   onToggleSection: (id: string) => void;
   onSelectTopic: (id: string) => void;
 }) {
+  const activeRef = useRef<HTMLButtonElement>(null);
+
+  // Keep the open topic visible in the sidebar, e.g. after a deep link opens a topic far down the list.
+  useEffect(() => {
+    const button = activeRef.current;
+    const panel = button?.closest<HTMLElement>(".reader-navigation");
+    if (!button || !panel) return;
+    const buttonBox = button.getBoundingClientRect();
+    const panelBox = panel.getBoundingClientRect();
+    if (buttonBox.top < panelBox.top || buttonBox.bottom > panelBox.bottom) {
+      panel.scrollTop += buttonBox.top - panelBox.top - panelBox.height / 3;
+    }
+  }, [activeTopicId, expandedSections]);
+
   return (
     <ul className="outline-chapter-list">
       {chapters.map((chapter) => {
@@ -106,6 +121,7 @@ export function Outline({
                                 aria-current={activeTopicId === topic.id ? "page" : undefined}
                                 className={`outline-item${activeTopicId === topic.id ? " outline-item--active" : ""}`}
                                 onClick={() => onSelectTopic(topic.id)}
+                                ref={activeTopicId === topic.id ? activeRef : undefined}
                                 type="button"
                               >
                                 <OutlineLabel {...topic} />

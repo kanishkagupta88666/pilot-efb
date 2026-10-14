@@ -565,6 +565,7 @@ p {
 .content-block {
   min-width: 0;
   scroll-margin-top: 5.25rem;
+  transition: background-color 600ms ease-out;
 }
 
 .content-block p {
@@ -708,9 +709,10 @@ p {
 }
 
 .content-block--targeted {
-  outline: 3px solid #71818e;
-  outline-offset: 3px;
-  background-color: #eef0f2;
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+  background-color: var(--accent-soft);
   scroll-margin-block: 5rem;
 }
 
