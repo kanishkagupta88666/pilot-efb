@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
+from documents import authoring_views
 from documents.views import (
     document_library,
     health,
@@ -21,6 +22,32 @@ urlpatterns = [
     path("api/health/", health, name="health"),
     path("api/documents/", document_library, name="document-library"),
     path("api/search/", search_documents, name="search"),
+    path("api/documents/<str:doc_id>/draft/", authoring_views.draft, name="draft"),
+    path(
+        "api/documents/<str:doc_id>/draft/publish/",
+        authoring_views.publish_draft,
+        name="draft-publish",
+    ),
+    path(
+        "api/documents/<str:doc_id>/draft/topics/",
+        authoring_views.draft_topics,
+        name="draft-topics",
+    ),
+    path(
+        "api/documents/<str:doc_id>/draft/topics/<str:topic_id>/",
+        authoring_views.draft_topic,
+        name="draft-topic",
+    ),
+    path(
+        "api/documents/<str:doc_id>/draft/topics/<str:topic_id>/blocks/",
+        authoring_views.draft_blocks,
+        name="draft-blocks",
+    ),
+    path(
+        "api/documents/<str:doc_id>/draft/topics/<str:topic_id>/blocks/<str:block_id>/",
+        authoring_views.draft_block,
+        name="draft-block",
+    ),
     path("api/search/index/", search_index, name="search-index"),
     path(
         "api/documents/<str:doc_id>/revisions/<str:revision>/navigation/",

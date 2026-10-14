@@ -77,6 +77,18 @@ class SearchRulesTests(SimpleTestCase):
         result = search.search("engine", documents, fleet="SAMPLE-1")
         self.assertEqual(set(result["byDocument"]), {"FLEET-1", "MASTER"})
 
+    def test_fleet_filter_keeps_supplemental_documents_for_all_fleets(self):
+        bulletin = fixture_document("BULLETIN", "ALL", "BULLETIN")
+        bulletin = search.IndexedDocument(
+            **{**bulletin.__dict__, "category": search.category_for("ALL", "pdf-only")}
+        )
+        self.assertEqual(bulletin.category, "supplemental")
+        documents = [fixture_document("FLEET-2", "SAMPLE-2"), bulletin]
+        self.assertEqual(set(search.search("engine", documents, fleet="SAMPLE-1")["byDocument"]), {"BULLETIN"})
+        self.assertEqual(
+            set(search.search("engine", documents, categories={"supplemental"})["byDocument"]), {"BULLETIN"}
+        )
+
     def test_document_type_and_category_filters(self):
         documents = [fixture_document("A", "SAMPLE-1", "FM"), fixture_document("B", "ALL", "FOM")]
         self.assertEqual(set(search.search("engine", documents, doc_types={"FOM"})["byDocument"]), {"B"})

@@ -6,8 +6,11 @@ import type {
   DocumentMetadata,
   DocumentRevision,
   DocumentSummary,
+  DraftResponse,
+  EditableBlockType,
   NodeChangesResponse,
   PdfOutlineResponse,
+  PublishResponse,
   SearchFilters,
   SearchIndexResponse,
   SearchResponse,
@@ -307,12 +310,27 @@ async function request<T>(
   path: string,
   guard: ShapeGuard<T>,
   signal?: AbortSignal,
+  write?: { method: "POST" | "PATCH" | "DELETE"; body?: unknown },
 ): Promise<ApiResult<T>> {
   let response: Response;
   try {
     const options: RequestInit = { headers: { Accept: "application/json" } };
+    if (write) {
+      options.method = write.method;
+      if (write.body !== undefined) {
+        options.headers = { Accept: "application/json", "Content-Type": "application/json" };
+        options.body = JSON.stringify(write.body);
+      }
+    }
     if (signal) options.signal = signal;
     response = await fetch(`${API_BASE_URL}${path}`, options);
+    if (write && response.status === 204) {
+      // Nothing to read: a successful delete.
+      return guard(undefined) ? { ok: true, data: undefined as T } : {
+        ok: false,
+        error: { kind: "invalid-response", code: "INVALID_RESPONSE", message: "Unexpected empty response.", status: 204 },
+      };
+    }
   } catch {
     if (signal?.aborted) {
       return {
@@ -611,4 +629,108 @@ export function getSearchIndexFromApi(
   signal?: AbortSignal,
 ): Promise<ApiResult<SearchIndexResponse>> {
   return request("/api/search/index/", isSearchIndexResponse, signal);
+}
+
+function isDraftResponse(value: unknown): value is DraftResponse {
+  return (
+    isRecord(value) &&
+    isString(value.docId) &&
+    isInteger(value.baseRevision) &&
+    isInteger(value.nextRevision) &&
+    Array.isArray(value.chapters) &&
+    value.chapters.every(isChapter) &&
+    isRecord(value.summary) &&
+    isDate(value.earliestEffectiveDate)
+  );
+}
+
+function isPublishResponse(value: unknown): value is PublishResponse {
+  return isRecord(value) && isString(value.docId) && isInteger(value.revision);
+}
+
+const draftPath = (docId: string) => `/api/documents/${encodeURIComponent(docId)}/draft/`;
+const draftTopicPath = (docId: string, topicId: string) =>
+  `${draftPath(docId)}topics/${encodeURIComponent(topicId)}/`;
+
+export function getDraftFromApi(docId: string, signal?: AbortSignal) {
+  return request(draftPath(docId), isDraftResponse, signal);
+}
+
+export function startDraftFromApi(docId: string) {
+  return request(draftPath(docId), isDraftResponse, undefined, { method: "POST" });
+}
+
+export function discardDraftFromApi(docId: string) {
+  return request(draftPath(docId), (value): value is undefined => value === undefined, undefined, {
+    method: "DELETE",
+  });
+}
+
+export function getDraftTopicFromApi(docId: string, topicId: string, signal?: AbortSignal) {
+  return request(draftTopicPath(docId, topicId), isNodeChangesResponse, signal);
+}
+
+export function renameDraftTopicFromApi(docId: string, topicId: string, title: string) {
+  return request(draftTopicPath(docId, topicId), isNodeChangesResponse, undefined, {
+    method: "PATCH",
+    body: { title },
+  });
+}
+
+export function deleteDraftTopicFromApi(docId: string, topicId: string) {
+  return request(draftTopicPath(docId, topicId), isDraftResponse, undefined, { method: "DELETE" });
+}
+
+export function addDraftTopicFromApi(docId: string, afterTopicId: string, title: string, text: string) {
+  return request(
+    `${draftPath(docId)}topics/`,
+    (value): value is DraftResponse & { topicId: string } =>
+      isDraftResponse(value) && isString((value as { topicId?: unknown }).topicId),
+    undefined,
+    { method: "POST", body: { afterTopicId, title, text } },
+  );
+}
+
+export function addDraftBlockFromApi(
+  docId: string,
+  topicId: string,
+  afterId: string | null,
+  type: EditableBlockType,
+  text: string,
+) {
+  return request(`${draftTopicPath(docId, topicId)}blocks/`, isNodeChangesResponse, undefined, {
+    method: "POST",
+    body: { afterId, type, text },
+  });
+}
+
+export function updateDraftBlockFromApi(
+  docId: string,
+  topicId: string,
+  blockId: string,
+  text: string,
+  type: EditableBlockType,
+) {
+  return request(
+    `${draftTopicPath(docId, topicId)}blocks/${encodeURIComponent(blockId)}/`,
+    isNodeChangesResponse,
+    undefined,
+    { method: "PATCH", body: { text, type } },
+  );
+}
+
+export function deleteDraftBlockFromApi(docId: string, topicId: string, blockId: string) {
+  return request(
+    `${draftTopicPath(docId, topicId)}blocks/${encodeURIComponent(blockId)}/`,
+    isNodeChangesResponse,
+    undefined,
+    { method: "DELETE" },
+  );
+}
+
+export function publishDraftFromApi(docId: string, changeSummary: string, effectiveDate: string) {
+  return request(`${draftPath(docId)}publish/`, isPublishResponse, undefined, {
+    method: "POST",
+    body: { changeSummary, effectiveDate },
+  });
 }

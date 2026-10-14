@@ -64,7 +64,8 @@ function filtersFrom(params: URLSearchParams): SearchFilters {
     docTypes: params.getAll("docType"),
     fleet: params.get("fleet") ?? undefined,
     categories: params.getAll("category").filter(
-      (value): value is SearchCategory => value === "master" || value === "fleet",
+      (value): value is SearchCategory =>
+        value === "master" || value === "fleet" || value === "supplemental",
     ),
     contentTypes: params.getAll("contentType").filter(
       (value): value is SearchContentType => value === "warnings" || value === "procedures",
@@ -167,7 +168,12 @@ export function SearchPage() {
             title: current.metadata.title,
             docType: document.docType,
             applicability,
-            category: applicability.trim().toUpperCase() === "ALL" ? "master" : "fleet",
+            category:
+              current.metadata.source === "pdf-only"
+                ? "supplemental"
+                : applicability.trim().toUpperCase() === "ALL"
+                  ? "master"
+                  : "fleet",
             revision: current.revision,
             effectiveDate: current.effectiveDate,
           } satisfies SearchableDocument];
@@ -379,6 +385,7 @@ export function SearchPage() {
             <option value="">All categories</option>
             <option value="master">Master documents</option>
             <option value="fleet">Fleet manuals</option>
+            <option value="supplemental">Supplemental documents</option>
           </select>
         </span>
       </div>

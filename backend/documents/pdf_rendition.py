@@ -20,6 +20,11 @@ from documents.xml_validation import PROJECT_ROOT
 SAMPLE_DATA = PROJECT_ROOT / "sample-data"
 MANIFEST_PATH = SAMPLE_DATA / "manifest.json"
 PDF_ROOT = (SAMPLE_DATA / "pdf").resolve()
+# Folders a PDF-only document's stored path may point into.
+PDF_ONLY_ROOTS = (
+    (SAMPLE_DATA / "pdf-only").resolve(),
+    (PROJECT_ROOT / "backend" / "documents" / "fixtures" / "pdf-only").resolve(),
+)
 
 
 class PdfNotAvailableError(LookupError):
@@ -35,6 +40,21 @@ class OutlineEntry:
 
 def _normalize(text: str) -> str:
     return " ".join(text.split())
+
+
+def version_pdf_path(version: DocumentVersion) -> Path:
+    """The PDF to show for a revision.
+
+    A PDF-only revision stores its own path, which must stay inside the
+    allowed folders; an XML revision's rendition is listed in the manifest.
+    """
+    stored = (version.metadata or {}).get("pdf")
+    if stored:
+        path = (PROJECT_ROOT / stored).resolve()
+        if path.parent in PDF_ONLY_ROOTS and path.suffix.lower() == ".pdf" and path.is_file():
+            return path
+        raise PdfNotAvailableError(f"{version} has no readable PDF.")
+    return pdf_path(version.document_id, version.revision)
 
 
 def pdf_path(document_id: str, revision: int) -> Path:
@@ -84,8 +104,10 @@ def outline_map(version: DocumentVersion) -> dict:
     page, so it can be found in the page text. Nodes are listed in document
     order.
     """
-    path = pdf_path(version.document_id, version.revision)
+    path = version_pdf_path(version)
     page_count, entries = _read_outline(path, path.stat().st_mtime)
+    if (version.metadata or {}).get("source") == "pdf-only":
+        return _pdf_only_outline_map(version, page_count, entries)
     nodes = list(
         DocumentNode.objects.filter(version=version)
         .order_by("position")
@@ -106,6 +128,46 @@ def outline_map(version: DocumentVersion) -> dict:
             "heading": entry.title,
         }
 
+    return {
+        "documentId": version.document_id,
+        "revision": version.revision,
+        "pageCount": page_count,
+        "nodes": mapped,
+        "unmatched": unmatched,
+    }
+
+
+def _pdf_only_outline_map(
+    version: DocumentVersion,
+    page_count: int,
+    entries: tuple[OutlineEntry, ...],
+) -> dict:
+    """Map a PDF-only revision: its topics were made from the outline, in order.
+
+    The chapter and section that hold the topics span the whole document.
+    """
+    nodes = list(
+        DocumentNode.objects.filter(version=version)
+        .order_by("position")
+        .values_list("node_id", "node_type", "title")
+    )
+    topics = [(node_id, title) for node_id, node_type, title in nodes if node_type == "topic"]
+    mapped: dict[str, dict] = {}
+    unmatched: list[str] = []
+    for node_id, node_type, title in nodes:
+        if node_type != "topic":
+            mapped[node_id] = {"page": 1, "endPage": page_count, "heading": _normalize(title)}
+    for index, (node_id, title) in enumerate(topics):
+        entry = entries[index] if index < len(entries) else None
+        if entry is None or entry.title != _normalize(title):
+            unmatched.append(node_id)
+            continue
+        following = entries[index + 1].page if index + 1 < len(entries) else page_count
+        mapped[node_id] = {
+            "page": entry.page,
+            "endPage": max(entry.page, following),
+            "heading": entry.title,
+        }
     return {
         "documentId": version.document_id,
         "revision": version.revision,

@@ -1257,11 +1257,12 @@ button.change-badge {
   position: absolute;
   top: -0.1rem;
   right: 0.25rem;
-  max-width: 11%;
+  max-width: 15%;
   margin: 0;
-  padding: 0.1rem 0.3rem;
+  padding: 0.1rem 0.25rem;
   overflow: hidden;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
+  letter-spacing: 0.02em;
   text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: auto;
@@ -1650,4 +1651,292 @@ button.pdf-mark__badge {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
+}
+
+.reader-context__approximate {
+  padding: 0.5rem 0.6rem;
+  border-left: 3px solid #8a5a12;
+  background: #f7f0e4;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+/* Author mode */
+
+.button--danger {
+  border: 1px solid var(--removed);
+  background: var(--surface);
+  color: var(--removed);
+}
+
+.author-start {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+.author-page {
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+.author-layout {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 2.5vw, 1.75rem) 3rem;
+}
+
+.author-outline {
+  max-height: 20rem;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.author-outline h2 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.author-outline h3 {
+  margin: 0.6rem 0 0.2rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.author-outline ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.author-outline__topic {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.3rem 0.5rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.author-outline__topic[aria-current="page"] {
+  background: var(--change-soft);
+  color: var(--change);
+  font-weight: 650;
+}
+
+.author-outline__new {
+  padding: 0 0.3rem;
+  border-radius: 0.2rem;
+  background: var(--change-soft);
+  color: var(--change);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.author-main {
+  min-width: 0;
+}
+
+.author-topic-heading h1 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+}
+
+.author-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.author-actions .button {
+  min-height: 2.75rem;
+}
+
+.author-blocks {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.author-block {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--surface);
+}
+
+.author-block--modified,
+.author-block--added {
+  border-left-color: var(--change);
+}
+
+.author-block--removed {
+  border-left-color: var(--removed);
+  background: var(--removed-soft);
+}
+
+.author-block__type {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.author-block__type .change-badge {
+  margin: 0;
+}
+
+.author-block__text {
+  margin: 0.4rem 0 0;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.author-block--removed .author-block__text {
+  color: var(--muted);
+}
+
+.author-editor {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.author-field {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.author-field input,
+.author-field textarea,
+.author-select {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #9ca7b0;
+  border-radius: 0.35rem;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.author-field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.author-warning {
+  margin: 0;
+  color: #8a5a12;
+  font-size: 0.9rem;
+}
+
+.author-error {
+  margin: 0;
+  color: var(--removed);
+  font-size: 0.95rem;
+}
+
+.author-panel {
+  align-self: start;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--soft-surface);
+}
+
+.author-panel h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.author-panel .author-editor {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.author-panel__counts,
+.author-panel__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.author-panel__topics {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.92rem;
+}
+
+.author-panel__kind {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.author-panel__deleted {
+  color: var(--removed);
+  text-decoration: line-through;
+}
+
+.author-panel__discard {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 1rem;
+}
+
+/* iPad landscape and wider: outline, editor and panel side by side. */
+@media (min-width: 1100px) {
+  .author-layout {
+    grid-template-columns: 15rem minmax(0, 1fr) 17rem;
+    align-items: start;
+  }
+
+  .author-outline {
+    position: sticky;
+    top: 4.5rem;
+    max-height: calc(100vh - 6rem);
+  }
+
+  .author-panel {
+    position: sticky;
+    top: 4.5rem;
+  }
+}
+
+/* iPad portrait: editor first, panel below the outline. */
+@media (min-width: 700px) and (max-width: 1099px) {
+  .author-layout {
+    grid-template-columns: minmax(0, 1fr) 16rem;
+  }
+
+  .author-outline {
+    grid-column: 1 / -1;
+  }
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
