@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { formatDate } from "../utils/formatDate";
 import { TopBar } from "./TopBar";
 
 /** The reader's page frame: top bar, contents sidebar, breadcrumbs, content, and the right panel. */
@@ -11,6 +12,7 @@ export function ReaderLayout({
   onNavigationOpenChange,
   outline,
   aside,
+  status,
   children,
 }: {
   title: string;
@@ -20,6 +22,14 @@ export function ReaderLayout({
   onNavigationOpenChange: (open: boolean) => void;
   outline: ReactNode;
   aside: ReactNode;
+  /** Shown in the status bar pinned to the bottom of the screen. */
+  status: {
+    number?: string;
+    location: string;
+    classification: string;
+    revision: number;
+    effectiveDate: string;
+  };
   children: ReactNode;
 }) {
   return (
@@ -81,6 +91,18 @@ export function ReaderLayout({
           {aside}
         </aside>
       </div>
+      <footer className="status-bar">
+        <span className="status-bar__location">
+          {status.number && <span className="outline-number">{status.number}</span>}{" "}
+          {status.location}
+        </span>
+        <span className="status-bar__meta">
+          <span>{status.classification}</span>
+          <span className="status-bar__revision">
+            Revision {status.revision} · effective {formatDate(status.effectiveDate)}
+          </span>
+        </span>
+      </footer>
     </main>
   );
 }

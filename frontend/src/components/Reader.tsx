@@ -228,6 +228,13 @@ function ReaderWorkspace({
           onToggleSection={onToggleSection}
         />
       }
+      status={{
+        number: topicResponse.topic.number,
+        location: topicTrail(navigation.chapters, selectedTopicId).slice(1).join(" — "),
+        classification: metadata.classification,
+        revision,
+        effectiveDate: metadata.effectiveDate,
+      }}
       title={title}
     >
       <TopicHeader
@@ -267,13 +274,6 @@ function ReaderWorkspace({
         targetNodeId={highlightedTargetId}
         topic={topicResponse.topic}
       />
-      <footer className="reader-footer">
-        <span>{metadata.classification}</span>
-        <span>
-          Revision {revision} · Revision date {metadata.revisionDate} ·
-          Effective date {metadata.effectiveDate}
-        </span>
-      </footer>
     </ReaderLayout>
   );
 }
