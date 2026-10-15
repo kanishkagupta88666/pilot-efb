@@ -12,6 +12,7 @@ import type {
   RevisionChangesResponse,
 } from "../types/api";
 import { blockText } from "./ChangeMarkers";
+import { recordAudit } from "../utils/auditLog";
 import { ApiErrorState, LoadingState } from "./RequestStates";
 
 type Kind = "modified" | "added" | "removed" | "moved";
@@ -145,6 +146,13 @@ export function ComparePage() {
     void getRevisionChangesFromApi(docId, from, to, controller.signal).then((result) => {
       if (controller.signal.aborted) return;
       setState(result.ok ? { status: "ready", data: result.data } : { status: "error", error: result.error });
+      if (result.ok) {
+        void recordAudit("revision.compared", {
+          documentId: docId,
+          revision: result.data.toRevision,
+          details: { fromRevision: result.data.fromRevision, summary: result.data.summary },
+        });
+      }
     });
     return () => controller.abort();
   }, [docId, from, to, attempt]);

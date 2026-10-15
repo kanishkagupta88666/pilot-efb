@@ -6,10 +6,12 @@
  * download leaves the previous index in place instead of a partial one.
  */
 import type { SearchIndexDocument } from "../types/api";
-
-const DATABASE = "pilot-efb";
-const STORE = "search-index";
-const VERSION = 1;
+import {
+  SEARCH_INDEX_STORE as STORE,
+  localStorageAvailable,
+  openLocalDb as open,
+  transactionDone as done,
+} from "./localDb";
 
 export interface SavedIndex {
   documents: SearchIndexDocument[];
@@ -23,32 +25,7 @@ interface SavedRecord {
 }
 
 export function offlineStorageAvailable(): boolean {
-  try {
-    return typeof indexedDB !== "undefined" && indexedDB !== null;
-  } catch {
-    return false;
-  }
-}
-
-function open(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE, VERSION);
-    request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(STORE)) {
-        request.result.createObjectStore(STORE, { keyPath: "docId" });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-function done(transaction: IDBTransaction): Promise<void> {
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-    transaction.onabort = () => reject(transaction.error);
-  });
+  return localStorageAvailable();
 }
 
 export async function saveIndex(documents: SearchIndexDocument[]): Promise<SavedIndex> {
