@@ -1940,3 +1940,263 @@ button.pdf-mark__badge {
   cursor: not-allowed;
   opacity: 0.45;
 }
+
+/* Activity log */
+
+.library-links {
+  margin: 0.75rem 0 0;
+}
+
+.library-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.audit-page {
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+.audit-device {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem clamp(1rem, 2.5vw, 1.75rem);
+  border-bottom: 1px solid var(--line);
+}
+
+.audit-device h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+}
+
+.audit-profile,
+.audit-outbox {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--soft-surface);
+}
+
+.audit-outbox p {
+  margin: 0.3rem 0;
+}
+
+.audit-profile__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.audit-profile__fields .author-field {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.audit-profile__fields .button {
+  min-height: 2.75rem;
+}
+
+.audit-note,
+.audit-meta {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.audit-meta {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.audit-waiting {
+  margin: 0.4rem 0 0.6rem;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.audit-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.75rem;
+  padding: 1rem clamp(1rem, 2.5vw, 1.75rem);
+  border-bottom: 1px solid var(--line);
+}
+
+.audit-filters input {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #9ca7b0;
+  border-radius: 0.35rem;
+  font: inherit;
+}
+
+.audit-list ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audit-row {
+  border-bottom: 1px solid var(--line);
+}
+
+.audit-row__summary {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr) 11rem;
+  gap: 0.3rem 1rem;
+  align-items: start;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.75rem clamp(1rem, 2.5vw, 1.75rem);
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.audit-row__summary:hover {
+  background: var(--soft-surface);
+}
+
+.audit-row__time {
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+}
+
+.audit-row__what {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.audit-row__doc {
+  color: var(--muted);
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.audit-row__who {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.92rem;
+}
+
+.audit-row__role {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.audit-row__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  grid-column: 2 / -1;
+}
+
+.audit-row__late {
+  color: #8a5a12;
+  font-size: 0.8rem;
+}
+
+.audit-badge {
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.audit-badge--server {
+  border-color: #c9d6e8;
+  background: var(--change-soft);
+  color: var(--change);
+}
+
+.audit-badge--device {
+  background: #eceef1;
+  color: var(--ink);
+}
+
+.audit-badge--offline {
+  border-color: #e3c9a4;
+  background: #f7f0e4;
+  color: #8a5a12;
+}
+
+.audit-details {
+  padding: 0 clamp(1rem, 2.5vw, 1.75rem) 1rem;
+}
+
+.audit-before-after {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+}
+
+.audit-before-after p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.audit-fields {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}
+
+.audit-fields div {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.audit-fields dt {
+  color: var(--muted);
+}
+
+.audit-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.audit-more {
+  margin: 1rem clamp(1rem, 2.5vw, 1.75rem) 2rem;
+  min-height: 2.75rem;
+}
+
+@media (min-width: 760px) {
+  .audit-device {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+
+  .audit-before-after {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .audit-row__summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .audit-row__badges {
+    grid-column: auto;
+  }
+}
+
+.audit-filters input,
+.audit-filters select {
+  width: 100%;
+  min-width: 0;
+}

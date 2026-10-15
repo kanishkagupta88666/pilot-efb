@@ -343,3 +343,44 @@ export interface PublishResponse {
   effectiveDate: string;
   baseRevision: number;
 }
+
+export interface AuditEventInput {
+  id: string;
+  action: string;
+  occurredAt: string;
+  actor: string;
+  actorRole: string;
+  deviceId: string;
+  documentId?: string;
+  revision?: number;
+  nodeId?: string;
+  details?: Record<string, unknown>;
+  recordedOffline: boolean;
+}
+
+export interface AuditEvent extends Required<Omit<AuditEventInput, "revision">> {
+  sequence: number;
+  receivedAt: string;
+  source: "server" | "device";
+  description: string;
+  revision: number | null;
+}
+
+export interface AuditReceipt {
+  accepted: string[];
+  duplicates: string[];
+  rejected: { id: string; reason: string }[];
+}
+
+export interface AuditPage {
+  events: AuditEvent[];
+  nextBefore: number | null;
+  actions: Record<string, string>;
+}
+
+export interface AuditVerification {
+  intact: boolean;
+  checked: number;
+  problemAt: number | null;
+  problem: string | null;
+}

@@ -427,3 +427,20 @@ def publish(document_id: str, *, change_summary, effective_date) -> DocumentVers
         validate_version_tree(version)
         draft.delete()
     return version
+
+
+def block_text(block: dict) -> str:
+    return "".join(segment["text"] for segment in block.get("segments", ())) or revision_diff.block_text(block)
+
+
+def snapshot(document_id: str, topic_id: str, block_id: str | None = None) -> dict:
+    """What a topic or block looks like in the draft now, for the audit log."""
+    draft = get_draft(document_id)
+    section, index = _locate_topic(draft.payload, topic_id)
+    topic = section["topics"][index]
+    result = {"topicNumber": topic["number"], "topicTitle": topic["title"]}
+    if block_id is not None:
+        blocks = draft.payload["topics"][topic_id]["blocks"]
+        block = blocks[_block_index(blocks, block_id)]
+        result.update(blockType=block["type"], text=block_text(block))
+    return result

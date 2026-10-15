@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import {
   Link,
   useLocation,
@@ -23,6 +23,7 @@ import type {
 import { ContentBlocks } from "./ContentBlocks";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
+import { recordAudit } from "../utils/auditLog";
 
 const PdfPrintView = lazy(() => import("./PdfPrintView"));
 
@@ -397,6 +398,29 @@ export function ApiReader() {
 
     return () => controller.abort();
   }, [docId, navigation, selectedTopicId, retryTopic]);
+
+  // Audit: which revision and topic the person had open, and how they got there.
+  const loggedView = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (pageData.status !== "ready" || topicData.status !== "ready") return;
+    const key = `${docId}/${pageData.navigation.version.revision}/${topicData.topic.id}/${viewMode}`;
+    if (loggedView.current === key) return;
+    loggedView.current = key;
+    const revision = pageData.navigation.version.revision;
+    const status = pageData.revisions.find((entry) => entry.revision === revision)?.status;
+    void recordAudit(viewMode === "print" ? "pdf.viewed" : "document.opened", {
+      documentId: docId,
+      revision,
+      nodeId: topicData.topic.id,
+      details: {
+        topicNumber: topicData.topic.number,
+        topicTitle: topicData.topic.title,
+        revisionStatus: status,
+        via: fromSearch ? "search" : targetNodeId ? "link" : "browse",
+        ...(targetNodeId && targetNodeId !== topicData.topic.id ? { target: targetNodeId } : {}),
+      },
+    });
+  }, [docId, pageData, topicData, viewMode, fromSearch, targetNodeId]);
 
   const previousRevision = useMemo(() => {
     if (pageData.status !== "ready" || revision === undefined) return undefined;

@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
+from documents import audit
 from documents.pdf_only import ingest_pdf_only
 
 
@@ -36,6 +37,14 @@ class Command(BaseCommand):
         )
         if not result.success:
             raise CommandError(result.message or "PDF ingestion failed.")
+        audit.record(
+            "document.ingested",
+            document_id=result.document_id,
+            revision=result.revision,
+            details={"source": "pdf-only", "file": options["path"], "replaced": options["replace"],
+                     "sections": result.sections, "paragraphs": result.paragraphs,
+                     "idsKept": result.kept_ids, "idsNew": result.new_ids},
+        )
         self.stdout.write(
             self.style.SUCCESS(
                 f"Ingested {result.document_id} Rev {result.revision}: "

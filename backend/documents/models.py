@@ -223,3 +223,54 @@ class Draft(models.Model):
 
     def __str__(self) -> str:
         return f"Draft of {self.document_id} from Rev {self.base_version.revision}"
+
+
+class AuditEvent(models.Model):
+    """One entry in the append-only audit log. See documents/audit.py.
+
+    Entries are never changed or deleted: ``save`` refuses to update an
+    existing entry and ``delete`` always refuses. Each entry carries the hash
+    of the one before it, so a change made behind the application's back
+    (for example directly in the database) breaks the chain and is reported
+    by ``audit.verify_chain``.
+    """
+
+    class Source(models.TextChoices):
+        SERVER = "server", "Server"
+        DEVICE = "device", "Device"
+
+    event_id = models.UUIDField(unique=True)
+    sequence = models.PositiveBigIntegerField(unique=True)
+    occurred_at = models.DateTimeField()
+    received_at = models.DateTimeField(default=timezone.now)
+    source = models.CharField(max_length=8, choices=Source.choices)
+    action = models.CharField(max_length=64)
+    actor = models.CharField(max_length=120)
+    actor_role = models.CharField(max_length=32, blank=True)
+    device_id = models.CharField(max_length=64, blank=True)
+    document_id = models.CharField(max_length=128, blank=True)
+    revision = models.IntegerField(null=True, blank=True)
+    node_id = models.CharField(max_length=128, blank=True)
+    details = models.JSONField(default=dict, blank=True)
+    recorded_offline = models.BooleanField(default=False)
+    previous_hash = models.CharField(max_length=64)
+    hash = models.CharField(max_length=64)
+
+    class Meta:
+        ordering = ("-sequence",)
+        indexes = [
+            models.Index(fields=("document_id", "sequence"), name="audit_document_idx"),
+            models.Index(fields=("actor", "sequence"), name="audit_actor_idx"),
+            models.Index(fields=("action", "sequence"), name="audit_action_idx"),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise ValidationError("Audit events cannot be changed.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Audit events cannot be deleted.")
+
+    def __str__(self) -> str:
+        return f"#{self.sequence} {self.action} by {self.actor}"

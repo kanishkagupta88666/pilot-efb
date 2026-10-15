@@ -1,10 +1,15 @@
 import { API_BASE_URL } from "../config/dataSource";
+import { identityHeaders } from "../utils/deviceIdentity";
 import type {
   Chapter,
   ContentBlock,
   DocumentLibraryResponse,
   DocumentMetadata,
   DocumentRevision,
+  AuditEventInput,
+  AuditPage,
+  AuditReceipt,
+  AuditVerification,
   DocumentSummary,
   DraftResponse,
   EditableBlockType,
@@ -317,8 +322,10 @@ async function request<T>(
     const options: RequestInit = { headers: { Accept: "application/json" } };
     if (write) {
       options.method = write.method;
+      // Changes say who made them, for the audit log.
+      options.headers = { Accept: "application/json", ...identityHeaders() };
       if (write.body !== undefined) {
-        options.headers = { Accept: "application/json", "Content-Type": "application/json" };
+        options.headers["Content-Type"] = "application/json";
         options.body = JSON.stringify(write.body);
       }
     }
@@ -733,4 +740,31 @@ export function publishDraftFromApi(docId: string, changeSummary: string, effect
     method: "POST",
     body: { changeSummary, effectiveDate },
   });
+}
+
+export function postAuditEventsFromApi(events: AuditEventInput[]) {
+  return request(
+    "/api/audit/events/",
+    (value): value is AuditReceipt =>
+      isRecord(value) && Array.isArray(value.accepted) && Array.isArray(value.duplicates) && Array.isArray(value.rejected),
+    undefined,
+    { method: "POST", body: { events } },
+  );
+}
+
+export function getAuditEventsFromApi(filters: Record<string, string>, signal?: AbortSignal) {
+  const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
+  return request(
+    `/api/audit/events/?${query.toString()}`,
+    (value): value is AuditPage => isRecord(value) && Array.isArray(value.events) && isRecord(value.actions),
+    signal,
+  );
+}
+
+export function verifyAuditFromApi(signal?: AbortSignal) {
+  return request(
+    "/api/audit/verify/",
+    (value): value is AuditVerification => isRecord(value) && typeof value.intact === "boolean",
+    signal,
+  );
 }
