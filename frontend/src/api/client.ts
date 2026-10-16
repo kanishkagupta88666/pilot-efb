@@ -6,6 +6,8 @@ import type {
   DocumentLibraryResponse,
   DocumentMetadata,
   DocumentRevision,
+  Annotation,
+  AnnotationStatus,
   AuditEventInput,
   AuditPage,
   AuditReceipt,
@@ -766,5 +768,29 @@ export function verifyAuditFromApi(signal?: AbortSignal) {
     "/api/audit/verify/",
     (value): value is AuditVerification => isRecord(value) && typeof value.intact === "boolean",
     signal,
+  );
+}
+
+export function syncAnnotationsFromApi(owner: string, changes: Annotation[]) {
+  return request(
+    "/api/annotations/sync/",
+    (value): value is { annotations: Annotation[]; rejected: { id: string; reason: string }[] } =>
+      isRecord(value) && Array.isArray(value.annotations) && Array.isArray(value.rejected),
+    undefined,
+    { method: "POST", body: { owner, changes } },
+  );
+}
+
+export function getAnnotationStatusFromApi(
+  docId: string,
+  revision: number,
+  annotations: Pick<Annotation, "id" | "nodeId" | "topicId" | "topicNumber" | "anchorText">[],
+  signal?: AbortSignal,
+) {
+  return request(
+    `/api/documents/${encodeURIComponent(docId)}/revisions/${revision}/annotation-status/`,
+    (value): value is { statuses: AnnotationStatus[] } => isRecord(value) && Array.isArray(value.statuses),
+    signal,
+    { method: "POST", body: { annotations } },
   );
 }

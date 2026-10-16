@@ -687,8 +687,14 @@ p {
   gap: 1.5rem;
 }
 
-.reader-context {
+.reader-side {
+  display: grid;
   order: -1;
+  gap: 1rem;
+  align-content: start;
+}
+
+.reader-context {
   padding: 0.9rem 1rem;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
@@ -740,11 +746,13 @@ p {
     align-items: start;
   }
 
-  .reader-context {
+  .reader-side {
     order: 0;
     position: sticky;
     top: 5rem;
+    max-height: calc(100vh - 6rem);
     margin-top: 1.2rem;
+    overflow-y: auto;
   }
 }
 
@@ -2199,4 +2207,204 @@ button.pdf-mark__badge {
 .audit-filters select {
   width: 100%;
   min-width: 0;
+}
+
+/* Pilot annotations */
+
+.annotation-mark {
+  border-radius: 0.15rem;
+  background: #fbe7a1;
+  color: inherit;
+  cursor: pointer;
+}
+
+.annotation-mark--note {
+  background: #fbe7a1;
+  box-shadow: inset 0 -2px 0 #c58b00;
+}
+
+.annotation-mark--flagged {
+  background: #fde3c4;
+  box-shadow: inset 0 -2px 0 #b8640a;
+}
+
+.selection-toolbar {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.3rem;
+  border-radius: 0.5rem;
+  background: var(--ink);
+  box-shadow: 0 4px 14px rgb(24 39 54 / 30%);
+}
+
+.selection-toolbar button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.3rem 0.8rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.selection-toolbar button:hover,
+.selection-toolbar button:focus-visible {
+  background: rgb(255 255 255 / 15%);
+}
+
+.annotation-panel h3 {
+  margin: 0.9rem 0 0.35rem;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.annotation-counts {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0.5rem 0;
+}
+
+.annotation-counts div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.annotation-counts dt {
+  color: var(--ink);
+}
+
+.annotation-counts dd {
+  margin: 0;
+}
+
+.annotation-bookmark {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.annotation-hint {
+  font-size: 0.82rem;
+}
+
+.annotation-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.annotation-item {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--surface);
+}
+
+.annotation-item--focused {
+  border-color: #c58b00;
+  box-shadow: 0 0 0 2px #fbe7a1;
+}
+
+.annotation-item__quote {
+  display: flex;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.annotation-swatch {
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-top: 0.3rem;
+  border-radius: 0.15rem;
+  background: #fbe7a1;
+}
+
+.annotation-swatch--note {
+  box-shadow: inset 0 -2px 0 #c58b00;
+}
+
+.annotation-item__note {
+  margin: 0.35rem 0 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.annotation-item__removed {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.annotation-item .author-actions .button {
+  min-height: 2.5rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.annotation-flag {
+  margin: 0.35rem 0 0;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid #b8640a;
+  background: #fdf1e3;
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.annotation-flag--moved {
+  border-left-color: var(--change);
+  background: var(--change-soft);
+}
+
+.annotation-section--removed h3 {
+  color: var(--removed);
+}
+
+.annotation-links {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.88rem;
+}
+
+.annotation-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+
+.annotation-editor {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.annotation-editor blockquote {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid #c58b00;
+  background: #fdf7df;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.annotation-name {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.annotation-name p {
+  margin: 0;
 }

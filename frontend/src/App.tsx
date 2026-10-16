@@ -8,6 +8,7 @@ import { OpenNodeRoute } from "./components/OpenNodeRoute";
 import { Reader } from "./components/Reader";
 import { SearchPage } from "./components/SearchPage";
 import { AuditPage } from "./components/AuditPage";
+import { startAnnotationSync } from "./utils/annotationStore";
 import { startAuditSync } from "./utils/auditLog";
 
 export function AppRoutes() {
@@ -26,7 +27,14 @@ export function AppRoutes() {
 }
 
 function App() {
-  useEffect(() => startAuditSync(), []);
+  useEffect(() => {
+    const stopAudit = startAuditSync();
+    const stopAnnotations = startAnnotationSync();
+    return () => {
+      stopAudit();
+      stopAnnotations();
+    };
+  }, []);
   return (
     <BrowserRouter>
       <AppRoutes />

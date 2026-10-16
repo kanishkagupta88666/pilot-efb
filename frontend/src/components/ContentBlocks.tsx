@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { resolveNodeFromApi } from "../api/client";
 import type {
@@ -21,12 +21,62 @@ import { recordAudit } from "../utils/auditLog";
 import { resolveAvailableTargetId } from "../data/mockData";
 import { readerPathForResolution } from "../utils/readerLink";
 
+/** One highlighted range in a block's text, from the pilot's annotations. */
+export interface HighlightRange {
+  id: string;
+  start: number;
+  end: number;
+  hasNote: boolean;
+  /** The text changed since it was highlighted: shown, but flagged for review. */
+  flagged: boolean;
+}
+
 interface BlockProps {
   block: ContentBlock;
   docId: string;
   revision: number;
   dataSource?: "mock" | "api";
   targetNodeId?: string;
+  highlights?: HighlightRange[];
+  onOpenAnnotation?: (id: string) => void;
+}
+
+/** Split ``text`` (which starts at ``offset`` in the block) into plain and highlighted pieces. */
+function markPieces(
+  text: string,
+  offset: number,
+  highlights: HighlightRange[],
+  onOpen?: (id: string) => void,
+) {
+  const cuts = new Set([0, text.length]);
+  for (const range of highlights) {
+    for (const point of [range.start - offset, range.end - offset]) {
+      if (point > 0 && point < text.length) cuts.add(point);
+    }
+  }
+  const points = [...cuts].sort((a, b) => a - b);
+  return points.slice(0, -1).map((from, index) => {
+    const to = points[index + 1];
+    const piece = text.slice(from, to);
+    const covering = highlights.filter((r) => r.start - offset <= from && r.end - offset >= to);
+    if (!covering.length) return <span key={from}>{piece}</span>;
+    const range = covering[covering.length - 1];
+    return (
+      <mark
+        className={`annotation-mark${range.hasNote ? " annotation-mark--note" : ""}${range.flagged ? " annotation-mark--flagged" : ""}`}
+        data-annotation-id={range.id}
+        key={from}
+        onClick={(event) => {
+          if (!onOpen) return;
+          event.preventDefault();
+          event.stopPropagation();
+          onOpen(range.id);
+        }}
+      >
+        {piece}
+      </mark>
+    );
+  });
 }
 
 function InlineSegments({
@@ -34,17 +84,28 @@ function InlineSegments({
   docId,
   revision,
   dataSource,
+  highlights = [],
+  onOpenAnnotation,
 }: {
   segments: Extract<ContentBlock, { segments: unknown }>["segments"];
   docId: string;
   revision: number;
   dataSource: "mock" | "api";
+  highlights?: HighlightRange[];
+  onOpenAnnotation?: (id: string) => void;
 }) {
+  let offset = 0;
   return (
     <>
       {segments.map((segment, index) => {
+        const start = offset;
+        offset += segment.text.length;
         if (segment.type === "text") {
-          return <span key={`${index}-text`}>{segment.text}</span>;
+          return highlights.length ? (
+            <span key={`${index}-text`}>{markPieces(segment.text, start, highlights, onOpenAnnotation)}</span>
+          ) : (
+            <span key={`${index}-text`}>{segment.text}</span>
+          );
         }
 
         return (
@@ -52,6 +113,7 @@ function InlineSegments({
             dataSource={dataSource}
             docId={docId}
             key={`${index}-${segment.targetId}`}
+            label={highlights.length ? markPieces(segment.text, start, highlights, onOpenAnnotation) : undefined}
             revision={revision}
             segment={segment}
           />
@@ -66,11 +128,13 @@ function XrefSegmentView({
   dataSource,
   docId,
   revision,
+  label,
 }: {
   segment: XrefSegment;
   dataSource: "mock" | "api";
   docId: string;
   revision: number;
+  label?: ReactNode;
 }) {
   const navigate = useNavigate();
   const controller = useRef<AbortController | undefined>(undefined);
@@ -171,7 +235,7 @@ function XrefSegmentView({
         onClick={(event) => void activate(event)}
         to={openHref}
       >
-        {segment.text}
+        {label ?? segment.text}
       </Link>
       {loading && <span role="status"> Resolving reference…</span>}
       {error && (
@@ -193,12 +257,14 @@ function XrefSegmentView({
 function TextBlockView({ block, ...props }: BlockProps & { block: Extract<ContentBlock, { segments: unknown }> }) {
   const dataSource = props.dataSource ?? DATA_SOURCE;
   const body = (
-    <p>
+    <p data-annotatable={block.id}>
       <InlineSegments
         segments={block.segments}
         docId={props.docId}
         revision={props.revision}
         dataSource={dataSource}
+        highlights={props.highlights}
+        onOpenAnnotation={props.onOpenAnnotation}
       />
     </p>
   );
@@ -335,6 +401,9 @@ interface ContentBlocksProps {
   changes?: BlockChange[];
   removedTopicsAfter?: RemovedTopicChange[];
   comparedRevisions?: ComparedRevisions;
+  /** The pilot's highlights, by block ID. */
+  highlights?: Map<string, HighlightRange[]>;
+  onOpenAnnotation?: (id: string) => void;
 }
 
 export function ContentBlocks({
@@ -348,6 +417,8 @@ export function ContentBlocks({
   changes,
   removedTopicsAfter = [],
   comparedRevisions,
+  highlights,
+  onOpenAnnotation,
 }: ContentBlocksProps) {
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
@@ -360,7 +431,9 @@ export function ContentBlocks({
             block={block}
             docId={docId}
             dataSource={dataSource}
+            highlights={highlights?.get(block.id)}
             key={block.id}
+            onOpenAnnotation={onOpenAnnotation}
             revision={revision}
             targetNodeId={targetNodeId}
           />

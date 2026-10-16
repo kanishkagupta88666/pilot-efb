@@ -1,12 +1,13 @@
 /**
  * The reader's on-device database (IndexedDB), shared by the offline search
- * index and the audit outbox. Version 2 added the outbox; upgrading keeps the
- * saved search index.
+ * index, the audit outbox and pilots' annotations. Version 2 added the
+ * outbox and version 3 the annotations; upgrading keeps what is stored.
  */
 const DATABASE = "pilot-efb";
-const VERSION = 2;
+const VERSION = 3;
 export const SEARCH_INDEX_STORE = "search-index";
 export const AUDIT_OUTBOX_STORE = "audit-outbox";
+export const ANNOTATION_STORE = "annotations";
 
 export function localStorageAvailable(): boolean {
   try {
@@ -26,6 +27,9 @@ export function openLocalDb(): Promise<IDBDatabase> {
       }
       if (!database.objectStoreNames.contains(AUDIT_OUTBOX_STORE)) {
         database.createObjectStore(AUDIT_OUTBOX_STORE, { keyPath: "id" });
+      }
+      if (!database.objectStoreNames.contains(ANNOTATION_STORE)) {
+        database.createObjectStore(ANNOTATION_STORE, { keyPath: "id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
