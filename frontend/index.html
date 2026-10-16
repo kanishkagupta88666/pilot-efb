@@ -3,7 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f8fafc" />
+    <meta name="theme-color" content="#f6f7f8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1f2227" media="(prefers-color-scheme: dark)" />
+    <script>
+      // Apply a saved light or dark choice before the first paint, so the page doesn't flash.
+      try {
+        var theme = localStorage.getItem("pilot-efb-theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch (error) {}
+    </script>
     <title>Pilot EFB</title>
   </head>
   <body>
