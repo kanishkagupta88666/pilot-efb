@@ -244,6 +244,42 @@ describe("reader", () => {
     );
   });
 
+  it("bookmarks, highlights and notes a block by tapping it, anchored to its permanent ID", () => {
+    const { container } = renderApp("/reader/FM-S100/2");
+    const paragraph = container.querySelector("#fm100-p03214 p") as HTMLElement;
+    const annotations = () => screen.getByRole("region", { name: "Your annotations" });
+    const count = (label: string) =>
+      within(annotations()).getByText(label).nextElementSibling?.textContent;
+
+    fireEvent.click(paragraph);
+    fireEvent.click(screen.getByRole("button", { name: "Bookmark" }));
+    fireEvent.click(screen.getByRole("button", { name: "Highlight" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add note" }));
+    fireEvent.change(screen.getByLabelText("Your note"), {
+      target: { value: "Check against the WOM." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save note" }));
+
+    const block = container.querySelector("#fm100-p03214") as HTMLElement;
+    expect(block.className).toContain("content-block--highlighted");
+    expect(block.className).toContain("content-block--bookmarked");
+    expect(screen.getAllByText("Check against the WOM.").length).toBeGreaterThan(0);
+    expect(count("Highlights")).toBe("1");
+    expect(count("Notes")).toBe("1");
+    expect(count("Bookmarks")).toBe("1");
+
+    fireEvent.click(paragraph);
+    fireEvent.click(screen.getByRole("button", { name: "Remove highlight" }));
+    expect(block.className).not.toContain("content-block--highlighted");
+    expect(count("Highlights")).toBe("0");
+  });
+
+  it("does not open the annotation bar when a checkbox is tapped", () => {
+    renderApp("/reader/FM-S100/2");
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    expect(screen.queryByRole("toolbar", { name: "Annotate this block" })).toBeNull();
+  });
+
   it("scrolls to and highlights a requested checklist check", async () => {
     const scrollIntoView = vi.fn();
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {

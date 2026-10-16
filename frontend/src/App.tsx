@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { AnnotationProvider } from "./annotations/annotations";
 import { DocumentLibrary } from "./components/DocumentLibrary";
 import { NotFound } from "./components/NotFound";
 import { OpenNodeRoute } from "./components/OpenNodeRoute";
@@ -7,13 +8,15 @@ import { SignInPage } from "./components/SignInPage";
 
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<DocumentLibrary />} />
-      <Route path="/open" element={<OpenNodeRoute />} />
-      <Route path="/reader/:docId/:revision" element={<Reader />} />
-      <Route path="/sign-in" element={<SignInPage />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <AnnotationProvider>
+      <Routes>
+        <Route path="/" element={<DocumentLibrary />} />
+        <Route path="/open" element={<OpenNodeRoute />} />
+        <Route path="/reader/:docId/:revision" element={<Reader />} />
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnnotationProvider>
   );
 }
 
