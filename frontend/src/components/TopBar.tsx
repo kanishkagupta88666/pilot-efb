@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { ConnectionStatus } from "./ConnectionStatus";
 
 export function TopBar({
   title,
@@ -15,7 +16,10 @@ export function TopBar({
       <Link className="app-bar__brand" to="/">Pilot EFB</Link>
       <span className="app-bar__title">{title}</span>
       {detail && <span className="app-bar__detail">{detail}</span>}
-      {children && <div className="app-bar__actions">{children}</div>}
+      <div className="app-bar__actions">
+        <ConnectionStatus />
+        {children}
+      </div>
     </div>
   );
 }

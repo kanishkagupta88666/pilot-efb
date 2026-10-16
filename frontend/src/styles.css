@@ -98,9 +98,42 @@ input:focus-visible,
 
 .app-bar__actions {
   display: flex;
+  align-items: center;
   flex: 0 0 auto;
   gap: 0.5rem;
   margin-left: auto;
+}
+
+.connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.3rem;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.connection::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #2f7d4f;
+  content: "";
+}
+
+.connection--offline {
+  border-color: transparent;
+  color: var(--caution);
+  background: #f6eddd;
+}
+
+.connection--offline::before {
+  background: var(--caution);
 }
 
 .app-bar .button {
@@ -973,5 +1006,71 @@ p {
     overflow-y: auto;
     padding: 1.25rem 1.25rem;
     border-left: 1px solid var(--line);
+  }
+}
+
+/* Sign in */
+
+.sign-in-page {
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+.sign-in {
+  width: min(100%, 26rem);
+  margin: clamp(2rem, 10vh, 6rem) auto 2rem;
+  padding: 0 1rem;
+}
+
+.sign-in h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.sign-in__form {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+}
+
+.sign-in__form label {
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sign-in__form input {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #b9c0c8;
+  border-radius: 0.4rem;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 1rem;
+}
+
+.sign-in__form input:focus {
+  border-color: var(--accent);
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 0;
+}
+
+.sign-in__form .button {
+  margin-top: 1.2rem;
+}
+
+.sign-in__notice {
+  margin: 1.5rem 0 0;
+  padding: 0.15rem 0 0.15rem 0.9rem;
+  border-left: 3px solid var(--muted);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Narrow screens: drop the revision text from the top bar so the buttons fit. */
+@media (max-width: 900px) {
+  .app-bar__detail {
+    display: none;
   }
 }
