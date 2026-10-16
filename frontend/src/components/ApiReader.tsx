@@ -20,7 +20,7 @@ import type {
 import { ContentBlocks } from "./ContentBlocks";
 import { OnThisPage } from "./OnThisPage";
 import { YourAnnotations } from "./YourAnnotations";
-import { Outline, topicTrail } from "./Outline";
+import { displayNumber, Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionAlert } from "./RevisionAlert";
@@ -445,7 +445,7 @@ export function ApiReader() {
       <TopicHeader
         effectiveDate={metadata.effectiveDate}
         id={headingTopic === selectedOutlineTopic ? undefined : headingTopic?.id}
-        number={headingTopic?.number}
+        number={headingTopic && displayNumber(headingTopic.number, headingTopic.title)}
         revisionDate={metadata.revisionDate}
         revisionSelector={
           <RevisionSelector
