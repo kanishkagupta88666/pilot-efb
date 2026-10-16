@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
+import { RevisionAlert } from "./RevisionAlert";
 import { RevisionSelector } from "./RevisionSelector";
 import { getDocumentLibrary } from "../data/mockData";
 import { DATA_SOURCE } from "../config/dataSource";
@@ -60,6 +61,29 @@ describe("frontend integration preparation", () => {
     expect(selector.textContent).toContain("3 · Upcoming");
     fireEvent.change(selector, { target: { value: "3" } });
     expect(onChange).toHaveBeenCalledWith(3);
+  });
+
+  it.each([
+    ["no alert on the current revision", 2, ["superseded", "current"], null],
+    ["a superseded revision", 1, ["superseded", "current"], "Open Revision 2"],
+    ["a revision not yet in force", 3, ["current", "upcoming"], "Open Revision 2"],
+    ["an upcoming revision while reading the current one", 2, ["current", "upcoming"], "View Revision 3"],
+  ] as const)("shows the publish alert for %s", (_label, reading, statuses, action) => {
+    const first = statuses[0] === "superseded" ? 1 : 2;
+    const revisions = statuses.map((status, index) => withStatus(status, first + index));
+    render(
+      <MemoryRouter>
+        <RevisionAlert docId="FM-S100" revision={reading} revisions={revisions} />
+      </MemoryRouter>,
+    );
+
+    if (action === null) {
+      expect(screen.queryByRole("status")).toBeNull();
+    } else {
+      expect(screen.getByRole("link", { name: action }).getAttribute("href")).toBe(
+        `/reader/FM-S100/${action.slice(-1)}`,
+      );
+    }
   });
 
   it("renders accessible loading, empty, and error states with retry", () => {

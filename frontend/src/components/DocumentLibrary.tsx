@@ -118,7 +118,9 @@ function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
 function LibraryFrame({ children }: { children: ReactNode }) {
   return (
     <main className="library-page">
-      <TopBar title="Library" />
+      <TopBar title="Library">
+        <Link className="button button--secondary" to="/sign-in">Sign in</Link>
+      </TopBar>
       <div className="library-body">
         <header className="library-header">
           <h1>Document library</h1>
