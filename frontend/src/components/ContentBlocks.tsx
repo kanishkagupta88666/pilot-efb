@@ -8,11 +8,12 @@ import type {
   XrefSegment,
 } from "../types/api";
 import {
-  blockExcerpt,
+  blockText,
   useAnnotations,
   type AnnotationTarget,
 } from "../annotations/annotations";
 import { DATA_SOURCE } from "../config/dataSource";
+import { AffectedAnnotations } from "./AffectedAnnotations";
 import { resolveAvailableTargetId } from "../data/mockData";
 import { readerPathForResolution } from "../utils/readerLink";
 
@@ -481,6 +482,8 @@ export function ContentBlocks({
   };
 
   return (
+    <>
+    <AffectedAnnotations docId={docId} revision={revision} topic={topic} />
     <div className="topic-content topic-content--annotatable" onClick={selectBlock}>
       {topic.blocks.map((block) => {
         const mine = store.annotations.filter(
@@ -502,7 +505,7 @@ export function ContentBlocks({
           revision,
           topicId: topic.id,
           nodeId: block.id,
-          excerpt: blockExcerpt(block),
+          text: blockText(block),
         };
 
         return [
@@ -568,5 +571,6 @@ export function ContentBlocks({
         ];
       })}
     </div>
+    </>
   );
 }

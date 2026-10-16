@@ -12,14 +12,14 @@ export interface Annotation {
   revision: number;
   topicId: string;
   nodeId: string;
-  /** The block's text when it was annotated, kept to compare against later revisions. */
-  excerpt: string;
+  /** The block's full text when it was annotated, kept to compare against later revisions. */
+  text: string;
   note?: string;
 }
 
 export type AnnotationTarget = Pick<
   Annotation,
-  "docId" | "revision" | "topicId" | "nodeId" | "excerpt"
+  "docId" | "revision" | "topicId" | "nodeId" | "text"
 >;
 
 interface AnnotationStore {
@@ -27,6 +27,9 @@ interface AnnotationStore {
   toggle: (kind: "bookmark" | "highlight", target: AnnotationTarget) => void;
   /** Saves the note text; empty text removes the note. */
   saveNote: (target: AnnotationTarget, text: string) => void;
+  /** Re-anchors an annotation to a newer revision's wording. */
+  keep: (id: string, revision: number, text: string) => void;
+  remove: (id: string) => void;
 }
 
 const AnnotationContext = createContext<AnnotationStore | undefined>(undefined);
@@ -37,8 +40,15 @@ let nextId = 1;
  * PROVISIONAL: annotations are kept in memory only and are lost on reload.
  * Replace the state below with API calls once the backend can store annotations.
  */
-export function AnnotationProvider({ children }: { children: ReactNode }) {
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+export function AnnotationProvider({
+  children,
+  initial = [],
+}: {
+  children: ReactNode;
+  /** Annotations to start with, e.g. ones loaded from storage. */
+  initial?: Annotation[];
+}) {
+  const [annotations, setAnnotations] = useState<Annotation[]>(initial);
 
   const store = useMemo<AnnotationStore>(() => {
     const matches = (annotation: Annotation, kind: AnnotationKind, target: AnnotationTarget) =>
@@ -62,6 +72,14 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
             ? [...rest, { id: `annotation-${nextId++}`, kind: "note", ...target, note }]
             : rest;
         }),
+      keep: (id, revision, text) =>
+        setAnnotations((previous) =>
+          previous.map((annotation) =>
+            annotation.id === id ? { ...annotation, revision, text } : annotation,
+          ),
+        ),
+      remove: (id) =>
+        setAnnotations((previous) => previous.filter((annotation) => annotation.id !== id)),
     };
   }, [annotations]);
 
@@ -73,10 +91,8 @@ export function useAnnotations(): AnnotationStore | undefined {
   return useContext(AnnotationContext);
 }
 
-const EXCERPT_LENGTH = 160;
-
-/** Plain text of a block, shortened, for the excerpt stored with an annotation. */
-export function blockExcerpt(block: ContentBlock): string {
+/** Plain text of a block, as stored with an annotation. */
+export function blockText(block: ContentBlock): string {
   let text: string;
   switch (block.type) {
     case "para":
@@ -95,6 +111,10 @@ export function blockExcerpt(block: ContentBlock): string {
       text = block.checks.map((check) => `${check.challenge}: ${check.response}`).join("; ");
       break;
   }
-  const clean = text.replace(/\s+/g, " ").trim();
-  return clean.length > EXCERPT_LENGTH ? `${clean.slice(0, EXCERPT_LENGTH).trimEnd()}…` : clean;
+  return text.replace(/\s+/g, " ").trim();
+}
+
+/** Shortens text for previews. */
+export function shorten(text: string, length = 60): string {
+  return text.length > length ? `${text.slice(0, length).trimEnd()}…` : text;
 }

@@ -1,4 +1,4 @@
-import { useAnnotations, type AnnotationKind } from "../annotations/annotations";
+import { shorten, useAnnotations, type AnnotationKind } from "../annotations/annotations";
 
 const KINDS: { kind: AnnotationKind; label: string }[] = [
   { kind: "highlight", label: "Highlights" },
@@ -52,7 +52,7 @@ export function YourAnnotations({ docId, topicId }: { docId: string; topicId?: s
                 type="button"
               >
                 <span className="page-nav__label">{SINGULAR[annotation.kind]}</span>
-                <span className="page-nav__preview">{annotation.note ?? annotation.excerpt}</span>
+                <span className="page-nav__preview">{shorten(annotation.note ?? annotation.text)}</span>
               </button>
             </li>
           ))}

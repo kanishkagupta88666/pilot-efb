@@ -10,6 +10,7 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "./App";
+import { AnnotationProvider, blockText as blockTextOf, type Annotation } from "./annotations/annotations";
 import { ContentBlocks } from "./components/ContentBlocks";
 import {
   getTopic,
@@ -272,6 +273,45 @@ describe("reader", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remove highlight" }));
     expect(block.className).not.toContain("content-block--highlighted");
     expect(count("Highlights")).toBe("0");
+  });
+
+  it("asks before keeping or deleting annotations whose text changed in a newer revision", () => {
+    const topic = getTopic("FM-S100", 2, "fm100-t0340").topic;
+    const base = { docId: "FM-S100", revision: 1, topicId: topic.id };
+    const initial: Annotation[] = [
+      { ...base, id: "a1", kind: "note", nodeId: "fm100-p03214", text: "Old wording.", note: "Check this." },
+      { ...base, id: "a2", kind: "highlight", nodeId: "fm100-p99999", text: "Rescinded text." },
+      { ...base, id: "a3", kind: "bookmark", nodeId: "fm100-p03231", text: "unused" },
+    ];
+    const unchanged = topic.blocks.find((block) => block.id === "fm100-p03231");
+    if (!unchanged) throw new Error("Expected the checklist block.");
+    initial[2].text = blockTextOf(unchanged);
+
+    render(
+      <MemoryRouter>
+        <AnnotationProvider initial={initial}>
+          <ContentBlocks
+            completedChecks={{}}
+            docId="FM-S100"
+            onResetChecks={() => undefined}
+            onToggleCheck={() => undefined}
+            revision={2}
+            topic={topic}
+          />
+        </AnnotationProvider>
+      </MemoryRouter>,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Annotations affected by this revision" });
+    expect(within(dialog).getByText("Text changed")).toBeTruthy();
+    expect(within(dialog).getByText("Removed from this topic")).toBeTruthy();
+    expect(within(dialog).getByText("Old wording.")).toBeTruthy();
+    expect(within(dialog).getByText("2 of 3 annotations affected · 1 carried over unchanged", { exact: false })).toBeTruthy();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Keep annotation" }));
+    expect(screen.queryByText("Old wording.")).toBeNull();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("does not open the annotation bar when a checkbox is tapped", () => {
