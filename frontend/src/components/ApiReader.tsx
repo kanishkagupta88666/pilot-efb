@@ -19,6 +19,7 @@ import type {
 } from "../types/api";
 import { ContentBlocks } from "./ContentBlocks";
 import { OnThisPage } from "./OnThisPage";
+import { YourAnnotations } from "./YourAnnotations";
 import { Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
@@ -398,7 +399,12 @@ export function ApiReader() {
 
   return (
     <ReaderLayout
-      aside={<OnThisPage blocks={topicData.status === "ready" ? topicData.topic.blocks : []} />}
+      aside={
+        <>
+          <OnThisPage blocks={topicData.status === "ready" ? topicData.topic.blocks : []} />
+          <YourAnnotations docId={docId} topicId={selectedTopicId} />
+        </>
+      }
       breadcrumbs={[
         pageData.navigation.document.docType,
         ...topicTrail(pageData.navigation.chapters, selectedTopicId),

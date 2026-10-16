@@ -17,6 +17,7 @@ import type { DocumentRevision } from "../types/api";
 import { ApiReader } from "./ApiReader";
 import { ContentBlocks } from "./ContentBlocks";
 import { OnThisPage } from "./OnThisPage";
+import { YourAnnotations } from "./YourAnnotations";
 import { Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { RevisionAlert } from "./RevisionAlert";
@@ -213,7 +214,12 @@ function ReaderWorkspace({
 
   return (
     <ReaderLayout
-      aside={<OnThisPage blocks={topicResponse.topic.blocks} />}
+      aside={
+        <>
+          <OnThisPage blocks={topicResponse.topic.blocks} />
+          <YourAnnotations docId={docId} topicId={topicResponse.topic.id} />
+        </>
+      }
       breadcrumbs={[
         navigation.document.docType,
         ...topicTrail(navigation.chapters, selectedTopicId),

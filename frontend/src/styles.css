@@ -15,6 +15,7 @@
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --warning: #a3271f;
   --caution: #8a5a12;
+  --highlight: #fbefb4;
   --bar-height: 3.25rem;
   --status-height: 2.25rem;
 }
@@ -1102,4 +1103,137 @@ p {
 .revision-alert--caution {
   border-left-color: var(--caution);
   background: #f6eddd;
+}
+
+/* Annotations */
+
+.topic-content--annotatable > .content-block {
+  position: relative;
+  cursor: pointer;
+}
+
+.content-block--highlighted {
+  background-color: var(--highlight);
+  box-shadow: 0 0 0 0.35rem var(--highlight);
+}
+
+.content-block--bookmarked::before {
+  position: absolute;
+  top: 0.1rem;
+  left: -1.1rem;
+  width: 0.55rem;
+  height: 1.1rem;
+  background: var(--accent);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+  content: "";
+}
+
+.content-block--selected {
+  outline: 2px dashed var(--accent);
+  outline-offset: 0.45rem;
+}
+
+.annotation-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: -0.25rem;
+}
+
+.annotation-bar .button {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.annotation-bar .button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.annotation-bar__done {
+  margin-left: auto;
+}
+
+.annotation-note {
+  margin-top: -0.25rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 3px solid var(--accent);
+  background: var(--soft-surface);
+  font-size: 0.95rem;
+}
+
+.annotation-note__label {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.annotation-note p {
+  margin: 0.15rem 0 0;
+  white-space: pre-wrap;
+}
+
+.annotation-editor {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.annotation-editor label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.annotation-editor textarea {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #b9c0c8;
+  border-radius: 0.4rem;
+  font: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.annotation-editor textarea:focus {
+  border-color: var(--accent);
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 0;
+}
+
+.annotation-editor__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.your-annotations {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.your-annotations__counts {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.6rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.your-annotations__counts div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.your-annotations__counts dd {
+  margin: 0;
+  font-family: var(--mono);
+}
+
+.page-nav__item--highlight {
+  border-left-color: #d9b93a;
+}
+
+.page-nav__item--bookmark,
+.page-nav__item--note {
+  border-left-color: var(--accent);
 }

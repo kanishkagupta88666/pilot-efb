@@ -1,0 +1,63 @@
+import { useAnnotations, type AnnotationKind } from "../annotations/annotations";
+
+const KINDS: { kind: AnnotationKind; label: string }[] = [
+  { kind: "highlight", label: "Highlights" },
+  { kind: "note", label: "Notes" },
+  { kind: "bookmark", label: "Bookmarks" },
+];
+
+const SINGULAR: Record<AnnotationKind, string> = {
+  highlight: "Highlight",
+  note: "Note",
+  bookmark: "Bookmark",
+};
+
+/** Right-panel section: annotation counts for this manual, and jump links for this topic's. */
+export function YourAnnotations({ docId, topicId }: { docId: string; topicId?: string }) {
+  const store = useAnnotations();
+  if (!store) return null;
+
+  const inManual = store.annotations.filter((annotation) => annotation.docId === docId);
+  const inTopic = inManual.filter((annotation) => annotation.topicId === topicId);
+
+  const jumpTo = (id: string) => {
+    const target = document.getElementById(id);
+    if (typeof target?.scrollIntoView === "function") {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  return (
+    <section aria-labelledby="your-annotations-heading" className="your-annotations">
+      <h2 id="your-annotations-heading">Your annotations</h2>
+      <dl className="your-annotations__counts">
+        {KINDS.map(({ kind, label }) => (
+          <div key={kind}>
+            <dt>{label}</dt>
+            <dd>{inManual.filter((annotation) => annotation.kind === kind).length}</dd>
+          </div>
+        ))}
+      </dl>
+      {inTopic.length === 0 ? (
+        <p className="page-nav__empty">
+          Tap a paragraph, note, table or checklist to bookmark, highlight or add a note.
+        </p>
+      ) : (
+        <ul className="page-nav">
+          {inTopic.map((annotation) => (
+            <li key={annotation.id}>
+              <button
+                className={`page-nav__item page-nav__item--${annotation.kind}`}
+                onClick={() => jumpTo(annotation.nodeId)}
+                type="button"
+              >
+                <span className="page-nav__label">{SINGULAR[annotation.kind]}</span>
+                <span className="page-nav__preview">{annotation.note ?? annotation.excerpt}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
