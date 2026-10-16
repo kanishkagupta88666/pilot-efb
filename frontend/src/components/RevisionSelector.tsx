@@ -1,11 +1,19 @@
 import type { DocumentRevision, RevisionStatus } from "../types/api";
 
-const statusLabels: Record<RevisionStatus, string> = {
+export const statusLabels: Record<RevisionStatus, string> = {
   current: "Current",
   upcoming: "Upcoming",
   superseded: "Superseded",
 };
 
+export function RevisionStatusChip({ status }: { status: RevisionStatus }) {
+  return <span className={`status-chip status-chip--${status}`}>{statusLabels[status]}</span>;
+}
+
+/**
+ * Revision number only; the status (current, upcoming, superseded) is shown once,
+ * next to it, by the caller.
+ */
 export function RevisionSelector({
   revisions,
   selectedRevision,
@@ -19,8 +27,8 @@ export function RevisionSelector({
 
   if (revisions.length <= 1) {
     return (
-      <p className="revision-status" aria-label="Revision status">
-        {selected ? `${statusLabels[selected.status]} revision ${selected.revision}` : "Revision unavailable"}
+      <p className="revision-status">
+        {selected ? `Revision ${selected.revision}` : "Revision unavailable"}
       </p>
     );
   }
@@ -35,7 +43,7 @@ export function RevisionSelector({
         {!selected && <option value="">Select revision</option>}
         {revisions.map((revision) => (
           <option key={revision.revision} value={revision.revision}>
-            {revision.revision} · {statusLabels[revision.status]}
+            {revision.revision}
           </option>
         ))}
       </select>

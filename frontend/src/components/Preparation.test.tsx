@@ -37,11 +37,11 @@ describe("frontend integration preparation", () => {
       />,
     );
 
-    expect(screen.getByText("Current revision 2")).toBeTruthy();
+    expect(screen.getByText("Revision 2")).toBeTruthy();
     expect(screen.queryByRole("combobox")).toBeNull();
   });
 
-  it("offers only supplied revisions with current, upcoming, and superseded labels", () => {
+  it("offers only supplied revisions, by number", () => {
     const onChange = vi.fn();
     render(
       <RevisionSelector
@@ -56,9 +56,11 @@ describe("frontend integration preparation", () => {
     );
 
     const selector = screen.getByRole("combobox", { name: "Revision" });
-    expect(selector.textContent).toContain("1 · Superseded");
-    expect(selector.textContent).toContain("2 · Current");
-    expect(selector.textContent).toContain("3 · Upcoming");
+    expect(Array.from((selector as HTMLSelectElement).options).map((option) => option.text)).toEqual([
+      "1",
+      "2",
+      "3",
+    ]);
     fireEvent.change(selector, { target: { value: "3" } });
     expect(onChange).toHaveBeenCalledWith(3);
   });

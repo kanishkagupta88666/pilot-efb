@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import type { RevisionStatus } from "../types/api";
+import { RevisionStatusChip } from "./RevisionSelector";
 import { formatDate } from "../utils/formatDate";
 
 /** Topic number and title, with the revision details underneath. */
@@ -10,6 +12,7 @@ export function TopicHeader({
   revisionDate,
   effectiveDate,
   revisionSelector,
+  status,
   children,
 }: {
   number?: string;
@@ -19,6 +22,8 @@ export function TopicHeader({
   revisionDate: string;
   effectiveDate: string;
   revisionSelector: ReactNode;
+  /** Status of the revision on screen, shown once beside the revision number. */
+  status?: RevisionStatus;
   children?: ReactNode;
 }) {
   return (
@@ -29,6 +34,7 @@ export function TopicHeader({
       </h1>
       <div className="revision-details">
         {revisionSelector}
+        {status && <RevisionStatusChip status={status} />}
         <span>
           <span className="meta-label">Revision date</span>{" "}
           <time dateTime={revisionDate}>{formatDate(revisionDate)}</time>

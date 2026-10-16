@@ -637,11 +637,12 @@ p {
 
 .revision-details .revision-status {
   margin: 0;
-  padding: 0.2rem 0.55rem;
-  border-color: transparent;
-  color: var(--accent);
-  background: var(--accent-soft);
-  font-size: 0.8rem;
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  background: none;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .meta-label {
