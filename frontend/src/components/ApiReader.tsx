@@ -22,9 +22,11 @@ import type {
 } from "../types/api";
 import { ContentBlocks } from "./ContentBlocks";
 import { OnThisPage } from "./OnThisPage";
+import { YourAnnotations } from "./YourAnnotations";
 import { displayNumber, Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
+import { RevisionAlert } from "./RevisionAlert";
 import { RevisionSelector } from "./RevisionSelector";
 import { TopicHeader } from "./TopicHeader";
 import { recordAudit } from "../utils/auditLog";
@@ -503,6 +505,7 @@ export function ApiReader() {
       aside={
         <>
           <OnThisPage blocks={topicData.status === "ready" ? topicData.topic.blocks : []} />
+          <YourAnnotations docId={docId} topicId={selectedTopicId} />
           <RevisionRail
             changesData={changesData}
             docId={docId}
@@ -547,6 +550,11 @@ export function ApiReader() {
       }}
       title={metadata.title}
     >
+      <RevisionAlert
+        docId={docId}
+        revision={pageData.navigation.version.revision}
+        revisions={pageData.revisions}
+      />
       <TopicHeader
         effectiveDate={metadata.effectiveDate}
         id={headingTopic === selectedOutlineTopic ? undefined : headingTopic?.id}

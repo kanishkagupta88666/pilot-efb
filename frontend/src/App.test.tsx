@@ -10,6 +10,7 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "./App";
+import { AnnotationProvider, blockText as blockTextOf, type Annotation } from "./annotations/annotations";
 import { ContentBlocks } from "./components/ContentBlocks";
 import {
   getTopic,
@@ -53,6 +54,52 @@ describe("document library", () => {
     expect(screen.getByRole("link", { name: "Back to library" })).toBeTruthy();
     expect(screen.getByText("1 Jul 2026")).toBeTruthy();
     expect(screen.getByText("15 Jul 2026")).toBeTruthy();
+  });
+});
+
+describe("sign in and connection status", () => {
+  it("opens the sign-in page from the library and returns to the library on submit", () => {
+    renderApp();
+    fireEvent.click(screen.getByRole("link", { name: "Sign in" }));
+
+    expect(screen.getByRole("heading", { name: "Sign in to Pilot EFB" })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Employee ID"), { target: { value: "SAMPLE1" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "sample" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(screen.getByRole("heading", { name: "Document library" })).toBeTruthy();
+  });
+
+  it("switches between light and dark mode from the top bar and remembers the choice", () => {
+    const saved = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => saved.get(key) ?? null,
+      setItem: (key: string, value: string) => saved.set(key, value),
+    });
+    delete document.documentElement.dataset.theme;
+    renderApp();
+
+    fireEvent.click(screen.getByRole("button", { name: "Dark mode" }));
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(saved.get("pilot-efb-theme")).toBe("dark");
+
+    fireEvent.click(screen.getByRole("button", { name: "Light mode" }));
+    expect(document.documentElement.dataset.theme).toBe("light");
+    delete document.documentElement.dataset.theme;
+    vi.unstubAllGlobals();
+  });
+
+  it("shows the browser's connection state in the top bar", () => {
+    const onLine = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+    renderApp();
+    expect(screen.getByText("Online")).toBeTruthy();
+
+    onLine.mockReturnValue(false);
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    expect(screen.getByText("Offline")).toBeTruthy();
+    onLine.mockRestore();
   });
 });
 
@@ -215,6 +262,81 @@ describe("reader", () => {
     expect(scrollIntoView.mock.contexts[0]).toBe(
       document.getElementById(sourceBlocks.filter((block) => block.type === "checklist")[0].id),
     );
+  });
+
+  it("bookmarks, highlights and notes a block by tapping it, anchored to its permanent ID", () => {
+    const { container } = renderApp("/reader/FM-S100/2");
+    const paragraph = container.querySelector("#fm100-p03214 p") as HTMLElement;
+    const annotations = () => screen.getByRole("region", { name: "Your annotations" });
+    const count = (label: string) =>
+      within(annotations()).getByText(label).nextElementSibling?.textContent;
+
+    fireEvent.click(paragraph);
+    fireEvent.click(screen.getByRole("button", { name: "Bookmark" }));
+    fireEvent.click(screen.getByRole("button", { name: "Highlight" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add note" }));
+    fireEvent.change(screen.getByLabelText("Your note"), {
+      target: { value: "Check against the WOM." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save note" }));
+
+    const block = container.querySelector("#fm100-p03214") as HTMLElement;
+    expect(block.className).toContain("content-block--highlighted");
+    expect(block.className).toContain("content-block--bookmarked");
+    expect(screen.getAllByText("Check against the WOM.").length).toBeGreaterThan(0);
+    expect(count("Highlights")).toBe("1");
+    expect(count("Notes")).toBe("1");
+    expect(count("Bookmarks")).toBe("1");
+
+    fireEvent.click(paragraph);
+    fireEvent.click(screen.getByRole("button", { name: "Remove highlight" }));
+    expect(block.className).not.toContain("content-block--highlighted");
+    expect(count("Highlights")).toBe("0");
+  });
+
+  it("asks before keeping or deleting annotations whose text changed in a newer revision", () => {
+    const topic = getTopic("FM-S100", 2, "fm100-t0340").topic;
+    const base = { docId: "FM-S100", revision: 1, topicId: topic.id };
+    const initial: Annotation[] = [
+      { ...base, id: "a1", kind: "note", nodeId: "fm100-p03214", text: "Old wording.", note: "Check this." },
+      { ...base, id: "a2", kind: "highlight", nodeId: "fm100-p99999", text: "Rescinded text." },
+      { ...base, id: "a3", kind: "bookmark", nodeId: "fm100-p03231", text: "unused" },
+    ];
+    const unchanged = topic.blocks.find((block) => block.id === "fm100-p03231");
+    if (!unchanged) throw new Error("Expected the checklist block.");
+    initial[2].text = blockTextOf(unchanged);
+
+    render(
+      <MemoryRouter>
+        <AnnotationProvider initial={initial}>
+          <ContentBlocks
+            completedChecks={{}}
+            docId="FM-S100"
+            onResetChecks={() => undefined}
+            onToggleCheck={() => undefined}
+            revision={2}
+            topic={topic}
+          />
+        </AnnotationProvider>
+      </MemoryRouter>,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Annotations affected by this revision" });
+    expect(within(dialog).getByText("Text changed")).toBeTruthy();
+    expect(within(dialog).getByText("Removed from this topic")).toBeTruthy();
+    expect(within(dialog).getByText("Old wording.")).toBeTruthy();
+    expect(within(dialog).getByText("2 of 3 annotations affected · 1 carried over unchanged", { exact: false })).toBeTruthy();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Keep annotation" }));
+    expect(screen.queryByText("Old wording.")).toBeNull();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("does not open the annotation bar when a checkbox is tapped", () => {
+    renderApp("/reader/FM-S100/2");
+    fireEvent.click(screen.getAllByRole("checkbox")[0]);
+    expect(screen.queryByRole("toolbar", { name: "Annotate this block" })).toBeNull();
   });
 
   it("scrolls to and highlights a requested checklist check", async () => {
