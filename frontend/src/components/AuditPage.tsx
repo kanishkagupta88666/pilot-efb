@@ -22,6 +22,7 @@ import {
   type ActorRole,
 } from "../utils/deviceIdentity";
 import { ApiErrorState } from "./RequestStates";
+import { syncAnnotations } from "../utils/annotationStore";
 
 const ROLE_LABEL: Record<string, string> = {
   pilot: "Pilot",
@@ -138,6 +139,8 @@ function DeviceStatus() {
           const previous = getProfile();
           setProfile(profile);
           setSaved(true);
+          window.dispatchEvent(new Event("pilot-efb-profile"));
+          void syncAnnotations();
           void recordAudit("profile.changed", {
             details: { from: `${previous.name || "Unidentified user"} (${previous.role})`, to: `${profile.name.trim() || "Unidentified user"} (${profile.role})` },
           });

@@ -24,6 +24,15 @@ import { ContentBlocks } from "./ContentBlocks";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
 import { recordAudit } from "../utils/auditLog";
+import {
+  AnnotationPanel,
+  SelectionToolbar,
+  highlightsFor,
+  saveHighlight,
+  useAnnotations,
+  useTextSelection,
+  type PendingNote,
+} from "./Annotations";
 
 const PdfPrintView = lazy(() => import("./PdfPrintView"));
 
@@ -399,6 +408,23 @@ export function ApiReader() {
     return () => controller.abort();
   }, [docId, navigation, selectedTopicId, retryTopic]);
 
+  // The pilot's highlights, notes and bookmarks (private, revision-safe).
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { annotations, statuses, checked } = useAnnotations(docId, pageData.status === "ready" ? pageData.navigation.version.revision : undefined);
+  const [selection, clearSelection] = useTextSelection(contentRef);
+  const [pendingNote, setPendingNote] = useState<PendingNote>();
+  const [focusedAnnotation, setFocusedAnnotation] = useState<string>();
+  const highlights = useMemo(
+    () => (topicData.status === "ready" ? highlightsFor(topicData.topic, annotations, statuses) : undefined),
+    [topicData, annotations, statuses],
+  );
+  const focusAnnotation = (id?: string) => {
+    setFocusedAnnotation(id);
+    if (!id) return;
+    const mark = document.querySelector(`[data-annotation-id="${id}"]`);
+    mark?.scrollIntoView?.({ block: "center" });
+  };
+
   // Audit: which revision and topic the person had open, and how they got there.
   const loggedView = useRef<string | undefined>(undefined);
   useEffect(() => {
@@ -697,7 +723,7 @@ export function ApiReader() {
               onRetry={() => setRetryTopic((value) => value + 1)}
             />
           ) : (
-            <div className="reader-body">
+            <div className="reader-body" ref={contentRef}>
               {viewMode === "print" ? (
                 <Suspense fallback={<LoadingState label="Loading PDF viewer…" />}>
                   <PdfPrintView
@@ -731,11 +757,14 @@ export function ApiReader() {
                 removedTopicsAfter={
                   showChanges && changes ? changes.removedTopicsAfter : []
                 }
+                highlights={highlights}
+                onOpenAnnotation={focusAnnotation}
                 revision={pageData.navigation.version.revision}
                 targetNodeId={highlightedTargetId}
                 topic={topicData.topic}
               />
               )}
+              <div className="reader-side">
               <RevisionRail
                 changesData={changesData}
                 docId={docId}
@@ -745,6 +774,33 @@ export function ApiReader() {
                 revision={pageData.navigation.version.revision}
                 showChanges={showChanges}
               />
+              <AnnotationPanel
+                annotations={annotations}
+                checked={checked}
+                docId={docId}
+                focusedId={focusedAnnotation}
+                onFocus={focusAnnotation}
+                onPendingNoteDone={() => setPendingNote(undefined)}
+                pendingNote={pendingNote}
+                revision={pageData.navigation.version.revision}
+                statuses={statuses}
+                topic={topicData.topic}
+              />
+              </div>
+              {selection && viewMode === "interactive" && (
+                <SelectionToolbar
+                  onCancel={clearSelection}
+                  onHighlight={() => {
+                    void saveHighlight(docId, pageData.navigation.version.revision, topicData.topic, selection);
+                    clearSelection();
+                  }}
+                  onNote={() => {
+                    setPendingNote({ selection });
+                    clearSelection();
+                  }}
+                  selection={selection}
+                />
+              )}
             </div>
           )}
           <footer className="reader-footer">

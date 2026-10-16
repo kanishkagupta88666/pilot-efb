@@ -274,3 +274,43 @@ class AuditEvent(models.Model):
 
     def __str__(self) -> str:
         return f"#{self.sequence} {self.action} by {self.actor}"
+
+
+class Annotation(models.Model):
+    """A pilot's private highlight, note or bookmark. See documents/annotations.py.
+
+    Anchored to a permanent node ID, never to a page or screen position.
+    ``anchor_text`` is the node's text when the annotation was made (or last
+    confirmed), so a later revision can tell whether the text changed.
+    Deletions are kept as ``deleted`` so other devices learn about them.
+    """
+
+    class Kind(models.TextChoices):
+        HIGHLIGHT = "highlight", "Highlight"
+        NOTE = "note", "Note"
+        BOOKMARK = "bookmark", "Bookmark"
+
+    id = models.UUIDField(primary_key=True)
+    owner = models.CharField(max_length=120, db_index=True)
+    owner_name = models.CharField(max_length=120)
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    document_id = models.CharField(max_length=128)
+    revision = models.PositiveIntegerField()
+    topic_id = models.CharField(max_length=128)
+    topic_number = models.CharField(max_length=64, blank=True)
+    node_id = models.CharField(max_length=128, blank=True)
+    start = models.PositiveIntegerField(null=True, blank=True)
+    end = models.PositiveIntegerField(null=True, blank=True)
+    quote = models.TextField(blank=True)
+    anchor_text = models.TextField(blank=True)
+    note = models.TextField(blank=True)
+    detached = models.BooleanField(default=False)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField()
+    deleted = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [models.Index(fields=("owner", "document_id"), name="annotation_owner_doc_idx")]
+
+    def __str__(self) -> str:
+        return f"{self.kind} by {self.owner_name} on {self.document_id} {self.node_id}"
