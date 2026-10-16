@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { resolveNodeFromApi } from "../api/client";
@@ -8,9 +8,13 @@ import type {
   XrefSegment,
 } from "../types/api";
 import {
-  blockText,
+  anchorFor,
+  partText,
+  resolveRange,
   useAnnotations,
-  type AnnotationTarget,
+  type Annotation,
+  type AnnotationKind,
+  type TextAnchor,
 } from "../annotations/annotations";
 import { DATA_SOURCE } from "../config/dataSource";
 import { AffectedAnnotations } from "./AffectedAnnotations";
@@ -23,26 +27,88 @@ interface BlockProps {
   revision: number;
   dataSource?: "mock" | "api";
   targetNodeId?: string;
-  /** Extra classes for annotation state, e.g. highlighted or bookmarked. */
+  /** Extra classes for annotation state, e.g. bookmarked. */
   marks?: string;
 }
 
+/** An annotation placed on a piece of text, after re-attaching it to this revision. */
+interface PlacedMark {
+  id: string;
+  kind: AnnotationKind;
+  start: number;
+  end: number;
+}
+
+/** Looks up the annotations placed on one piece of text in a block. */
+const MarkContext = createContext<(nodeId: string, part: string) => PlacedMark[]>(() => []);
+
+/**
+ * Splits text that starts at `offset` within its piece into plain runs and <mark> runs.
+ * Overlapping annotations share a run and are all listed on it.
+ */
+function withMarks(text: string, offset: number, marks: PlacedMark[]): ReactNode[] {
+  const end = offset + text.length;
+  const local = marks.filter((mark) => mark.end > offset && mark.start < end);
+  if (local.length === 0) return [text];
+  const cuts = new Set([0, text.length]);
+  for (const mark of local) {
+    cuts.add(Math.max(0, mark.start - offset));
+    cuts.add(Math.min(text.length, mark.end - offset));
+  }
+  const points = [...cuts].sort((a, b) => a - b);
+  return points.slice(0, -1).map((from, index) => {
+    const to = points[index + 1];
+    const piece = text.slice(from, to);
+    const covering = local.filter(
+      (mark) => mark.start - offset <= from && mark.end - offset >= to,
+    );
+    if (covering.length === 0) return piece;
+    const kinds = new Set(covering.map((mark) => mark.kind));
+    return (
+      <mark
+        className={["annotation-mark", ...[...kinds].map((kind) => `annotation-mark--${kind}`)].join(" ")}
+        data-annotation-ids={covering.map((mark) => mark.id).join(" ")}
+        key={`${offset + from}-${offset + to}`}
+      >
+        {piece}
+      </mark>
+    );
+  });
+}
+
+/** Wraps one selectable piece of text so a selection inside it can be mapped back to the manual. */
+function Anchored({ nodeId, part, text }: { nodeId: string; part: string; text: string }) {
+  const lookup = useContext(MarkContext);
+  return (
+    <span data-anchor-node={nodeId} data-anchor-part={part}>
+      {withMarks(text, 0, lookup(nodeId, part))}
+    </span>
+  );
+}
+
 function InlineSegments({
+  nodeId,
   segments,
   docId,
   revision,
   dataSource,
 }: {
+  nodeId: string;
   segments: Extract<ContentBlock, { segments: unknown }>["segments"];
   docId: string;
   revision: number;
   dataSource: "mock" | "api";
 }) {
+  const lookup = useContext(MarkContext);
+  const marks = lookup(nodeId, "text");
+  let offset = 0;
   return (
-    <>
+    <span data-anchor-node={nodeId} data-anchor-part="text">
       {segments.map((segment, index) => {
+        const start = offset;
+        offset += segment.text.length;
         if (segment.type === "text") {
-          return <span key={`${index}-text`}>{segment.text}</span>;
+          return <span key={`${index}-text`}>{withMarks(segment.text, start, marks)}</span>;
         }
 
         return (
@@ -50,22 +116,26 @@ function InlineSegments({
             dataSource={dataSource}
             docId={docId}
             key={`${index}-${segment.targetId}`}
+            label={withMarks(segment.text, start, marks)}
             revision={revision}
             segment={segment}
           />
         );
       })}
-    </>
+    </span>
   );
 }
 
 function XrefSegmentView({
   segment,
+  label,
   dataSource,
   docId,
   revision,
 }: {
   segment: XrefSegment;
+  /** The link text, with any annotation marks applied. */
+  label: ReactNode;
   dataSource: "mock" | "api";
   docId: string;
   revision: number;
@@ -84,12 +154,12 @@ function XrefSegmentView({
         className="xref-link"
         to={`/reader/${encodeURIComponent(docId)}/${revision}?nodeId=${encodeURIComponent(segment.targetId)}`}
       >
-        {segment.text}
+        {label}
       </Link>
     ) : (
       <span className="xref-unavailable">
-        <span>{segment.text}</span>
-        <span className="xref-unavailable__message">
+        <span>{label}</span>
+        <span className="xref-unavailable__message" data-anchor-skip>
           {" "}Not available in this prototype.
         </span>
       </span>
@@ -153,8 +223,8 @@ function XrefSegmentView({
   if (error?.code === "NODE_NOT_FOUND") {
     return (
       <span className="xref-unavailable">
-        <span>{segment.text}</span>
-        <span className="xref-unavailable__message">
+        <span>{label}</span>
+        <span className="xref-unavailable__message" data-anchor-skip>
           {" "}Not available in this revision.
         </span>
       </span>
@@ -169,11 +239,11 @@ function XrefSegmentView({
         onClick={(event) => void activate(event)}
         to={openHref}
       >
-        {segment.text}
+        {label}
       </Link>
-      {loading && <span role="status"> Resolving reference…</span>}
+      {loading && <span data-anchor-skip role="status"> Resolving reference…</span>}
       {error && (
-        <span className="xref-unavailable" role="alert">
+        <span className="xref-unavailable" data-anchor-skip role="alert">
           {" "}Reference could not be resolved: {error.message}{" "}
           <button
             className="xref-retry"
@@ -193,10 +263,11 @@ function TextBlockView({ block, ...props }: BlockProps & { block: Extract<Conten
   const body = (
     <p>
       <InlineSegments
-        segments={block.segments}
-        docId={props.docId}
-        revision={props.revision}
         dataSource={dataSource}
+        docId={props.docId}
+        nodeId={block.id}
+        revision={props.revision}
+        segments={block.segments}
       />
     </p>
   );
@@ -240,7 +311,9 @@ function ListView({ block, targetNodeId, marks }: BlockProps & { block: Extract<
     >
       <ul>
         {block.items.map((item, index) => (
-          <li key={`${block.id}-${index}`}>{item}</li>
+          <li key={`${block.id}-${index}`}>
+            <Anchored nodeId={block.id} part={`item-${index}`} text={item} />
+          </li>
         ))}
       </ul>
     </div>
@@ -260,18 +333,18 @@ function TableView({ block, targetNodeId, marks }: BlockProps & { block: Extract
         <tbody>
           {block.rows.map((row, rowIndex) => (
             <tr key={`${block.id}-row-${rowIndex}`}>
-              {row.cells.map((cell, cellIndex) =>
-                row.header ? (
-                  <th
-                    key={`${block.id}-${rowIndex}-${cellIndex}`}
-                    scope="col"
-                  >
-                    {cell}
+              {row.cells.map((cell, cellIndex) => {
+                const content = (
+                  <Anchored nodeId={block.id} part={`cell-${rowIndex}-${cellIndex}`} text={cell} />
+                );
+                return row.header ? (
+                  <th key={`${block.id}-${rowIndex}-${cellIndex}`} scope="col">
+                    {content}
                   </th>
                 ) : (
-                  <td key={`${block.id}-${rowIndex}-${cellIndex}`}>{cell}</td>
-                ),
-              )}
+                  <td key={`${block.id}-${rowIndex}-${cellIndex}`}>{content}</td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -294,6 +367,16 @@ function ChecklistView({
   onResetChecks: (checkIds: string[]) => void;
 }) {
   const doneCount = block.checks.filter((check) => completedChecks[check.id]).length;
+  // Selecting words in a line, or tapping an annotation, should not tick the box.
+  const keepTickForTaps = (event: MouseEvent<HTMLLabelElement>) => {
+    const selection = window.getSelection();
+    if (
+      (selection && !selection.isCollapsed) ||
+      (event.target as HTMLElement).closest("mark")
+    ) {
+      event.preventDefault();
+    }
+  };
 
   return (
     <section
@@ -324,17 +407,19 @@ function ChecklistView({
             id={check.id}
             key={check.id}
           >
-            <label>
+            <label onClick={keepTickForTaps}>
               <input
                 checked={Boolean(completedChecks[check.id])}
                 onChange={() => onToggleCheck(check.id)}
                 type="checkbox"
               />
               <span className="checklist-item__challenge">
-                {check.challenge}
+                <Anchored nodeId={block.id} part={`${check.id}:challenge`} text={check.challenge} />
               </span>
               <span aria-hidden="true" className="checklist-item__leader" />
-              <span className="checklist-item__response">{check.response}</span>
+              <span className="checklist-item__response">
+                <Anchored nodeId={block.id} part={`${check.id}:response`} text={check.response} />
+              </span>
             </label>
           </li>
         ))}
@@ -354,45 +439,55 @@ interface ContentBlocksProps {
   onResetChecks: (checkIds: string[]) => void;
 }
 
-function NoteEditor({
-  blockId,
-  initialText,
-  onSave,
-  onCancel,
-}: {
-  blockId: string;
-  initialText: string;
-  onSave: (text: string) => void;
-  onCancel: () => void;
-}) {
-  const [text, setText] = useState(initialText);
-  const save = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    onSave(text);
-  };
-
-  return (
-    <form className="annotation-editor" onSubmit={save}>
-      <label htmlFor={`note-${blockId}`}>Your note</label>
-      <textarea
-        autoFocus
-        id={`note-${blockId}`}
-        onChange={(event) => setText(event.target.value)}
-        rows={3}
-        value={text}
-      />
-      <div className="annotation-editor__actions">
-        <button className="button button--primary" type="submit">Save note</button>
-        <button className="button button--secondary" onClick={onCancel} type="button">
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
+/** Where to draw the floating bar: just below the selection, or above it near the bottom of the screen. */
+interface Spot {
+  top: number;
+  bottom: number;
+  centre: number;
 }
 
-/** Taps on these keep their own behaviour instead of selecting the block. */
-const INTERACTIVE = "a, button, input, label, select, textarea";
+function spotOf(target: Range | Element): Spot {
+  const box =
+    typeof target.getBoundingClientRect === "function"
+      ? target.getBoundingClientRect()
+      : { top: 0, bottom: 0, left: 0, width: 0 };
+  return { top: box.top, bottom: box.bottom, centre: box.left + box.width / 2 };
+}
+
+function floatingStyle(spot: Spot) {
+  const below = spot.bottom + 160 < window.innerHeight;
+  const left = Math.min(Math.max(spot.centre, 180), window.innerWidth - 180);
+  return below
+    ? { top: spot.bottom + 10, left }
+    : { top: spot.top - 10, left, transform: "translate(-50%, -100%)" };
+}
+
+/** Character offset of a selection boundary within a piece of text, ignoring helper text such as "Not available". */
+function offsetWithin(root: HTMLElement, node: Node, nodeOffset: number): number {
+  const range = document.createRange();
+  range.setStart(root, 0);
+  range.setEnd(node, nodeOffset);
+  const copy = range.cloneContents();
+  copy.querySelectorAll("[data-anchor-skip]").forEach((element) => element.remove());
+  return copy.textContent?.length ?? 0;
+}
+
+function anchorElement(node: Node): HTMLElement | null {
+  const element = node.nodeType === Node.ELEMENT_NODE ? (node as Element) : node.parentElement;
+  return element?.closest<HTMLElement>("[data-anchor-part]") ?? null;
+}
+
+type Floating =
+  | { kind: "selection"; anchor: TextAnchor; spot: Spot }
+  | { kind: "too-wide"; spot: Spot }
+  | { kind: "existing"; ids: string[]; spot: Spot }
+  | { kind: "note"; spot: Spot; anchor?: TextAnchor; noteId?: string; text: string };
+
+const KIND_NAME: Record<AnnotationKind, string> = {
+  highlight: "highlight",
+  note: "note",
+  bookmark: "bookmark",
+};
 
 export function ContentBlocks({
   topic,
@@ -405,10 +500,98 @@ export function ContentBlocks({
   onResetChecks,
 }: ContentBlocksProps) {
   const store = useAnnotations();
-  const [selectedId, setSelectedId] = useState<string>();
-  const [editingId, setEditingId] = useState<string>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [floating, setFloating] = useState<Floating>();
+  const blocksById = useMemo(
+    () => new Map(topic.blocks.map((block) => [block.id, block])),
+    [topic.blocks],
+  );
 
-  const renderBlock = (block: ContentBlock, marks: string): ReactNode => {
+  // Annotations re-attached to this revision's text, grouped by piece of text.
+  const placed = useMemo(() => {
+    const byPart = new Map<string, PlacedMark[]>();
+    const all: (Annotation & { start: number; end: number })[] = [];
+    for (const annotation of store?.annotations ?? []) {
+      if (annotation.docId !== docId) continue;
+      const text = partText(blocksById.get(annotation.nodeId), annotation.part);
+      const range = text === undefined ? undefined : resolveRange(annotation, text);
+      if (!range) continue;
+      const key = `${annotation.nodeId}|${annotation.part}`;
+      byPart.set(key, [...(byPart.get(key) ?? []), { id: annotation.id, kind: annotation.kind, ...range }]);
+      all.push({ ...annotation, ...range });
+    }
+    return { byPart, all };
+  }, [store?.annotations, docId, blocksById]);
+  const lookup = (nodeId: string, part: string) => placed.byPart.get(`${nodeId}|${part}`) ?? [];
+
+  // Read the current selection; show the bar if it sits inside one piece of text in this topic.
+  const readSelection = () => {
+    const root = containerRef.current;
+    const selection = window.getSelection();
+    if (!root || !selection || selection.rangeCount === 0) return;
+    if (selection.isCollapsed) {
+      setFloating((current) =>
+        current?.kind === "selection" || current?.kind === "too-wide" ? undefined : current,
+      );
+      return;
+    }
+    const range = selection.getRangeAt(0);
+    if (!root.contains(range.commonAncestorContainer)) return;
+    const from = anchorElement(range.startContainer);
+    const to = anchorElement(range.endContainer);
+    if (!from || from !== to) {
+      setFloating({ kind: "too-wide", spot: spotOf(range) });
+      return;
+    }
+    const nodeId = from.dataset.anchorNode ?? "";
+    const part = from.dataset.anchorPart ?? "";
+    const text = partText(blocksById.get(nodeId), part);
+    if (text === undefined) return;
+    let start = offsetWithin(from, range.startContainer, range.startOffset);
+    let end = offsetWithin(from, range.endContainer, range.endOffset);
+    while (start < end && /\s/.test(text[start])) start++;
+    while (end > start && /\s/.test(text[end - 1])) end--;
+    if (end <= start) return;
+    setFloating({ kind: "selection", anchor: anchorFor(nodeId, part, text, start, end), spot: spotOf(range) });
+  };
+
+  useEffect(() => {
+    if (!store) return;
+    const onSelectionChange = () => readSelection();
+    const onScroll = () =>
+      setFloating((current) => (current?.kind === "note" ? current : undefined));
+    document.addEventListener("selectionchange", onSelectionChange);
+    window.addEventListener("scroll", onScroll, true);
+    return () => {
+      document.removeEventListener("selectionchange", onSelectionChange);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  });
+
+  const clearSelection = () => window.getSelection()?.removeAllRanges();
+  const target = (anchor: TextAnchor) => ({ docId, revision, topicId: topic.id, ...anchor });
+
+  // Tapping an existing mark opens its actions.
+  const onContentClick = (event: MouseEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return;
+    const mark = (event.target as HTMLElement).closest<HTMLElement>("mark[data-annotation-ids]");
+    if (mark) {
+      setFloating({
+        kind: "existing",
+        ids: (mark.dataset.annotationIds ?? "").split(" "),
+        spot: spotOf(mark),
+      });
+    } else if (floating?.kind === "existing") {
+      setFloating(undefined);
+    }
+  };
+
+  const renderBlock = (block: ContentBlock): ReactNode => {
+    const bookmarked = placed.all.some(
+      (annotation) => annotation.nodeId === block.id && annotation.kind === "bookmark",
+    );
+    const marks = bookmarked ? "content-block--bookmarked" : "";
     switch (block.type) {
       case "para":
       case "note":
@@ -468,109 +651,214 @@ export function ContentBlocks({
   };
 
   if (!store) {
-    return <div className="topic-content">{topic.blocks.map((block) => renderBlock(block, ""))}</div>;
+    return <div className="topic-content">{topic.blocks.map(renderBlock)}</div>;
   }
 
-  // Tapping a block (not a link, checkbox or button inside it) opens its annotation bar.
-  const selectBlock = (event: MouseEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement;
-    if (target.closest(INTERACTIVE)) return;
-    const block = target.closest<HTMLElement>(".topic-content > .content-block");
-    if (!block) return;
-    setSelectedId((current) => (current === block.id ? undefined : block.id));
-    setEditingId(undefined);
+  // Notes are listed under the block they belong to, so they stay readable while flying.
+  const notesFor = (blockId: string) =>
+    placed.all.filter((annotation) => annotation.nodeId === blockId && annotation.kind === "note");
+
+  const existing =
+    floating?.kind === "existing"
+      ? store.annotations.filter((annotation) => floating.ids.includes(annotation.id))
+      : [];
+
+  return (
+    <MarkContext.Provider value={lookup}>
+      <AffectedAnnotations docId={docId} revision={revision} topic={topic} />
+      <div
+        className="topic-content topic-content--annotatable"
+        onClick={onContentClick}
+        onKeyUp={readSelection}
+        onMouseUp={readSelection}
+        onTouchEnd={readSelection}
+        ref={containerRef}
+      >
+        {topic.blocks.map((block) => [
+          renderBlock(block),
+          ...notesFor(block.id).map((note) => (
+            <aside aria-label="Your note" className="annotation-note" key={`${note.id}-note`}>
+              <span className="annotation-note__label">Your note</span>
+              <q className="annotation-note__quote">{note.quote}</q>
+              <p>{note.note}</p>
+              <button
+                className="text-button annotation-note__edit"
+                onClick={(event) =>
+                  setFloating({
+                    kind: "note",
+                    noteId: note.id,
+                    spot: spotOf(event.currentTarget),
+                    text: note.note ?? "",
+                  })
+                }
+                type="button"
+              >
+                Edit note
+              </button>
+            </aside>
+          )),
+        ])}
+      </div>
+      {floating && floating.kind !== "note" && (
+        <div
+          aria-label={floating.kind === "existing" ? "Annotation actions" : "Annotate selection"}
+          className="selection-bar"
+          onMouseDown={(event) => event.preventDefault()}
+          role="toolbar"
+          style={floatingStyle(floating.spot)}
+        >
+          {floating.kind === "too-wide" && (
+            <span className="selection-bar__hint">
+              Select text within one paragraph, list item, table cell or checklist line.
+            </span>
+          )}
+          {floating.kind === "selection" && (
+            <>
+              <button
+                onClick={() => {
+                  store.add("highlight", target(floating.anchor));
+                  clearSelection();
+                  setFloating(undefined);
+                }}
+                type="button"
+              >
+                Highlight
+              </button>
+              <button
+                onClick={() => {
+                  clearSelection();
+                  setFloating({ kind: "note", anchor: floating.anchor, spot: floating.spot, text: "" });
+                }}
+                type="button"
+              >
+                Note
+              </button>
+              <button
+                onClick={() => {
+                  store.add("bookmark", target(floating.anchor));
+                  clearSelection();
+                  setFloating(undefined);
+                }}
+                type="button"
+              >
+                Bookmark
+              </button>
+            </>
+          )}
+          {floating.kind === "existing" && (
+            <>
+              {existing.map((annotation) =>
+                annotation.kind === "note" ? (
+                  <button
+                    key={annotation.id}
+                    onClick={() =>
+                      setFloating({
+                        kind: "note",
+                        noteId: annotation.id,
+                        spot: floating.spot,
+                        text: annotation.note ?? "",
+                      })
+                    }
+                    type="button"
+                  >
+                    Edit note
+                  </button>
+                ) : (
+                  <button
+                    key={annotation.id}
+                    onClick={() => {
+                      store.remove(annotation.id);
+                      setFloating(undefined);
+                    }}
+                    type="button"
+                  >
+                    Remove {KIND_NAME[annotation.kind]}
+                  </button>
+                ),
+              )}
+              <button onClick={() => setFloating(undefined)} type="button">
+                Done
+              </button>
+            </>
+          )}
+        </div>
+      )}
+      {floating?.kind === "note" && (
+        <NotePopover
+          initialText={floating.text}
+          key={floating.noteId ?? `${floating.anchor?.nodeId}-${floating.anchor?.start}`}
+          onCancel={() => setFloating(undefined)}
+          onDelete={
+            floating.noteId
+              ? () => {
+                  store.remove(floating.noteId as string);
+                  setFloating(undefined);
+                }
+              : undefined
+          }
+          onSave={(text) => {
+            if (floating.noteId) {
+              store.updateNote(floating.noteId, text);
+            } else if (floating.anchor && text.trim()) {
+              store.add("note", target(floating.anchor), text.trim());
+            }
+            setFloating(undefined);
+          }}
+          quote={
+            floating.anchor?.quote ??
+            store.annotations.find((annotation) => annotation.id === floating.noteId)?.quote ??
+            ""
+          }
+          style={floatingStyle(floating.spot)}
+        />
+      )}
+    </MarkContext.Provider>
+  );
+}
+
+function NotePopover({
+  quote,
+  initialText,
+  style,
+  onSave,
+  onCancel,
+  onDelete,
+}: {
+  quote: string;
+  initialText: string;
+  style: ReturnType<typeof floatingStyle>;
+  onSave: (text: string) => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+}) {
+  const [text, setText] = useState(initialText);
+  const save = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    onSave(text);
   };
 
   return (
-    <>
-    <AffectedAnnotations docId={docId} revision={revision} topic={topic} />
-    <div className="topic-content topic-content--annotatable" onClick={selectBlock}>
-      {topic.blocks.map((block) => {
-        const mine = store.annotations.filter(
-          (annotation) => annotation.docId === docId && annotation.nodeId === block.id,
-        );
-        const has = (kind: string) => mine.some((annotation) => annotation.kind === kind);
-        const note = mine.find((annotation) => annotation.kind === "note");
-        const selected = selectedId === block.id;
-        const editing = editingId === block.id;
-        const marks = [
-          has("highlight") ? "content-block--highlighted" : "",
-          has("bookmark") ? "content-block--bookmarked" : "",
-          selected ? "content-block--selected" : "",
-        ]
-          .filter(Boolean)
-          .join(" ");
-        const target: AnnotationTarget = {
-          docId,
-          revision,
-          topicId: topic.id,
-          nodeId: block.id,
-          text: blockText(block),
-        };
-
-        return [
-          renderBlock(block, marks),
-          note && !editing && (
-            <aside aria-label="Your note" className="annotation-note" key={`${block.id}-note`}>
-              <span className="annotation-note__label">Your note</span>
-              <p>{note.note}</p>
-            </aside>
-          ),
-          selected && !editing && (
-            <div
-              aria-label="Annotate this block"
-              className="annotation-bar"
-              key={`${block.id}-bar`}
-              role="toolbar"
-            >
-              <button
-                aria-pressed={has("bookmark")}
-                className="button button--secondary"
-                onClick={() => store.toggle("bookmark", target)}
-                type="button"
-              >
-                {has("bookmark") ? "Remove bookmark" : "Bookmark"}
-              </button>
-              <button
-                aria-pressed={has("highlight")}
-                className="button button--secondary"
-                onClick={() => store.toggle("highlight", target)}
-                type="button"
-              >
-                {has("highlight") ? "Remove highlight" : "Highlight"}
-              </button>
-              <button
-                className="button button--secondary"
-                onClick={() => setEditingId(block.id)}
-                type="button"
-              >
-                {note ? "Edit note" : "Add note"}
-              </button>
-              <button
-                className="button button--secondary annotation-bar__done"
-                onClick={() => setSelectedId(undefined)}
-                type="button"
-              >
-                Done
-              </button>
-            </div>
-          ),
-          editing && (
-            <NoteEditor
-              blockId={block.id}
-              initialText={note?.note ?? ""}
-              key={`${block.id}-editor`}
-              onCancel={() => setEditingId(undefined)}
-              onSave={(text) => {
-                store.saveNote(target, text);
-                setEditingId(undefined);
-                setSelectedId(undefined);
-              }}
-            />
-          ),
-        ];
-      })}
-    </div>
-    </>
+    <form aria-label="Note" className="note-popover" onSubmit={save} style={style}>
+      <q className="annotation-note__quote">{quote}</q>
+      <label htmlFor="note-text">Your note</label>
+      <textarea
+        autoFocus
+        id="note-text"
+        onChange={(event) => setText(event.target.value)}
+        rows={3}
+        value={text}
+      />
+      <div className="note-popover__actions">
+        <button className="button button--primary" type="submit">Save note</button>
+        <button className="button button--secondary" onClick={onCancel} type="button">
+          Cancel
+        </button>
+        {onDelete && (
+          <button className="button button--secondary note-popover__delete" onClick={onDelete} type="button">
+            Delete note
+          </button>
+        )}
+      </div>
+    </form>
   );
 }
