@@ -56,6 +56,33 @@ describe("document library", () => {
   });
 });
 
+describe("sign in and connection status", () => {
+  it("opens the sign-in page from the library and returns to the library on submit", () => {
+    renderApp();
+    fireEvent.click(screen.getByRole("link", { name: "Sign in" }));
+
+    expect(screen.getByRole("heading", { name: "Sign in to Pilot EFB" })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Employee ID"), { target: { value: "SAMPLE1" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "sample" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(screen.getByRole("heading", { name: "Document library" })).toBeTruthy();
+  });
+
+  it("shows the browser's connection state in the top bar", () => {
+    const onLine = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+    renderApp();
+    expect(screen.getByText("Online")).toBeTruthy();
+
+    onLine.mockReturnValue(false);
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    expect(screen.getByText("Offline")).toBeTruthy();
+    onLine.mockRestore();
+  });
+});
+
 describe("reader", () => {
   it("renders and expands the source navigation hierarchy", () => {
     renderApp("/reader/FM-S100/2");
