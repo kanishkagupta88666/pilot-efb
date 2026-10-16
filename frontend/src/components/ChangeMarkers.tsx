@@ -205,10 +205,13 @@ export function ChangeFrame({
   change,
   revisions,
   children,
+  onInspect,
 }: {
   change: BlockChange;
   revisions: ComparedRevisions;
   children: ReactNode;
+  /** Called when the person opens the comparison (for the audit log). */
+  onInspect?: (blockId: string, status: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -222,7 +225,10 @@ export function ChangeFrame({
         aria-controls={panelId}
         aria-expanded={open}
         className={`change-badge change-badge--${change.status}`}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          if (!open) onInspect?.(change.id, change.status);
+          setOpen((value) => !value);
+        }}
         type="button"
       >
         {STATUS_LABEL[change.status]}
@@ -241,10 +247,12 @@ function RemovedMarker({
   heading,
   previous,
   revisions,
+  onOpen,
 }: {
   heading: ReactNode;
   previous: ReactNode;
   revisions: ComparedRevisions;
+  onOpen?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -256,7 +264,10 @@ function RemovedMarker({
           aria-controls={panelId}
           aria-expanded={open}
           className="change-badge change-badge--removed"
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => {
+            if (!open) onOpen?.();
+            setOpen((value) => !value);
+          }}
           type="button"
         >
           {STATUS_LABEL.removed}
@@ -283,14 +294,17 @@ export function excerpt(text: string, words = 12): string {
 export function RemovedBlockMarker({
   change,
   revisions,
+  onInspect,
 }: {
   change: BlockChange;
   revisions: ComparedRevisions;
+  onInspect?: (blockId: string, status: string) => void;
 }) {
   const text = change.previous ? blockText(change.previous) : "";
   return (
     <RemovedMarker
       heading={<s className="removed-marker__excerpt">{excerpt(text)}</s>}
+      onOpen={() => onInspect?.(change.id, "removed")}
       previous={removedBlockText(change)}
       revisions={revisions}
     />
@@ -300,9 +314,11 @@ export function RemovedBlockMarker({
 export function RemovedTopicMarker({
   topic,
   revisions,
+  onInspect,
 }: {
   topic: RemovedTopicChange;
   revisions: ComparedRevisions;
+  onInspect?: (nodeId: string, status: string) => void;
 }) {
   return (
     <RemovedMarker
@@ -311,6 +327,7 @@ export function RemovedTopicMarker({
           <span className="removed-marker__number">{topic.number}</span> {topic.title}
         </>
       }
+      onOpen={() => onInspect?.(topic.id, "removed")}
       previous={removedTopicText(topic)}
       revisions={revisions}
     />

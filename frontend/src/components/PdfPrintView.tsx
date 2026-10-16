@@ -311,9 +311,21 @@ export default function PdfPrintView({
     const nextId = outlineIds[outlineIds.indexOf(topicId) + 1];
     const nextHeading =
       nextId && outline.status === "ready"
-        ? locateText(allRuns, outline.data.nodes[nextId].heading)
+        ? // Headings can be two words ("Section 4"); still accepted only if unique.
+          locateText(allRuns, outline.data.nodes[nextId].heading, 2)
         : undefined;
-    const topicEnd = nextHeading?.placed ? nextHeading.boxes : undefined;
+    let topicEnd = nextHeading?.placed ? boxAbove(nextHeading.boxes) : undefined;
+    if (!topicEnd && !nextId) {
+      // The last topic of the document has no next heading: its end is just
+      // below its last paragraph that was located.
+      for (let index = blocks.length - 1; index >= 0; index -= 1) {
+        const boxes = blocks[index].status === "removed" ? undefined : placedAt(index);
+        if (boxes) {
+          topicEnd = boxBelow(boxes);
+          break;
+        }
+      }
+    }
 
     /** Below the nearest located block before ``index``, else above the next one. */
     const anchorFor = (index: number): PlacedBox[] | undefined => {
@@ -329,7 +341,7 @@ export default function PdfPrintView({
         if (after) return boxAbove(after);
         break;
       }
-      return index === blocks.length - 1 && topicEnd ? boxAbove(topicEnd) : undefined;
+      return index === blocks.length - 1 && topicEnd ? topicEnd : undefined;
     };
 
     blocks.forEach((entry: BlockChange, index) => {
@@ -378,14 +390,16 @@ export default function PdfPrintView({
           key: `topic-${topic.id}`,
           tone: "removed",
           label: "Removed",
-          boxes: boxAbove(topicEnd),
+          boxes: topicEnd,
           panel,
         });
       } else {
         notPlaced.push({
           key: `topic-${topic.id}`,
           label: "Removed",
-          excerpt: `${topic.number} ${topic.title}`,
+          excerpt: topic.title.split(/\s+/).includes(topic.number)
+            ? topic.title
+            : `${topic.number} ${topic.title}`,
           reason: REASONS["no-anchor"],
           panel,
         });

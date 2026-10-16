@@ -11,6 +11,11 @@ export type OutlineChapter = Omit<Chapter, "sections"> & {
   mock?: true;
 };
 
+/** The number to show beside a title, or undefined when the title already carries it ("Section 3"). */
+export function displayNumber(number: string, title: string): string | undefined {
+  return number && !title.split(/\s+/).includes(number) ? number : undefined;
+}
+
 /** Titles from the chapter down to the given topic, for the breadcrumb line. */
 export function topicTrail(chapters: OutlineChapter[], topicId?: string): string[] {
   for (const chapter of chapters) {
@@ -34,7 +39,11 @@ function OutlineLabel({
   return (
     <>
       <span className="outline-label">
-        <span className="outline-number">{number}</span>{" "}
+        {displayNumber(number, title) && (
+          <>
+            <span className="outline-number">{number}</span>{" "}
+          </>
+        )}
         <span>{title}</span>
       </span>
       {mock && <span className="mock-badge">MOCK</span>}

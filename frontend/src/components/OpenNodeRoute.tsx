@@ -7,6 +7,7 @@ import {
 } from "../api/client";
 import type { NodeChangesResponse } from "../types/api";
 import { blockText } from "./ChangeMarkers";
+import { recordAudit } from "../utils/auditLog";
 import { DATA_SOURCE } from "../config/dataSource";
 import { readerPathForResolution } from "../utils/readerLink";
 import { ApiErrorState, LoadingState } from "./RequestStates";
@@ -91,6 +92,12 @@ export function ApiOpenNodeRoute({
       if (controller.signal.aborted) return;
       if (!result.ok) {
         setError(result.error);
+        void recordAudit("deeplink.opened", {
+          documentId: doc,
+          nodeId: node,
+          revision: rev,
+          details: { outcome: result.error.code },
+        });
         const earlier = result.error.details?.availableRevisions;
         if (result.error.code === "NODE_NOT_FOUND" && Array.isArray(earlier)) {
           const lastSeen = Math.max(
@@ -128,6 +135,12 @@ export function ApiOpenNodeRoute({
         return;
       }
 
+      void recordAudit("deeplink.opened", {
+        documentId: doc,
+        nodeId: node,
+        revision: resolution.selectedRevision,
+        details: { outcome: "opened", topicId: resolution.topicId, requestedRevision: rev ?? null },
+      });
       navigate(
         readerPathForResolution(resolution),
         { replace: true },

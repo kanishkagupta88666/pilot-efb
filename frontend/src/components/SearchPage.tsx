@@ -22,6 +22,7 @@ import {
 } from "../utils/offlineSearchStore";
 import { prepareDocument, searchLocal, wordMatches, words } from "../utils/searchIndex";
 import { ApiErrorState } from "./RequestStates";
+import { recordAudit } from "../utils/auditLog";
 
 /** Wait this long after the last keystroke before searching. */
 const TYPING_DELAY_MS = 200;
@@ -64,7 +65,8 @@ function filtersFrom(params: URLSearchParams): SearchFilters {
     docTypes: params.getAll("docType"),
     fleet: params.get("fleet") ?? undefined,
     categories: params.getAll("category").filter(
-      (value): value is SearchCategory => value === "master" || value === "fleet",
+      (value): value is SearchCategory =>
+        value === "master" || value === "fleet" || value === "supplemental",
     ),
     contentTypes: params.getAll("contentType").filter(
       (value): value is SearchContentType => value === "warnings" || value === "procedures",
@@ -167,7 +169,12 @@ export function SearchPage() {
             title: current.metadata.title,
             docType: document.docType,
             applicability,
-            category: applicability.trim().toUpperCase() === "ALL" ? "master" : "fleet",
+            category:
+              current.metadata.source === "pdf-only"
+                ? "supplemental"
+                : applicability.trim().toUpperCase() === "ALL"
+                  ? "master"
+                  : "fleet",
             revision: current.revision,
             effectiveDate: current.effectiveDate,
           } satisfies SearchableDocument];
@@ -218,6 +225,22 @@ export function SearchPage() {
     });
     return () => controller.abort();
   }, [query, filters, prepared, indexState.status, attempt]);
+
+  // Audit: a search counts once the person stops typing, not for every keystroke.
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const timer = window.setTimeout(() => {
+      void recordAudit("search.performed", {
+        details: {
+          query,
+          filters: Object.fromEntries(new URLSearchParams(filterKey)),
+          total: state.response.total,
+          source: state.source,
+        },
+      });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [state, query, filterKey]);
 
   const filterDocuments = documents.length ? documents : (saved?.documents ?? []);
   const docTypes = [...new Set(filterDocuments.map((document) => document.docType))].sort();
@@ -272,7 +295,11 @@ export function SearchPage() {
       return;
     }
     try {
-      setIndexState({ status: "saved", index: await saveIndex(result.data.documents) });
+      const index = await saveIndex(result.data.documents);
+      setIndexState({ status: "saved", index });
+      void recordAudit("search.index_saved", {
+        details: { documents: index.documents.map((d) => `${d.docId} Rev ${d.revision}`) },
+      });
     } catch {
       setIndexState({ status: "error", message: "The index could not be saved on this device." });
     }
@@ -381,6 +408,7 @@ export function SearchPage() {
             <option value="">All categories</option>
             <option value="master">Master documents</option>
             <option value="fleet">Fleet manuals</option>
+            <option value="supplemental">Supplemental documents</option>
           </select>
         </span>
       </div>

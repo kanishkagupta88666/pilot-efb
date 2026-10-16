@@ -63,6 +63,15 @@ describe("searchLocal", () => {
     ]);
   });
 
+  it("keeps supplemental documents for all fleets under a fleet filter, like the API", () => {
+    const bulletin = { ...fixture("BULLETIN", "ALL", "BULLETIN"), category: "supplemental" as const };
+    const documents = [prepareDocument(fixture("FLEET-2", "SAMPLE-2")), prepareDocument(bulletin)];
+    expect(Object.keys(searchLocal("engine", documents, { fleet: "SAMPLE-1" }).byDocument)).toEqual(["BULLETIN"]);
+    expect(Object.keys(searchLocal("engine", documents, { categories: ["supplemental"] }).byDocument)).toEqual([
+      "BULLETIN",
+    ]);
+  });
+
   it("filters by document type and category", () => {
     const documents = [prepareDocument(fixture("A", "SAMPLE-1", "FM")), prepareDocument(fixture("B", "ALL", "FOM"))];
     expect(Object.keys(searchLocal("engine", documents, { docTypes: ["FOM"] }).byDocument)).toEqual(["B"]);

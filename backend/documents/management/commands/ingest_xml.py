@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
+from documents import audit
 from documents.ingestion import ingest_xml
 
 
@@ -34,6 +35,13 @@ class Command(BaseCommand):
                 self.stderr.write(f"Unresolved cross-reference: {issue['message']}")
             raise CommandError(result.message or "XML ingestion failed.")
 
+        audit.record(
+            "document.ingested",
+            document_id=result.document_id,
+            revision=result.revision,
+            details={"source": "xml", "file": options["path"], "replaced": options["replace"],
+                     "topics": result.topics_written},
+        )
         self.stdout.write(
             self.style.SUCCESS(
                 f"Ingested {result.document_id} Rev {result.revision}: "

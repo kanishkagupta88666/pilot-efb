@@ -123,6 +123,9 @@ function LibraryFrame({ children }: { children: ReactNode }) {
         <header className="library-header">
           <h1>Document library</h1>
           <p className="intro">Choose an available manual revision to read.</p>
+          <p className="library-links">
+            <Link to="/audit">Activity log</Link>
+          </p>
           <form action="/search" className="search-form search-form--library" role="search">
             <label className="visually-hidden" htmlFor="library-search">Search published documents</label>
             <input

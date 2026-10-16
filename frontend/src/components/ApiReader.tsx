@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import {
   Link,
   useLocation,
@@ -22,11 +22,12 @@ import type {
 } from "../types/api";
 import { ContentBlocks } from "./ContentBlocks";
 import { OnThisPage } from "./OnThisPage";
-import { Outline, topicTrail } from "./Outline";
+import { displayNumber, Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
 import { TopicHeader } from "./TopicHeader";
+import { recordAudit } from "../utils/auditLog";
 
 const PdfPrintView = lazy(() => import("./PdfPrintView"));
 
@@ -314,6 +315,29 @@ export function ApiReader() {
     return () => controller.abort();
   }, [docId, navigation, selectedTopicId, retryTopic]);
 
+  // Audit: which revision and topic the person had open, and how they got there.
+  const loggedView = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (pageData.status !== "ready" || topicData.status !== "ready") return;
+    const key = `${docId}/${pageData.navigation.version.revision}/${topicData.topic.id}/${viewMode}`;
+    if (loggedView.current === key) return;
+    loggedView.current = key;
+    const revision = pageData.navigation.version.revision;
+    const status = pageData.revisions.find((entry) => entry.revision === revision)?.status;
+    void recordAudit(viewMode === "print" ? "pdf.viewed" : "document.opened", {
+      documentId: docId,
+      revision,
+      nodeId: topicData.topic.id,
+      details: {
+        topicNumber: topicData.topic.number,
+        topicTitle: topicData.topic.title,
+        revisionStatus: status,
+        via: fromSearch ? "search" : targetNodeId ? "link" : "browse",
+        ...(targetNodeId && targetNodeId !== topicData.topic.id ? { target: targetNodeId } : {}),
+      },
+    });
+  }, [docId, pageData, topicData, viewMode, fromSearch, targetNodeId]);
+
   const previousRevision = useMemo(() => {
     if (pageData.status !== "ready" || revision === undefined) return undefined;
     const earlier = pageData.revisions
@@ -466,6 +490,14 @@ export function ApiReader() {
             <Link className="button button--secondary" to="/">Back to library</Link>
           )}
           <Link className="button button--secondary" to="/search">Search</Link>
+          {metadata.source !== "pdf-only" && (
+            <Link
+              className="button button--secondary"
+              to={`/author/${encodeURIComponent(docId)}${selectedTopicId ? `?topicId=${encodeURIComponent(selectedTopicId)}` : ""}`}
+            >
+              Edit
+            </Link>
+          )}
         </>
       }
       aside={
@@ -474,6 +506,7 @@ export function ApiReader() {
           <RevisionRail
             changesData={changesData}
             docId={docId}
+            approximate={metadata.source === "pdf-only"}
             onToggleChanges={() => setShowChanges((value) => !value)}
             placement="panel"
             previousRevision={previousRevision}
@@ -517,7 +550,7 @@ export function ApiReader() {
       <TopicHeader
         effectiveDate={metadata.effectiveDate}
         id={headingTopic === selectedOutlineTopic ? undefined : headingTopic?.id}
-        number={headingTopic?.number}
+        number={headingTopic && displayNumber(headingTopic.number, headingTopic.title)}
         revisionDate={metadata.revisionDate}
         revisionSelector={
           <RevisionSelector
@@ -588,6 +621,7 @@ export function ApiReader() {
           <RevisionRail
             changesData={changesData}
             docId={docId}
+            approximate={metadata.source === "pdf-only"}
             onToggleChanges={() => setShowChanges((value) => !value)}
             placement="inline"
             previousRevision={previousRevision}
@@ -636,6 +670,7 @@ export function ApiReader() {
 }
 
 function RevisionRail({
+  approximate,
   changesData,
   docId,
   previousRevision,
@@ -644,6 +679,8 @@ function RevisionRail({
   onToggleChanges,
   placement,
 }: {
+  /** Changes found by comparing PDF text, not by client IDs. */
+  approximate: boolean;
   changesData: ChangesData;
   docId: string;
   previousRevision?: number;
@@ -678,6 +715,12 @@ function RevisionRail({
       <h2 className="reader-context__heading">
         Revision <span className="reader-context__count">{count || ""}</span>
       </h2>
+      {approximate && (
+        <p className="reader-context__approximate">
+          PDF-only document: changes are found by comparing the text of the two PDFs, so they are
+          approximate. A heavily rewritten paragraph shows as removed and added.
+        </p>
+      )}
       <p>{summary}</p>
       {previousRevision !== undefined && (
         <div className="reader-context__actions">
