@@ -10,7 +10,7 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "./App";
-import { AnnotationProvider, blockText as blockTextOf, type Annotation } from "./annotations/annotations";
+import { AnnotationProvider, anchorFor, type Annotation } from "./annotations/annotations";
 import { ContentBlocks } from "./components/ContentBlocks";
 import {
   getTopic,
@@ -264,47 +264,80 @@ describe("reader", () => {
     );
   });
 
-  it("bookmarks, highlights and notes a block by tapping it, anchored to its permanent ID", () => {
+  it("highlights, notes and bookmarks selected words, anchored to the block's permanent ID", () => {
     const { container } = renderApp("/reader/FM-S100/2");
-    const paragraph = container.querySelector("#fm100-p03214 p") as HTMLElement;
+    const paragraph = container.querySelector(
+      '#fm100-p03214 [data-anchor-part="text"]',
+    ) as HTMLElement;
     const annotations = () => screen.getByRole("region", { name: "Your annotations" });
     const count = (label: string) =>
       within(annotations()).getByText(label).nextElementSibling?.textContent;
+    // Finds the text node and offset for a character position in the paragraph.
+    const position = (offset: number): [Text, number] => {
+      const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+      let remaining = offset;
+      for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+        if (remaining <= node.length) return [node, remaining];
+        remaining -= node.length;
+      }
+      throw new Error("Offset outside the paragraph.");
+    };
+    const selectWords = (from: number, to: number) => {
+      const range = document.createRange();
+      range.setStart(...position(from));
+      range.setEnd(...position(to));
+      const selection = window.getSelection() as Selection;
+      selection.removeAllRanges();
+      selection.addRange(range);
+      fireEvent.mouseUp(paragraph);
+    };
 
-    fireEvent.click(paragraph);
-    fireEvent.click(screen.getByRole("button", { name: "Bookmark" }));
+    // "Values in this manual" are the paragraph's first words.
+    selectWords(0, 6);
     fireEvent.click(screen.getByRole("button", { name: "Highlight" }));
-    fireEvent.click(screen.getByRole("button", { name: "Add note" }));
+    const highlight = container.querySelector("mark.annotation-mark--highlight");
+    expect(highlight?.textContent).toBe("Values");
+    expect(count("Highlights")).toBe("1");
+
+    selectWords(10, 14);
+    fireEvent.click(screen.getByRole("button", { name: "Note" }));
     fireEvent.change(screen.getByLabelText("Your note"), {
       target: { value: "Check against the WOM." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save note" }));
-
-    const block = container.querySelector("#fm100-p03214") as HTMLElement;
-    expect(block.className).toContain("content-block--highlighted");
-    expect(block.className).toContain("content-block--bookmarked");
-    expect(screen.getAllByText("Check against the WOM.").length).toBeGreaterThan(0);
-    expect(count("Highlights")).toBe("1");
+    const noteCard = screen.getByRole("complementary", { name: "Your note" });
+    expect(within(noteCard).getByText("this")).toBeTruthy();
+    expect(within(noteCard).getByText("Check against the WOM.")).toBeTruthy();
     expect(count("Notes")).toBe("1");
-    expect(count("Bookmarks")).toBe("1");
 
-    fireEvent.click(paragraph);
+    selectWords(15, 21);
+    fireEvent.click(screen.getByRole("button", { name: "Bookmark" }));
+    expect(count("Bookmarks")).toBe("1");
+    expect(container.querySelector("#fm100-p03214")?.className).toContain("content-block--bookmarked");
+
+    fireEvent.click(container.querySelector("mark.annotation-mark--highlight") as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: "Remove highlight" }));
-    expect(block.className).not.toContain("content-block--highlighted");
+    expect(container.querySelector("mark.annotation-mark--highlight")).toBeNull();
     expect(count("Highlights")).toBe("0");
   });
 
-  it("asks before keeping or deleting annotations whose text changed in a newer revision", () => {
+  it("asks before keeping or deleting annotations whose words changed in a newer revision", () => {
     const topic = getTopic("FM-S100", 2, "fm100-t0340").topic;
+    const first = topic.blocks[0];
+    if (first.type !== "para") throw new Error("Expected the first block to be a paragraph.");
+    const current = first.segments.map((segment) => segment.text).join("");
     const base = { docId: "FM-S100", revision: 1, topicId: topic.id };
     const initial: Annotation[] = [
-      { ...base, id: "a1", kind: "note", nodeId: "fm100-p03214", text: "Old wording.", note: "Check this." },
-      { ...base, id: "a2", kind: "highlight", nodeId: "fm100-p99999", text: "Rescinded text." },
-      { ...base, id: "a3", kind: "bookmark", nodeId: "fm100-p03231", text: "unused" },
+      {
+        ...base,
+        id: "a1",
+        kind: "note",
+        note: "Check this.",
+        ...anchorFor("fm100-p03214", "text", "Old wording that was replaced.", 0, 11),
+      },
+      { ...base, id: "a2", kind: "highlight", ...anchorFor("fm100-p99999", "text", "Rescinded text.", 0, 9) },
+      { ...base, id: "a3", kind: "bookmark", ...anchorFor("fm100-p03214", "text", current, 0, 6) },
     ];
-    const unchanged = topic.blocks.find((block) => block.id === "fm100-p03231");
-    if (!unchanged) throw new Error("Expected the checklist block.");
-    initial[2].text = blockTextOf(unchanged);
 
     render(
       <MemoryRouter>
@@ -324,19 +357,33 @@ describe("reader", () => {
     const dialog = screen.getByRole("dialog", { name: "Annotations affected by this revision" });
     expect(within(dialog).getByText("Text changed")).toBeTruthy();
     expect(within(dialog).getByText("Removed from this topic")).toBeTruthy();
-    expect(within(dialog).getByText("Old wording.")).toBeTruthy();
-    expect(within(dialog).getByText("2 of 3 annotations affected · 1 carried over unchanged", { exact: false })).toBeTruthy();
+    expect(within(dialog).getByText("Old wording")).toBeTruthy();
+    expect(
+      within(dialog).getByText("2 of 3 annotations affected · 1 carried over unchanged", { exact: false }),
+    ).toBeTruthy();
 
     fireEvent.click(within(dialog).getByRole("button", { name: "Keep annotation" }));
-    expect(screen.queryByText("Old wording.")).toBeNull();
+    expect(screen.queryByText("Old wording")).toBeNull();
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("does not open the annotation bar when a checkbox is tapped", () => {
-    renderApp("/reader/FM-S100/2");
-    fireEvent.click(screen.getAllByRole("checkbox")[0]);
-    expect(screen.queryByRole("toolbar", { name: "Annotate this block" })).toBeNull();
+  it("asks for a smaller selection when it spans two blocks", () => {
+    const { container } = renderApp("/reader/FM-S100/2");
+    const parts = container.querySelectorAll("[data-anchor-part]");
+    const range = document.createRange();
+    range.setStart(parts[0].firstChild?.firstChild as Text, 0);
+    range.setEnd(parts[1].firstChild?.firstChild as Text, 3);
+    const selection = window.getSelection() as Selection;
+    selection.removeAllRanges();
+    selection.addRange(range);
+    fireEvent.mouseUp(parts[0]);
+
+    expect(
+      screen.getByText("Select text within one paragraph, list item, table cell or checklist line."),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Highlight" })).toBeNull();
+    selection.removeAllRanges();
   });
 
   it("scrolls to and highlights a requested checklist check", async () => {
