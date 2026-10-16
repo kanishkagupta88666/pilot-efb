@@ -22,6 +22,7 @@ import { OnThisPage } from "./OnThisPage";
 import { Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
+import { RevisionAlert } from "./RevisionAlert";
 import { RevisionSelector } from "./RevisionSelector";
 import { TopicHeader } from "./TopicHeader";
 
@@ -430,6 +431,11 @@ export function ApiReader() {
       }}
       title={metadata.title}
     >
+      <RevisionAlert
+        docId={docId}
+        revision={pageData.navigation.version.revision}
+        revisions={pageData.revisions}
+      />
       <TopicHeader
         effectiveDate={metadata.effectiveDate}
         id={headingTopic === selectedOutlineTopic ? undefined : headingTopic?.id}

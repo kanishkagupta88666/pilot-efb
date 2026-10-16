@@ -1074,3 +1074,32 @@ p {
     display: none;
   }
 }
+
+/* Publish alert */
+
+.revision-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  font-size: 0.95rem;
+}
+
+.revision-alert p {
+  flex: 1 1 20rem;
+  margin: 0;
+}
+
+.revision-alert .button {
+  min-height: 2.75rem;
+}
+
+.revision-alert--caution {
+  border-left-color: var(--caution);
+  background: #f6eddd;
+}
