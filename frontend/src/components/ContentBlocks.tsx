@@ -17,6 +17,7 @@ import {
   type ComparedRevisions,
 } from "./ChangeMarkers";
 import { DATA_SOURCE } from "../config/dataSource";
+import { recordAudit } from "../utils/auditLog";
 import { resolveAvailableTargetId } from "../data/mockData";
 import { readerPathForResolution } from "../utils/readerLink";
 
@@ -430,6 +431,13 @@ export function ContentBlocks({
   }
 
   const blocksById = new Map(topic.blocks.map((block) => [block.id, block]));
+  const inspect = (nodeId: string, status: string) =>
+    void recordAudit("change.inspected", {
+      documentId: docId,
+      revision,
+      nodeId,
+      details: { status, topicId: topic.id, fromRevision: comparedRevisions.from },
+    });
   return (
     <div className="topic-content">
       {changes.map((change) => {
@@ -437,6 +445,7 @@ export function ContentBlocks({
           return (
             <RemovedBlockMarker
               change={change}
+              onInspect={inspect}
               key={`removed-${change.id}`}
               revisions={comparedRevisions}
             />
@@ -445,7 +454,7 @@ export function ContentBlocks({
         const block = blocksById.get(change.id);
         if (!block) return null;
         return (
-          <ChangeFrame change={change} key={change.id} revisions={comparedRevisions}>
+          <ChangeFrame change={change} key={change.id} onInspect={inspect} revisions={comparedRevisions}>
             {renderBlock(block)}
           </ChangeFrame>
         );
@@ -453,6 +462,7 @@ export function ContentBlocks({
       {removedTopicsAfter.map((removed) => (
         <RemovedTopicMarker
           key={`removed-topic-${removed.id}`}
+          onInspect={inspect}
           revisions={comparedRevisions}
           topic={removed}
         />

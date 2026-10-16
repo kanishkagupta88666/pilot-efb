@@ -54,10 +54,46 @@ class _Snapshot:
     blocks: dict[str, tuple[str, dict]]
 
 
-def _load(version: DocumentVersion) -> _Snapshot:
+@dataclass(frozen=True)
+class DraftRevision:
+    """An unpublished draft, compared like a revision numbered ``revision``."""
+
+    document_id: str
+    revision: int
+    payload: dict
+
+
+def _load(version: "DocumentVersion | DraftRevision") -> _Snapshot:
+    if isinstance(version, DraftRevision):
+        return _snapshot_from_rows(version, _payload_rows(version.payload))
     # The ingestion time is part of the key: a revision replaced with
     # ``ingest_xml --replace`` is a new row with a new time, never a stale hit.
     return _load_cached(version.pk, version.ingested_at.isoformat(), version)
+
+
+def _payload_rows(payload: dict) -> list[dict]:
+    """A draft's outline as node rows, in the shape the database returns."""
+    rows: list[dict] = []
+    position = 0
+    for chapter in payload["chapters"]:
+        position += 1
+        chapter_pk = position
+        rows.append({"pk": chapter_pk, "node_id": chapter["id"], "node_type": "chapter",
+                     "number": chapter["number"], "title": chapter["title"], "parent_id": None,
+                     "position": position, "content_blocks": None})
+        for section in chapter["sections"]:
+            position += 1
+            section_pk = position
+            rows.append({"pk": section_pk, "node_id": section["id"], "node_type": "section",
+                         "number": section["number"], "title": section["title"],
+                         "parent_id": chapter_pk, "position": position, "content_blocks": None})
+            for topic in section["topics"]:
+                position += 1
+                rows.append({"pk": position, "node_id": topic["id"], "node_type": "topic",
+                             "number": topic["number"], "title": topic["title"],
+                             "parent_id": section_pk, "position": position,
+                             "content_blocks": payload["topics"][topic["id"]]["blocks"]})
+    return rows
 
 
 @lru_cache(maxsize=8)
@@ -77,6 +113,10 @@ def _load_cached(pk: int, ingested_at: str, version: DocumentVersion) -> _Snapsh
             "content_blocks",
         )
     )
+    return _snapshot_from_rows(version, nodes)
+
+
+def _snapshot_from_rows(version, nodes: list[dict]) -> _Snapshot:
     by_pk = {node["pk"]: node for node in nodes}
     sections: dict[int, _Section] = {}
     for node in nodes:
@@ -178,10 +218,20 @@ def _topic_summary(topic: _Topic) -> dict:
     }
 
 
+def _comparable_title(topic: _Topic) -> str:
+    """The title without the topic's own number.
+
+    A heading such as "Section 5" in a PDF-only document carries its position;
+    renumbering it to "Section 6" moves it, it does not change it. XML titles
+    never contain their number, so for them this is the title unchanged.
+    """
+    return re.sub(rf"(?<!\S){re.escape(topic.number)}(?!\S)", "", topic.title).strip()
+
+
 def _topic_changed(old: _Topic, new: _Topic) -> bool:
-    return old.title != new.title or [block_signature(b) for b in old.blocks] != [
-        block_signature(b) for b in new.blocks
-    ]
+    return _comparable_title(old) != _comparable_title(new) or [
+        block_signature(b) for b in old.blocks
+    ] != [block_signature(b) for b in new.blocks]
 
 
 def compare_versions(old_version: DocumentVersion, new_version: DocumentVersion) -> dict:

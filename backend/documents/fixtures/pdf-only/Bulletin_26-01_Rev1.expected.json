@@ -1,0 +1,56 @@
+{
+  "docId": "BULLETIN-26-01",
+  "fromRevision": 0,
+  "toRevision": 1,
+  "paragraphs": {
+    "modified": [
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "removed": [
+      [
+        3,
+        2
+      ],
+      [
+        6,
+        1
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        6,
+        3
+      ],
+      [
+        6,
+        4
+      ],
+      [
+        6,
+        5
+      ]
+    ],
+    "addedCount": 4
+  },
+  "sections": {
+    "removed": [
+      6
+    ],
+    "addedCount": 1,
+    "renumbered": [
+      [
+        5,
+        6
+      ]
+    ]
+  }
+}

@@ -14,6 +14,10 @@ export interface DocumentMetadata {
   owner: string;
   changeSummary: string;
   classification: string;
+  /** "pdf-only" for documents read from a PDF with no XML source. */
+  source?: string;
+  /** True when node IDs were derived from the PDF rather than supplied by the client. */
+  derivedIds?: boolean;
 }
 
 export interface DocumentRevision {
@@ -247,7 +251,7 @@ export interface PdfOutlineResponse {
   unmatched: string[];
 }
 
-export type SearchCategory = "master" | "fleet";
+export type SearchCategory = "master" | "fleet" | "supplemental";
 
 export interface SearchableDocument {
   docId: string;
@@ -312,4 +316,71 @@ export interface SearchIndexDocument extends SearchableDocument {
 
 export interface SearchIndexResponse {
   documents: SearchIndexDocument[];
+}
+
+/** A text block an author can write: paragraph, note, caution or warning. */
+export type EditableBlockType = "para" | "note" | "caution" | "warning";
+
+export interface DraftResponse {
+  docId: string;
+  baseRevision: number;
+  nextRevision: number;
+  createdAt: string;
+  updatedAt: string;
+  chapters: Chapter[];
+  summary: Record<"modified" | "added" | "removed" | "moved", number>;
+  changes: {
+    topics: RevisionChangesResponse["topics"];
+    blocks: RevisionChangesResponse["blocks"];
+  };
+  /** Publishing needs an effective date on or after this one. */
+  earliestEffectiveDate: string;
+}
+
+export interface PublishResponse {
+  docId: string;
+  revision: number;
+  effectiveDate: string;
+  baseRevision: number;
+}
+
+export interface AuditEventInput {
+  id: string;
+  action: string;
+  occurredAt: string;
+  actor: string;
+  actorRole: string;
+  deviceId: string;
+  documentId?: string;
+  revision?: number;
+  nodeId?: string;
+  details?: Record<string, unknown>;
+  recordedOffline: boolean;
+}
+
+export interface AuditEvent extends Required<Omit<AuditEventInput, "revision">> {
+  sequence: number;
+  receivedAt: string;
+  source: "server" | "device";
+  description: string;
+  revision: number | null;
+}
+
+export interface AuditReceipt {
+  accepted: string[];
+  duplicates: string[];
+  rejected: { id: string; reason: string }[];
+}
+
+export interface AuditPage {
+  events: AuditEvent[];
+  nextBefore: number | null;
+  actions: Record<string, string>;
+}
+
+export interface AuditVerification {
+  intact: boolean;
+  checked: number;
+  problemAt: number | null;
+  problem: string | null;
 }
