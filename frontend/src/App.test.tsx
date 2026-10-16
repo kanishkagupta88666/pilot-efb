@@ -70,6 +70,25 @@ describe("sign in and connection status", () => {
     expect(screen.getByRole("heading", { name: "Document library" })).toBeTruthy();
   });
 
+  it("switches between light and dark mode from the top bar and remembers the choice", () => {
+    const saved = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => saved.get(key) ?? null,
+      setItem: (key: string, value: string) => saved.set(key, value),
+    });
+    delete document.documentElement.dataset.theme;
+    renderApp();
+
+    fireEvent.click(screen.getByRole("button", { name: "Dark mode" }));
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(saved.get("pilot-efb-theme")).toBe("dark");
+
+    fireEvent.click(screen.getByRole("button", { name: "Light mode" }));
+    expect(document.documentElement.dataset.theme).toBe("light");
+    delete document.documentElement.dataset.theme;
+    vi.unstubAllGlobals();
+  });
+
   it("shows the browser's connection state in the top bar", () => {
     const onLine = vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
     renderApp();

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ConnectionStatus } from "./ConnectionStatus";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function TopBar({
   title,
@@ -18,6 +19,7 @@ export function TopBar({
       {detail && <span className="app-bar__detail">{detail}</span>}
       <div className="app-bar__actions">
         <ConnectionStatus />
+        <ThemeToggle />
         {children}
       </div>
     </div>

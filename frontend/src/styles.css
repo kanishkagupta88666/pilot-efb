@@ -1,23 +1,94 @@
 :root {
   font-family: system-ui, sans-serif;
-  color: #202833;
-  background: #f3f5f7;
+  color: var(--ink);
+  background: var(--page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   font-weight: 400;
+  color-scheme: light;
+  --page: #f3f5f7;
   --ink: #202833;
   --muted: #596574;
   --line: #d5dbe1;
+  --line-strong: #b9c0c8;
   --surface: #fff;
   --soft-surface: #f6f7f8;
+  --hover: #e9ecee;
   --accent: #254760;
   --accent-soft: #e4ebf1;
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --button: #254760;
+  --button-hover: #1d384c;
+  --on-button: #fff;
+  --focus: #52718a;
   --warning: #a3271f;
   --caution: #8a5a12;
+  --caution-soft: #f6eddd;
   --highlight: #fbefb4;
+  --highlight-edge: #d9b93a;
+  --online: #2f7d4f;
+  --shadow: rgb(24 39 54 / 12%);
+  --scrim: rgb(22 31 39 / 28%);
+  --scrim-strong: rgb(22 31 39 / 45%);
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --bar-height: 3.25rem;
   --status-height: 2.25rem;
+}
+
+/* Dark mode swaps the colour values only; the layout is the same design. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #121417;
+    --ink: #e6e8eb;
+    --muted: #9aa2ad;
+    --line: #2f343b;
+    --line-strong: #4a525c;
+    --surface: #17191d;
+    --soft-surface: #1f2227;
+    --hover: #272b31;
+    --accent: #8fb0e8;
+    --accent-soft: #23314a;
+    --button: #3d6aa8;
+    --button-hover: #4a78b8;
+    --on-button: #fff;
+    --focus: #8fb0e8;
+    --warning: #ef8a80;
+    --caution: #e0b062;
+    --caution-soft: #3a2e1a;
+    --highlight: #463d1d;
+    --highlight-edge: #b8962e;
+    --online: #5cc08a;
+    --shadow: rgb(0 0 0 / 40%);
+    --scrim: rgb(0 0 0 / 55%);
+    --scrim-strong: rgb(0 0 0 / 65%);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #121417;
+  --ink: #e6e8eb;
+  --muted: #9aa2ad;
+  --line: #2f343b;
+  --line-strong: #4a525c;
+  --surface: #17191d;
+  --soft-surface: #1f2227;
+  --hover: #272b31;
+  --accent: #8fb0e8;
+  --accent-soft: #23314a;
+  --button: #3d6aa8;
+  --button-hover: #4a78b8;
+  --on-button: #fff;
+  --focus: #8fb0e8;
+  --warning: #ef8a80;
+  --caution: #e0b062;
+  --caution-soft: #3a2e1a;
+  --highlight: #463d1d;
+  --highlight-edge: #b8962e;
+  --online: #5cc08a;
+  --shadow: rgb(0 0 0 / 40%);
+  --scrim: rgb(0 0 0 / 55%);
+  --scrim-strong: rgb(0 0 0 / 65%);
 }
 
 * {
@@ -28,6 +99,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background: var(--page);
 }
 
 button,
@@ -49,7 +121,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 [tabindex="0"]:focus-visible {
-  outline: 3px solid #52718a;
+  outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
 
@@ -123,14 +195,14 @@ input:focus-visible,
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 50%;
-  background: #2f7d4f;
+  background: var(--online);
   content: "";
 }
 
 .connection--offline {
   border-color: transparent;
   color: var(--caution);
-  background: #f6eddd;
+  background: var(--caution-soft);
 }
 
 .connection--offline::before {
@@ -302,12 +374,12 @@ p {
 }
 
 .button--primary {
-  color: #fff;
-  background: var(--accent);
+  color: var(--on-button);
+  background: var(--button);
 }
 
 .button--primary:hover {
-  background: #1d384c;
+  background: var(--button-hover);
 }
 
 .button--secondary {
@@ -340,7 +412,7 @@ p {
   overflow-y: auto;
   border-right: 1px solid var(--line);
   background: var(--soft-surface);
-  box-shadow: 0.5rem 0 1.5rem rgb(24 39 54 / 12%);
+  box-shadow: 0.5rem 0 1.5rem var(--shadow);
 }
 
 .reader-navigation--open {
@@ -414,7 +486,7 @@ p {
 
 .outline-toggle:hover,
 .outline-item:hover {
-  background: #e9ecee;
+  background: var(--hover);
 }
 
 .outline-toggle--chapter {
@@ -466,10 +538,10 @@ p {
   display: inline-block;
   flex: 0 0 auto;
   padding: 0.15rem 0.4rem;
-  border: 1px solid #9aa5ae;
+  border: 1px solid var(--line-strong);
   border-radius: 0.3rem;
-  color: #394550;
-  background: #eef0f2;
+  color: var(--muted);
+  background: var(--soft-surface);
   font-size: 0.72rem;
   font-weight: 750;
   letter-spacing: 0.035em;
@@ -487,7 +559,7 @@ p {
   display: block;
   width: 100%;
   border: 0;
-  background: rgb(22 31 39 / 28%);
+  background: var(--scrim);
 }
 
 .reader-main {
@@ -581,7 +653,7 @@ p {
   padding: 0.75rem 0.9rem;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
-  background: #eef0f2;
+  background: var(--soft-surface);
 }
 
 .mock-notice {
@@ -753,13 +825,13 @@ p {
   width: 1.3rem;
   height: 1.3rem;
   flex: 0 0 auto;
-  accent-color: #45647a;
+  accent-color: var(--button);
 }
 
 .checklist-item__leader {
   min-width: 1.5rem;
   flex: 1;
-  border-bottom: 1px dotted #a9b0b8;
+  border-bottom: 1px dotted var(--line-strong);
 }
 
 .checklist-item__response {
@@ -903,7 +975,7 @@ p {
 }
 
 .request-state--error {
-  border-color: #9ca7b0;
+  border-color: var(--line-strong);
 }
 
 .request-state--error p {
@@ -1044,7 +1116,7 @@ p {
 .sign-in__form input {
   min-height: 2.75rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #b9c0c8;
+  border: 1px solid var(--line-strong);
   border-radius: 0.4rem;
   color: var(--ink);
   background: var(--surface);
@@ -1102,7 +1174,7 @@ p {
 
 .revision-alert--caution {
   border-left-color: var(--caution);
-  background: #f6eddd;
+  background: var(--caution-soft);
 }
 
 /* Annotations */
@@ -1188,7 +1260,7 @@ p {
 
 .annotation-editor textarea {
   padding: 0.6rem 0.75rem;
-  border: 1px solid #b9c0c8;
+  border: 1px solid var(--line-strong);
   border-radius: 0.4rem;
   font: inherit;
   font-size: 1rem;
@@ -1230,7 +1302,7 @@ p {
 }
 
 .page-nav__item--highlight {
-  border-left-color: #d9b93a;
+  border-left-color: var(--highlight-edge);
 }
 
 .page-nav__item--bookmark,
@@ -1247,7 +1319,7 @@ p {
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgb(22 31 39 / 45%);
+  background: var(--scrim-strong);
 }
 
 .dialog {
@@ -1259,7 +1331,7 @@ p {
   border: 1px solid var(--line);
   border-radius: 0.5rem;
   background: var(--surface);
-  box-shadow: 0 1rem 3rem rgb(22 31 39 / 25%);
+  box-shadow: 0 1rem 3rem var(--shadow);
 }
 
 .dialog__header {
