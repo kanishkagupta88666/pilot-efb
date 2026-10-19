@@ -26,6 +26,7 @@ import {
 import { DATA_SOURCE } from "../config/dataSource";
 import { recordAudit } from "../utils/auditLog";
 import { AffectedAnnotations } from "./AffectedAnnotations";
+import { AnnotationIcon } from "./Icons";
 import { resolveAvailableTargetId } from "../data/mockData";
 import { readerPathForResolution } from "../utils/readerLink";
 
@@ -840,6 +841,7 @@ export function ContentBlocks({
                 }}
                 type="button"
               >
+                <AnnotationIcon kind="highlight" />
                 Highlight
               </button>
               <button
@@ -849,6 +851,7 @@ export function ContentBlocks({
                 }}
                 type="button"
               >
+                <AnnotationIcon kind="note" />
                 Note
               </button>
               <button
@@ -859,6 +862,7 @@ export function ContentBlocks({
                 }}
                 type="button"
               >
+                <AnnotationIcon kind="bookmark" />
                 Bookmark
               </button>
             </>
