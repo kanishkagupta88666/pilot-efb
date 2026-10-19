@@ -573,6 +573,7 @@ export function ApiReader() {
           topicData.status === "ready" &&
           highlightedTargetId === topicData.topic.id
         }
+        status={pageData.revisions.find((entry) => entry.revision === pageData.navigation.version.revision)?.status}
         title={headingTopic?.title ?? metadata.title}
       >
         {showChanges && changes && changes.status.includes("moved") && changes.previous && (

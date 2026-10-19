@@ -4,21 +4,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { getDocumentLibrary } from "../data/mockData";
 import { getDocumentLibraryFromApi, type ApiClientError } from "../api/client";
 import { DATA_SOURCE } from "../config/dataSource";
-import type { DocumentSummary, RevisionStatus } from "../types/api";
+import type { DocumentSummary } from "../types/api";
 import { formatDate } from "../utils/formatDate";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
-import { RevisionSelector } from "./RevisionSelector";
+import { RevisionSelector, RevisionStatusChip } from "./RevisionSelector";
 import { TopBar } from "./TopBar";
-
-const statusLabels: Record<RevisionStatus, string> = {
-  current: "Current",
-  upcoming: "Upcoming",
-  superseded: "Superseded",
-};
 
 function DocumentRow({ document }: { document: DocumentSummary }) {
   const navigate = useNavigate();
-  const initialRevision = document.availableRevisions[0];
+  // Open on the revision in force, so "Open" never lands on a superseded one by default.
+  const initialRevision =
+    document.availableRevisions.find((revision) => revision.status === "current") ??
+    document.availableRevisions[0];
   const [selectedRevision, setSelectedRevision] = useState(
     initialRevision?.revision,
   );
@@ -74,9 +71,7 @@ function DocumentRow({ document }: { document: DocumentSummary }) {
         </time>
       </td>
       <td>
-        <span className={`status-chip status-chip--${selected.status}`}>
-          {statusLabels[selected.status]}
-        </span>
+        <RevisionStatusChip status={selected.status} />
       </td>
       <td className="document-table__open">
         <Link

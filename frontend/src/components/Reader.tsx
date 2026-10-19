@@ -261,6 +261,7 @@ function ReaderWorkspace({
             selectedRevision={revision}
           />
         }
+        status={availableRevisions.find((entry) => entry.revision === revision)?.status}
         title={topicResponse.topic.title}
       >
         {topicResponse.topic.mock && (

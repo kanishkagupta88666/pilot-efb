@@ -4,32 +4,45 @@ import type { ContentBlock } from "../types/api";
 
 export type AnnotationKind = "bookmark" | "highlight" | "note";
 
-/** Anchored to the block's permanent node ID, never to its number or page. */
-export interface Annotation {
+/**
+ * Where an annotation sits: the block's permanent node ID, which piece of text inside it
+ * (the paragraph, a list item, a table cell or a checklist line), and the selected words.
+ * Never anchored to a number or page.
+ */
+export interface TextAnchor {
+  nodeId: string;
+  /** "text", "item-<n>", "cell-<row>-<column>" or "<check id>:challenge" / ":response". */
+  part: string;
+  start: number;
+  end: number;
+  /** The selected words. */
+  quote: string;
+  /** A few words either side, used to find the quote again in a later revision. */
+  prefix: string;
+  suffix: string;
+  /** The whole piece of text when it was annotated, shown if a later revision changes it. */
+  text: string;
+}
+
+export interface Annotation extends TextAnchor {
   id: string;
   kind: AnnotationKind;
   docId: string;
   revision: number;
   topicId: string;
-  nodeId: string;
-  /** The block's full text when it was annotated, kept to compare against later revisions. */
-  text: string;
   note?: string;
 }
 
-export type AnnotationTarget = Pick<
-  Annotation,
-  "docId" | "revision" | "topicId" | "nodeId" | "text"
->;
+export type AnnotationTarget = Omit<Annotation, "id" | "kind" | "note">;
 
 interface AnnotationStore {
   annotations: Annotation[];
-  toggle: (kind: "bookmark" | "highlight", target: AnnotationTarget) => void;
-  /** Saves the note text; empty text removes the note. */
-  saveNote: (target: AnnotationTarget, text: string) => void;
-  /** Re-anchors an annotation to a newer revision's wording. */
-  keep: (id: string, revision: number, text: string) => void;
+  add: (kind: AnnotationKind, target: AnnotationTarget, note?: string) => void;
+  /** Saves a note's text; empty text removes the note. */
+  updateNote: (id: string, note: string) => void;
   remove: (id: string) => void;
+  /** Re-attaches an annotation to a newer revision's wording. */
+  keep: (id: string, revision: number, anchor: TextAnchor) => void;
 }
 
 const AnnotationContext = createContext<AnnotationStore | undefined>(undefined);
@@ -50,38 +63,33 @@ export function AnnotationProvider({
 }) {
   const [annotations, setAnnotations] = useState<Annotation[]>(initial);
 
-  const store = useMemo<AnnotationStore>(() => {
-    const matches = (annotation: Annotation, kind: AnnotationKind, target: AnnotationTarget) =>
-      annotation.kind === kind &&
-      annotation.docId === target.docId &&
-      annotation.nodeId === target.nodeId;
-
-    return {
+  const store = useMemo<AnnotationStore>(
+    () => ({
       annotations,
-      toggle: (kind, target) =>
+      add: (kind, target, note) =>
+        setAnnotations((previous) => [
+          ...previous,
+          { id: `annotation-${nextId++}`, kind, ...target, ...(note ? { note } : {}) },
+        ]),
+      updateNote: (id, note) =>
         setAnnotations((previous) =>
-          previous.some((annotation) => matches(annotation, kind, target))
-            ? previous.filter((annotation) => !matches(annotation, kind, target))
-            : [...previous, { id: `annotation-${nextId++}`, kind, ...target }],
-        ),
-      saveNote: (target, text) =>
-        setAnnotations((previous) => {
-          const rest = previous.filter((annotation) => !matches(annotation, "note", target));
-          const note = text.trim();
-          return note
-            ? [...rest, { id: `annotation-${nextId++}`, kind: "note", ...target, note }]
-            : rest;
-        }),
-      keep: (id, revision, text) =>
-        setAnnotations((previous) =>
-          previous.map((annotation) =>
-            annotation.id === id ? { ...annotation, revision, text } : annotation,
-          ),
+          note.trim()
+            ? previous.map((annotation) =>
+                annotation.id === id ? { ...annotation, note: note.trim() } : annotation,
+              )
+            : previous.filter((annotation) => annotation.id !== id),
         ),
       remove: (id) =>
         setAnnotations((previous) => previous.filter((annotation) => annotation.id !== id)),
-    };
-  }, [annotations]);
+      keep: (id, revision, anchor) =>
+        setAnnotations((previous) =>
+          previous.map((annotation) =>
+            annotation.id === id ? { ...annotation, ...anchor, revision } : annotation,
+          ),
+        ),
+    }),
+    [annotations],
+  );
 
   return <AnnotationContext.Provider value={store}>{children}</AnnotationContext.Provider>;
 }
@@ -91,27 +99,89 @@ export function useAnnotations(): AnnotationStore | undefined {
   return useContext(AnnotationContext);
 }
 
-/** Plain text of a block, as stored with an annotation. */
-export function blockText(block: ContentBlock): string {
-  let text: string;
+/** Every piece of selectable text in a block, in reading order. */
+export function blockParts(block: ContentBlock): { part: string; text: string }[] {
   switch (block.type) {
     case "para":
     case "note":
     case "caution":
     case "warning":
-      text = block.segments.map((segment) => segment.text).join("");
-      break;
+      return [{ part: "text", text: block.segments.map((segment) => segment.text).join("") }];
     case "list":
-      text = block.items.join(" ");
-      break;
+      return block.items.map((item, index) => ({ part: `item-${index}`, text: item }));
     case "table":
-      text = block.rows.map((row) => row.cells.join(", ")).join("; ");
-      break;
+      return block.rows.flatMap((row, rowIndex) =>
+        row.cells.map((cell, cellIndex) => ({ part: `cell-${rowIndex}-${cellIndex}`, text: cell })),
+      );
     case "checklist":
-      text = block.checks.map((check) => `${check.challenge}: ${check.response}`).join("; ");
-      break;
+      return block.checks.flatMap((check) => [
+        { part: `${check.id}:challenge`, text: check.challenge },
+        { part: `${check.id}:response`, text: check.response },
+      ]);
   }
-  return text.replace(/\s+/g, " ").trim();
+}
+
+export function partText(block: ContentBlock | undefined, part: string): string | undefined {
+  return block ? blockParts(block).find((entry) => entry.part === part)?.text : undefined;
+}
+
+const CONTEXT_LENGTH = 32;
+
+/** Builds the stored anchor for a selection of text[start, end). */
+export function anchorFor(
+  nodeId: string,
+  part: string,
+  text: string,
+  start: number,
+  end: number,
+): TextAnchor {
+  return {
+    nodeId,
+    part,
+    start,
+    end,
+    quote: text.slice(start, end),
+    prefix: text.slice(Math.max(0, start - CONTEXT_LENGTH), start),
+    suffix: text.slice(end, end + CONTEXT_LENGTH),
+    text,
+  };
+}
+
+function sharedEnd(a: string, b: string): number {
+  let count = 0;
+  while (count < a.length && count < b.length && a[a.length - 1 - count] === b[b.length - 1 - count]) {
+    count++;
+  }
+  return count;
+}
+
+function sharedStart(a: string, b: string): number {
+  let count = 0;
+  while (count < a.length && count < b.length && a[count] === b[count]) count++;
+  return count;
+}
+
+/**
+ * Finds an annotation's words in the given text: at the same place if unchanged, otherwise
+ * wherever the quote appears with the best-matching surrounding words. Undefined if gone.
+ */
+export function resolveRange(
+  anchor: Pick<TextAnchor, "start" | "end" | "quote" | "prefix" | "suffix">,
+  text: string,
+): { start: number; end: number } | undefined {
+  if (!anchor.quote) return undefined;
+  if (text.slice(anchor.start, anchor.end) === anchor.quote) {
+    return { start: anchor.start, end: anchor.end };
+  }
+  let best: { start: number; score: number } | undefined;
+  for (let index = text.indexOf(anchor.quote); index !== -1; index = text.indexOf(anchor.quote, index + 1)) {
+    const score =
+      sharedEnd(text.slice(0, index), anchor.prefix) +
+      sharedStart(text.slice(index + anchor.quote.length), anchor.suffix) -
+      Math.abs(index - anchor.start) / 1000;
+    if (!best || score > best.score) best = { start: index, score };
+  }
+  return best && { start: best.start, end: best.start + anchor.quote.length };
 }
 
 /** Shortens text for previews. */
