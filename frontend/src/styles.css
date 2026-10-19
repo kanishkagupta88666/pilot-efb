@@ -46,6 +46,9 @@
   --online: #12a150;
   --highlight: #fde9a3;
   --highlight-edge: #d4a20b;
+  --icon-highlight: #e07b00;
+  --icon-note: #2563eb;
+  --icon-bookmark: #7c3aed;
 
   /* Depth */
   --shadow: rgb(17 24 39 / 10%);
@@ -104,6 +107,9 @@
     --online: #4fd08c;
     --highlight: #5b4a10;
     --highlight-edge: #c29b2c;
+    --icon-highlight: #ffb44d;
+    --icon-note: #7aa7ff;
+    --icon-bookmark: #b18cff;
     --shadow: rgb(0 0 0 / 45%);
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
     --shadow-lg: 0 12px 32px rgb(0 0 0 / 55%);
@@ -142,6 +148,9 @@
   --online: #4fd08c;
   --highlight: #5b4a10;
   --highlight-edge: #c29b2c;
+  --icon-highlight: #ffb44d;
+  --icon-note: #7aa7ff;
+  --icon-bookmark: #b18cff;
   --shadow: rgb(0 0 0 / 45%);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-lg: 0 12px 32px rgb(0 0 0 / 55%);
@@ -1322,6 +1331,58 @@ time,
   margin: 0;
   color: var(--ink);
   font-weight: 800;
+}
+
+/* Icons */
+
+.icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+}
+
+.icon--highlight {
+  color: var(--icon-highlight);
+}
+
+.icon--note {
+  color: var(--icon-note);
+}
+
+.icon--bookmark {
+  color: var(--icon-bookmark);
+}
+
+.theme-toggle {
+  gap: 0.45rem;
+}
+
+.your-annotations__counts dt {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.page-nav__label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.page-nav__label .icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.selection-bar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* On the dark floating bar, icons follow the bar's text colour so they stay readable. */
+.selection-bar .icon {
+  color: inherit;
 }
 
 /* Annotations: marks on selected words, the floating bar and the note box */

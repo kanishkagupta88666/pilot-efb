@@ -1,3 +1,4 @@
+import { AnnotationIcon } from "./Icons";
 import { shorten, useAnnotations, type AnnotationKind } from "../annotations/annotations";
 
 const KINDS: { kind: AnnotationKind; label: string }[] = [
@@ -35,7 +36,10 @@ export function YourAnnotations({ docId, topicId }: { docId: string; topicId?: s
       <dl className="your-annotations__counts">
         {KINDS.map(({ kind, label }) => (
           <div key={kind}>
-            <dt>{label}</dt>
+            <dt>
+              <AnnotationIcon kind={kind} />
+              {label}
+            </dt>
             <dd>{inManual.filter((annotation) => annotation.kind === kind).length}</dd>
           </div>
         ))}
@@ -53,7 +57,10 @@ export function YourAnnotations({ docId, topicId }: { docId: string; topicId?: s
                 onClick={() => jumpTo(annotation.id, annotation.nodeId)}
                 type="button"
               >
-                <span className="page-nav__label">{SINGULAR[annotation.kind]}</span>
+                <span className="page-nav__label">
+                  <AnnotationIcon kind={annotation.kind} />
+                  {SINGULAR[annotation.kind]}
+                </span>
                 <span className="page-nav__preview">{shorten(annotation.note ?? annotation.quote)}</span>
               </button>
             </li>
