@@ -8,6 +8,8 @@ import type { DocumentSummary } from "../types/api";
 import { formatDate } from "../utils/formatDate";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector, RevisionStatusChip } from "./RevisionSelector";
+import { InfoIcon } from "./Icons";
+import { LibraryHero, LibrarySummary } from "./LibraryHero";
 import { TopBar } from "./TopBar";
 
 function DocumentRow({ document }: { document: DocumentSummary }) {
@@ -44,7 +46,11 @@ function DocumentRow({ document }: { document: DocumentSummary }) {
 
   return (
     <tr className="document-table__row" onClick={openFromRow}>
-      <td className="document-table__type">{selected.metadata.docType}</td>
+      <td className="document-table__type">
+        <span className={`doc-cover${selected.metadata.docType.length > 4 ? " doc-cover--long" : ""}`}>
+          {selected.metadata.docType}
+        </span>
+      </td>
       <td>
         <h2>{selected.metadata.title}</h2>
         <p className="document-id">{document.id}</p>
@@ -88,6 +94,8 @@ function DocumentRow({ document }: { document: DocumentSummary }) {
 
 function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
   return (
+    <>
+    <LibrarySummary documents={documents} />
     <section className="document-list" aria-label="Available documents">
       <table className="document-table">
         <thead>
@@ -107,22 +115,44 @@ function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
         </tbody>
       </table>
     </section>
+    <p className="library-footnote">
+      <InfoIcon />
+      New manuals appear here as soon as your operator publishes them.
+    </p>
+    </>
   );
 }
 
-function LibraryFrame({ children }: { children: ReactNode }) {
+function LibraryFrame({
+  children,
+  documents,
+}: {
+  children: ReactNode;
+  documents?: DocumentSummary[];
+}) {
+  // The classification most documents carry (a PDF-only document may have its own text here).
+  const classifications = (documents ?? []).flatMap((document) =>
+    document.availableRevisions.map((revision) => revision.metadata.classification),
+  );
+  const classification = classifications
+    .slice()
+    .sort((a, b) => classifications.filter((c) => c === b).length - classifications.filter((c) => c === a).length)[0];
+
   return (
     <main className="library-page">
       <TopBar title="Library">
         <Link className="button button--secondary" to="/sign-in">Sign in</Link>
       </TopBar>
       <div className="library-body">
-        <header className="library-header">
-          <h1>Document library</h1>
-          <p className="intro">Choose an available manual revision to read.</p>
-        </header>
+        <LibraryHero />
         {children}
       </div>
+      <footer className="status-bar library-status">
+        <span>
+          Library{documents ? ` · ${documents.length} ${documents.length === 1 ? "manual" : "manuals"}` : ""}
+        </span>
+        {classification && <span>{classification}</span>}
+      </footer>
     </main>
   );
 }
@@ -131,7 +161,7 @@ function MockDocumentLibrary() {
   const documents = getDocumentLibrary();
 
   return (
-    <LibraryFrame>
+    <LibraryFrame documents={documents}>
       <LibraryContent documents={documents} />
       <p className="prototype-note">Prototype data from the provisional sample.</p>
     </LibraryFrame>
@@ -177,7 +207,7 @@ export function ApiDocumentLibrary() {
   }
 
   return (
-    <LibraryFrame>
+    <LibraryFrame documents={documents}>
       {documents.length === 0 ? (
         <EmptyState message="No documents are available." />
       ) : (
