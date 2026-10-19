@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MoonIcon, SunIcon } from "./Icons";
 
 type Theme = "light" | "dark";
 
@@ -45,12 +46,14 @@ export function ThemeToggle() {
 
   return (
     <button
+      aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
       aria-pressed={theme === "dark"}
       className="button button--secondary theme-toggle"
       onClick={toggle}
       type="button"
     >
-      {theme === "dark" ? "Light mode" : "Dark mode"}
+      {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+      {theme === "dark" ? "Light" : "Dark"}
     </button>
   );
 }
