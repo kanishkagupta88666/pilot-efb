@@ -297,7 +297,15 @@ function TextBlockView({ block, ...props }: BlockProps & { block: Extract<Conten
       className={className}
       id={block.id}
     >
-      <strong className="callout-label">{label}</strong>
+      <strong className="callout-label">
+        {block.type !== "note" && (
+          <svg aria-hidden="true" className="callout-icon" viewBox="0 0 24 24">
+            <path d="M12 3 2 21h20L12 3Z" fill="currentColor" />
+            <path d="M12 10v5M12 17.5v.5" stroke="var(--surface)" strokeLinecap="round" strokeWidth="2.2" />
+          </svg>
+        )}
+        {label}
+      </strong>
       {body}
     </aside>
   );
