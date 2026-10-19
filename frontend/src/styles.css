@@ -1676,21 +1676,73 @@ time,
   font-size: var(--text-sm);
 }
 
-/* Sign in */
+/* Sign in: cockpit photo (sunset in light mode, night in dark mode) with the form on the right */
 
 .sign-in-page {
   min-height: 100vh;
   background: var(--page);
 }
 
+.sign-in-scene {
+  position: relative;
+  display: flex;
+  min-height: calc(100vh - var(--bar-height));
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 5vw, 4.5rem);
+}
+
+.sign-in-photo {
+  position: absolute;
+  inset: 0;
+  background: url("./assets/sign-in-cockpit-light.jpg") 30% center / cover no-repeat;
+}
+
+/* Fades the photo into the page colour behind the form, so text stays readable. */
+.sign-in-photo::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 35%, var(--page) 78%);
+  content: "";
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sign-in-photo {
+    background-image: url("./assets/sign-in-cockpit-dark.jpg");
+  }
+}
+
+:root[data-theme="dark"] .sign-in-photo {
+  background-image: url("./assets/sign-in-cockpit-dark.jpg");
+}
+
 .sign-in {
-  width: min(calc(100% - 2rem), 28rem);
-  margin: clamp(2rem, 10vh, 6rem) auto 2rem;
-  padding: 2rem;
+  position: relative;
+  width: min(100%, 27rem);
+  padding: 2.25rem 2rem 1.75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+}
+
+.sign-in__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0 0 1.25rem;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.logo-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--accent);
 }
 
 .sign-in h1 {
@@ -1699,6 +1751,11 @@ time,
   font-size: var(--text-xl);
   font-weight: 800;
   letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.sign-in .intro {
+  text-align: center;
 }
 
 .sign-in__form {
@@ -1714,9 +1771,23 @@ time,
   font-weight: 700;
 }
 
-.sign-in__form input {
+.sign-in__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sign-in__field .field-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.sign-in__field input {
+  width: 100%;
   min-height: 3rem;
-  padding: 0 0.85rem;
+  padding: 0 3rem 0 2.6rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   color: var(--ink);
@@ -1724,10 +1795,33 @@ time,
   font-size: var(--text-md);
 }
 
-.sign-in__form input:focus {
+.sign-in__field input::placeholder {
+  color: var(--muted);
+}
+
+.sign-in__field input:focus {
   border-color: var(--accent);
   outline: 3px solid var(--accent-soft);
   outline-offset: 0;
+}
+
+.sign-in__reveal {
+  position: absolute;
+  right: 0.25rem;
+  display: grid;
+  width: var(--tap);
+  height: var(--tap);
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sign-in__reveal:hover {
+  color: var(--ink);
+  background: var(--hover);
 }
 
 .sign-in__form .button {
@@ -1737,13 +1831,63 @@ time,
 }
 
 .sign-in__notice {
-  margin: 1.5rem 0 0;
-  padding: 0.65rem 0.85rem;
-  border-left: 3px solid var(--line-strong);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  color: var(--ink-2);
-  background: var(--soft-surface);
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
   font-size: var(--text-sm);
+}
+
+.sign-in__notice p {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.sign-in__notice strong {
+  color: var(--ink);
+}
+
+.info-icon {
+  margin-top: 0.1rem;
+  color: var(--accent);
+}
+
+.sign-in__help {
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* Portrait iPad and narrower: photo as a banner across the top, form below it. */
+@media (max-width: 900px) {
+  .sign-in-scene {
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+
+  .sign-in-photo {
+    position: relative;
+    inset: auto;
+    width: calc(100% + 2 * clamp(1rem, 5vw, 4.5rem));
+    height: 38vh;
+    margin: 0 calc(-1 * clamp(1rem, 5vw, 4.5rem));
+    background-position: center 40%;
+  }
+
+  .sign-in-photo::after {
+    background: linear-gradient(180deg, transparent 55%, var(--page) 100%);
+  }
+
+  .sign-in {
+    margin-top: -4rem;
+  }
 }
 
 /* Loading, empty and error states */
