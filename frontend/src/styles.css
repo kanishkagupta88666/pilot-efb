@@ -2780,7 +2780,7 @@ button.change-badge {
   left: 0;
   right: 0;
   border-left: 4px solid var(--change);
-  background: rgb(42 85 146 / 7%);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   pointer-events: none;
 }
 
@@ -2791,9 +2791,9 @@ button.change-badge {
 }
 
 .pdf-mark--target {
-  border-left-color: #71818e;
-  outline: 2px solid #71818e;
-  background: rgb(113 129 142 / 10%);
+  border-left-color: var(--accent);
+  outline: 2px solid var(--accent);
+  background: var(--accent-soft);
 }
 
 .pdf-mark__badge {
@@ -2866,7 +2866,7 @@ button.pdf-mark__badge {
   min-width: 0;
   min-height: 2.9rem;
   padding: 0.5rem 0.8rem;
-  border: 1px solid #9ca7b0;
+  border: 1px solid var(--line-strong);
   border-radius: 0.45rem;
   background: var(--surface);
   color: var(--ink);
@@ -2874,7 +2874,7 @@ button.pdf-mark__badge {
 }
 
 .search-form input:focus {
-  outline: 3px solid rgb(37 71 96 / 30%);
+  outline: 3px solid var(--accent-soft);
   border-color: var(--accent);
 }
 
@@ -2936,7 +2936,7 @@ button.pdf-mark__badge {
   padding: 0.3rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: 0.3rem;
-  background: #eceef1;
+  background: var(--sunken);
   color: var(--muted);
   cursor: pointer;
   font-family: ui-monospace, monospace;
@@ -2975,30 +2975,44 @@ button.pdf-mark__badge {
   border-bottom: 1px solid var(--line);
 }
 
-.search-box input {
-  width: 100%;
+/* The result count sits beside the input, not on top of it, so the browser's clear button never overlaps it. */
+.search-box__field {
+  display: flex;
   min-height: 3.25rem;
-  padding: 0.6rem 10rem 0.6rem 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1rem;
   border: 1.5px solid var(--accent);
-  border-radius: 0.3rem;
+  border-radius: var(--radius);
   background: var(--surface);
+}
+
+.search-box__field:focus-within {
+  outline: 3px solid var(--accent-soft);
+}
+
+.search-box input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.6rem 0;
+  border: 0;
+  background: transparent;
   color: var(--ink);
   font: inherit;
   font-size: 1.2rem;
 }
 
-.search-box input:focus {
-  outline: 3px solid rgb(37 71 96 / 22%);
+.search-box input:focus,
+.search-box input:focus-visible {
+  outline: none;
 }
 
 .search-box__meta {
-  position: absolute;
-  top: 50%;
-  right: calc(clamp(1rem, 2.5vw, 1.75rem) + 1rem);
+  flex: 0 0 auto;
   color: var(--muted);
-  font-family: ui-monospace, monospace;
+  font-family: var(--mono);
   font-size: 0.85rem;
-  transform: translateY(-50%);
+  white-space: nowrap;
   pointer-events: none;
 }
 
@@ -3031,7 +3045,7 @@ button.pdf-mark__badge {
 }
 
 .search-chip[aria-pressed="true"] {
-  border-color: #c9d6e8;
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
   background: var(--change-soft);
   color: var(--change);
 }
@@ -3056,7 +3070,7 @@ button.pdf-mark__badge {
   margin: 0;
   padding: 0.65rem clamp(1rem, 2.5vw, 1.75rem);
   border-bottom: 1px solid var(--line);
-  background: #eef0f2;
+  background: var(--sunken);
   color: var(--ink);
   font-size: 0.95rem;
 }
@@ -3099,7 +3113,7 @@ button.pdf-mark__badge {
 }
 
 .search-row:active {
-  background: #eceef1;
+  background: var(--sunken);
 }
 
 .search-row__path {
@@ -3115,7 +3129,7 @@ button.pdf-mark__badge {
   flex: none;
   padding: 0.1rem 0.45rem;
   border-radius: 0.2rem;
-  background: #eceef1;
+  background: var(--sunken);
   color: var(--ink);
   font-size: 0.85rem;
   font-weight: 600;
@@ -3158,7 +3172,7 @@ button.pdf-mark__badge {
 
 .search-row mark {
   border-radius: 0.15rem;
-  background: #fbe7a1;
+  background: var(--highlight);
   color: inherit;
 }
 
@@ -3189,8 +3203,8 @@ button.pdf-mark__badge {
 
 .reader-context__approximate {
   padding: 0.5rem 0.6rem;
-  border-left: 3px solid #8a5a12;
-  background: #f7f0e4;
+  border-left: 3px solid var(--caution);
+  background: var(--caution-soft);
   color: var(--ink);
   font-size: 0.85rem;
 }
@@ -3364,7 +3378,7 @@ button.pdf-mark__badge {
 .author-select {
   min-height: 2.75rem;
   padding: 0.5rem 0.65rem;
-  border: 1px solid #9ca7b0;
+  border: 1px solid var(--line-strong);
   border-radius: 0.35rem;
   background: var(--surface);
   color: var(--ink);
@@ -3379,7 +3393,7 @@ button.pdf-mark__badge {
 
 .author-warning {
   margin: 0;
-  color: #8a5a12;
+  color: var(--caution);
   font-size: 0.9rem;
 }
 
@@ -3570,7 +3584,7 @@ button.pdf-mark__badge {
 .audit-filters input {
   min-height: 2.75rem;
   padding: 0.4rem 0.6rem;
-  border: 1px solid #9ca7b0;
+  border: 1px solid var(--line-strong);
   border-radius: 0.35rem;
   font: inherit;
 }
@@ -3641,7 +3655,7 @@ button.pdf-mark__badge {
 }
 
 .audit-row__late {
-  color: #8a5a12;
+  color: var(--caution);
   font-size: 0.8rem;
 }
 
@@ -3655,20 +3669,20 @@ button.pdf-mark__badge {
 }
 
 .audit-badge--server {
-  border-color: #c9d6e8;
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
   background: var(--change-soft);
   color: var(--change);
 }
 
 .audit-badge--device {
-  background: #eceef1;
+  background: var(--sunken);
   color: var(--ink);
 }
 
 .audit-badge--offline {
-  border-color: #e3c9a4;
-  background: #f7f0e4;
-  color: #8a5a12;
+  border-color: var(--caution-line);
+  background: var(--caution-soft);
+  color: var(--caution);
 }
 
 .audit-details {
@@ -3821,8 +3835,8 @@ button.pdf-mark__badge {
 }
 
 .annotation-item--focused {
-  border-color: #c58b00;
-  box-shadow: 0 0 0 2px #fbe7a1;
+  border-color: var(--caution);
+  box-shadow: 0 0 0 2px var(--highlight);
 }
 
 .annotation-item__quote {
@@ -3845,11 +3859,11 @@ button.pdf-mark__badge {
   height: 0.7rem;
   margin-top: 0.3rem;
   border-radius: 0.15rem;
-  background: #fbe7a1;
+  background: var(--highlight);
 }
 
 .annotation-swatch--note {
-  box-shadow: inset 0 -2px 0 #c58b00;
+  box-shadow: inset 0 -2px 0 var(--caution);
 }
 
 .annotation-item__note {
@@ -3873,8 +3887,8 @@ button.pdf-mark__badge {
 .annotation-flag {
   margin: 0.35rem 0 0;
   padding: 0.35rem 0.5rem;
-  border-left: 3px solid #b8640a;
-  background: #fdf1e3;
+  border-left: 3px solid var(--caution);
+  background: var(--caution-soft);
   color: var(--ink);
   font-size: 0.82rem;
 }
@@ -3909,8 +3923,8 @@ button.pdf-mark__badge {
 .annotation-editor blockquote {
   margin: 0;
   padding: 0.35rem 0.5rem;
-  border-left: 3px solid #c58b00;
-  background: #fdf7df;
+  border-left: 3px solid var(--caution);
+  background: var(--caution-soft);
   color: var(--ink);
   font-size: 0.85rem;
 }
