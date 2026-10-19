@@ -23,6 +23,7 @@ import type {
 import { ContentBlocks } from "./ContentBlocks";
 import { OnThisPage } from "./OnThisPage";
 import { YourAnnotations } from "./YourAnnotations";
+import { useAnnotations as useAnnotationStatuses } from "./Annotations";
 import { displayNumber, Outline, topicTrail } from "./Outline";
 import { ReaderLayout } from "./ReaderLayout";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
@@ -317,6 +318,12 @@ export function ApiReader() {
     return () => controller.abort();
   }, [docId, navigation, selectedTopicId, retryTopic]);
 
+  // The server's check of where each annotated text sits in this revision (moved, changed, removed).
+  const { statuses: annotationStatuses, checked: annotationsChecked } = useAnnotationStatuses(
+    docId,
+    pageData.status === "ready" ? pageData.navigation.version.revision : undefined,
+  );
+
   // Audit: which revision and topic the person had open, and how they got there.
   const loggedView = useRef<string | undefined>(undefined);
   useEffect(() => {
@@ -505,7 +512,13 @@ export function ApiReader() {
       aside={
         <>
           <OnThisPage blocks={topicData.status === "ready" ? topicData.topic.blocks : []} />
-          <YourAnnotations docId={docId} topicId={selectedTopicId} />
+          <YourAnnotations
+            docId={docId}
+            offline={annotationsChecked === "offline"}
+            revision={pageData.navigation.version.revision}
+            statuses={annotationStatuses}
+            topic={selectedOutlineTopic}
+          />
           <RevisionRail
             changesData={changesData}
             docId={docId}
