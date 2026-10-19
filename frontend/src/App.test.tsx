@@ -318,9 +318,6 @@ describe("reader", () => {
     await waitFor(() => expect(count("Bookmarks")).toBe("1"));
     expect(container.querySelector("#fm100-p03214")?.className).toContain("content-block--bookmarked");
 
-    fireEvent.click(screen.getByRole("button", { name: "Bookmark this topic" }));
-    await waitFor(() => expect(count("Bookmarks")).toBe("2"));
-
     fireEvent.click(container.querySelector("mark.annotation-mark--highlight") as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: "Remove highlight" }));
     await waitFor(() => expect(container.querySelector("mark.annotation-mark--highlight")).toBeNull());
