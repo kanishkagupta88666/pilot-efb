@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { AnnotationIcon } from "./Icons";
 import { shorten, useAnnotations, type AnnotationKind } from "../annotations/annotations";
 import type { AnnotationStatus } from "../types/api";
 import { syncAnnotations } from "../utils/annotationStore";
@@ -100,7 +101,10 @@ export function YourAnnotations({
       <dl className="your-annotations__counts">
         {KINDS.map(({ kind, label }) => (
           <div key={kind}>
-            <dt>{label}</dt>
+            <dt>
+              <AnnotationIcon kind={kind} />
+              {label}
+            </dt>
             <dd>{live.filter((annotation) => annotation.kind === kind).length}</dd>
           </div>
         ))}
@@ -124,7 +128,10 @@ export function YourAnnotations({
                 onClick={() => jumpTo(annotation.id, annotation.nodeId)}
                 type="button"
               >
-                <span className="page-nav__label">{SINGULAR[annotation.kind]}</span>
+                <span className="page-nav__label">
+                  <AnnotationIcon kind={annotation.kind} />
+                  {SINGULAR[annotation.kind]}
+                </span>
                 <span className="page-nav__preview">
                   {annotation.nodeId ? shorten(annotation.note || annotation.quote) : "Whole topic"}
                 </span>
