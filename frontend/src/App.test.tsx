@@ -10,7 +10,9 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "./App";
-import { AnnotationProvider, anchorFor, type Annotation } from "./annotations/annotations";
+import { AnnotationProvider, blockLayout, type Annotation } from "./annotations/annotations";
+import { blockText } from "./components/ChangeMarkers";
+import { resetAnnotationMemoryForTests } from "./utils/annotationStore";
 import { ContentBlocks } from "./components/ContentBlocks";
 import {
   getTopic,
@@ -251,7 +253,7 @@ describe("reader", () => {
     const expectedLabels = sourceBlocks
       .filter((block) => ["note", "caution", "warning", "table", "checklist"].includes(block.type))
       .map((block) => block.type);
-    const entries = within(panel).getAllByRole("button");
+    const entries = within(panel.querySelector(".page-nav") as HTMLElement).getAllByRole("button");
 
     expect(entries.map((entry) => entry.className.match(/page-nav__item--(\w+)/)?.[1])).toEqual(
       expectedLabels,
@@ -264,7 +266,7 @@ describe("reader", () => {
     );
   });
 
-  it("highlights, notes and bookmarks selected words, anchored to the block's permanent ID", () => {
+  it("highlights, notes and bookmarks selected words, anchored to the block's permanent ID", async () => {
     const { container } = renderApp("/reader/FM-S100/2");
     const paragraph = container.querySelector(
       '#fm100-p03214 [data-anchor-part="text"]',
@@ -295,8 +297,9 @@ describe("reader", () => {
     // "Values in this manual" are the paragraph's first words.
     selectWords(0, 6);
     fireEvent.click(screen.getByRole("button", { name: "Highlight" }));
-    const highlight = container.querySelector("mark.annotation-mark--highlight");
-    expect(highlight?.textContent).toBe("Values");
+    await waitFor(() =>
+      expect(container.querySelector("mark.annotation-mark--highlight")?.textContent).toBe("Values"),
+    );
     expect(count("Highlights")).toBe("1");
 
     selectWords(10, 14);
@@ -305,19 +308,22 @@ describe("reader", () => {
       target: { value: "Check against the WOM." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save note" }));
-    const noteCard = screen.getByRole("complementary", { name: "Your note" });
+    const noteCard = await screen.findByRole("complementary", { name: "Your note" });
     expect(within(noteCard).getByText("this")).toBeTruthy();
     expect(within(noteCard).getByText("Check against the WOM.")).toBeTruthy();
     expect(count("Notes")).toBe("1");
 
     selectWords(15, 21);
     fireEvent.click(screen.getByRole("button", { name: "Bookmark" }));
-    expect(count("Bookmarks")).toBe("1");
+    await waitFor(() => expect(count("Bookmarks")).toBe("1"));
     expect(container.querySelector("#fm100-p03214")?.className).toContain("content-block--bookmarked");
+
+    fireEvent.click(screen.getByRole("button", { name: "Bookmark this topic" }));
+    await waitFor(() => expect(count("Bookmarks")).toBe("2"));
 
     fireEvent.click(container.querySelector("mark.annotation-mark--highlight") as HTMLElement);
     fireEvent.click(screen.getByRole("button", { name: "Remove highlight" }));
-    expect(container.querySelector("mark.annotation-mark--highlight")).toBeNull();
+    await waitFor(() => expect(container.querySelector("mark.annotation-mark--highlight")).toBeNull());
     expect(count("Highlights")).toBe("0");
   });
 
@@ -325,18 +331,37 @@ describe("reader", () => {
     const topic = getTopic("FM-S100", 2, "fm100-t0340").topic;
     const first = topic.blocks[0];
     if (first.type !== "para") throw new Error("Expected the first block to be a paragraph.");
-    const current = first.segments.map((segment) => segment.text).join("");
-    const base = { docId: "FM-S100", revision: 1, topicId: topic.id };
-    const initial: Annotation[] = [
-      {
-        ...base,
-        id: "a1",
-        kind: "note",
-        note: "Check this.",
-        ...anchorFor("fm100-p03214", "text", "Old wording that was replaced.", 0, 11),
-      },
-      { ...base, id: "a2", kind: "highlight", ...anchorFor("fm100-p99999", "text", "Rescinded text.", 0, 9) },
-      { ...base, id: "a3", kind: "bookmark", ...anchorFor("fm100-p03214", "text", current, 0, 6) },
+    const current = blockLayout(first).text;
+    const on = (
+      id: string,
+      kind: Annotation["kind"],
+      nodeId: string,
+      anchorText: string,
+      start: number,
+      end: number,
+      note = "",
+    ): Annotation => ({
+      id,
+      kind,
+      documentId: "FM-S100",
+      revision: 1,
+      topicId: topic.id,
+      topicNumber: topic.number,
+      nodeId,
+      start,
+      end,
+      quote: anchorText.slice(start, end),
+      anchorText,
+      note,
+      detached: false,
+      createdAt: "2026-07-01T00:00:00.000Z",
+      updatedAt: "2026-07-01T00:00:00.000Z",
+      deleted: false,
+    });
+    const initial = [
+      on("a1", "note", "fm100-p03214", "Old wording that was replaced.", 0, 11, "Check this."),
+      on("a2", "highlight", "fm100-p99999", "Rescinded text.", 0, 9),
+      on("a3", "bookmark", "fm100-p03214", current, 0, 6),
     ];
 
     render(
@@ -364,8 +389,32 @@ describe("reader", () => {
 
     fireEvent.click(within(dialog).getByRole("button", { name: "Keep annotation" }));
     expect(screen.queryByText("Old wording")).toBeNull();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Keep as note" }));
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("lays out each block's text exactly as the revision tools and server do", () => {
+    const fixtures: Parameters<typeof blockText>[0][] = [
+      ...getTopic("FM-S100", 2, "fm100-t0340").topic.blocks,
+      ...getTopic("FM-S100", 2, "fm100-t1086").topic.blocks,
+      { type: "list", id: "l", items: ["One", "Two", "Three"] },
+      { type: "table", id: "t", rows: [{ header: true, cells: ["A", "B"] }, { cells: ["1", "2"] }] },
+      {
+        type: "checklist",
+        id: "c",
+        checks: [
+          { id: "c1", challenge: "Lights", response: "On" },
+          { id: "c2", challenge: "Doors", response: "Closed" },
+        ],
+      },
+    ];
+    for (const block of fixtures) {
+      const layout = blockLayout(block);
+      expect(layout.text).toBe(blockText(block));
+      for (const part of layout.parts) {
+        expect(layout.text.slice(part.base, part.base + part.text.length)).toBe(part.text);
+      }
+    }
   });
 
   it("asks for a smaller selection when it spans two blocks", () => {
@@ -487,6 +536,7 @@ describe("reader", () => {
 
 afterEach(() => {
   cleanup();
+  resetAnnotationMemoryForTests();
   vi.restoreAllMocks();
   vi.useRealTimers();
   delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView;

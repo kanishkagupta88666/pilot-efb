@@ -10,13 +10,11 @@ import type {
   XrefSegment,
 } from "../types/api";
 import {
-  anchorFor,
-  partText,
+  blockLayout,
   resolveRange,
   useAnnotations,
   type Annotation,
   type AnnotationKind,
-  type TextAnchor,
 } from "../annotations/annotations";
 import {
   ChangeFrame,
@@ -509,11 +507,20 @@ function anchorElement(node: Node): HTMLElement | null {
   return element?.closest<HTMLElement>("[data-anchor-part]") ?? null;
 }
 
+/** A selection of words, as a range within the block's whole text. */
+interface WordAnchor {
+  nodeId: string;
+  start: number;
+  end: number;
+  quote: string;
+  anchorText: string;
+}
+
 type Floating =
-  | { kind: "selection"; anchor: TextAnchor; spot: Spot }
+  | { kind: "selection"; anchor: WordAnchor; spot: Spot }
   | { kind: "too-wide"; spot: Spot }
   | { kind: "existing"; ids: string[]; spot: Spot }
-  | { kind: "note"; spot: Spot; anchor?: TextAnchor; noteId?: string; text: string };
+  | { kind: "note"; spot: Spot; anchor?: WordAnchor; noteId?: string; text: string };
 
 const KIND_NAME: Record<AnnotationKind, string> = {
   highlight: "highlight",
@@ -542,22 +549,37 @@ export function ContentBlocks({
     [topic.blocks],
   );
 
-  // Annotations re-attached to this revision's text, grouped by piece of text.
+  const layouts = useMemo(
+    () => new Map(topic.blocks.map((block) => [block.id, blockLayout(block)])),
+    [topic.blocks],
+  );
+
+  // Annotations re-attached to this revision's text, by block, as ranges in the block's whole text.
   const placed = useMemo(() => {
-    const byPart = new Map<string, PlacedMark[]>();
+    const byBlock = new Map<string, PlacedMark[]>();
     const all: (Annotation & { start: number; end: number })[] = [];
     for (const annotation of store?.annotations ?? []) {
-      if (annotation.docId !== docId) continue;
-      const text = partText(blocksById.get(annotation.nodeId), annotation.part);
-      const range = text === undefined ? undefined : resolveRange(annotation, text);
+      if (annotation.documentId !== docId || annotation.detached) continue;
+      const layout = layouts.get(annotation.nodeId);
+      const range = layout && resolveRange(annotation, layout.text);
       if (!range) continue;
-      const key = `${annotation.nodeId}|${annotation.part}`;
-      byPart.set(key, [...(byPart.get(key) ?? []), { id: annotation.id, kind: annotation.kind, ...range }]);
+      byBlock.set(annotation.nodeId, [
+        ...(byBlock.get(annotation.nodeId) ?? []),
+        { id: annotation.id, kind: annotation.kind, ...range },
+      ]);
       all.push({ ...annotation, ...range });
     }
-    return { byPart, all };
-  }, [store?.annotations, docId, blocksById]);
-  const lookup = (nodeId: string, part: string) => placed.byPart.get(`${nodeId}|${part}`) ?? [];
+    return { byBlock, all };
+  }, [store?.annotations, docId, layouts]);
+  // Marks for one piece of text, shifted to start at that piece.
+  const lookup = (nodeId: string, part: string) => {
+    const piece = layouts.get(nodeId)?.parts.find((entry) => entry.part === part);
+    if (!piece) return [];
+    const end = piece.base + piece.text.length;
+    return (placed.byBlock.get(nodeId) ?? [])
+      .filter((mark) => mark.end > piece.base && mark.start < end)
+      .map((mark) => ({ ...mark, start: mark.start - piece.base, end: mark.end - piece.base }));
+  };
 
   // Read the current selection; show the bar if it sits inside one piece of text in this topic.
   const readSelection = () => {
@@ -579,15 +601,25 @@ export function ContentBlocks({
       return;
     }
     const nodeId = from.dataset.anchorNode ?? "";
-    const part = from.dataset.anchorPart ?? "";
-    const text = partText(blocksById.get(nodeId), part);
-    if (text === undefined) return;
+    const layout = layouts.get(nodeId);
+    const piece = layout?.parts.find((entry) => entry.part === from.dataset.anchorPart);
+    if (!layout || !piece) return;
     let start = offsetWithin(from, range.startContainer, range.startOffset);
     let end = offsetWithin(from, range.endContainer, range.endOffset);
-    while (start < end && /\s/.test(text[start])) start++;
-    while (end > start && /\s/.test(text[end - 1])) end--;
+    while (start < end && /\s/.test(piece.text[start])) start++;
+    while (end > start && /\s/.test(piece.text[end - 1])) end--;
     if (end <= start) return;
-    setFloating({ kind: "selection", anchor: anchorFor(nodeId, part, text, start, end), spot: spotOf(range) });
+    setFloating({
+      kind: "selection",
+      anchor: {
+        nodeId,
+        start: piece.base + start,
+        end: piece.base + end,
+        quote: piece.text.slice(start, end),
+        anchorText: layout.text,
+      },
+      spot: spotOf(range),
+    });
   };
 
   useEffect(() => {
@@ -604,7 +636,14 @@ export function ContentBlocks({
   });
 
   const clearSelection = () => window.getSelection()?.removeAllRanges();
-  const target = (anchor: TextAnchor) => ({ docId, revision, topicId: topic.id, ...anchor });
+  const target = (anchor: WordAnchor, note = "") => ({
+    documentId: docId,
+    revision,
+    topicId: topic.id,
+    topicNumber: topic.number,
+    ...anchor,
+    note,
+  });
 
   // Tapping an existing mark opens its actions.
   const onContentClick = (event: MouseEvent<HTMLDivElement>) => {
@@ -795,7 +834,7 @@ export function ContentBlocks({
             <>
               <button
                 onClick={() => {
-                  store.add("highlight", target(floating.anchor));
+                  store.add({ kind: "highlight", ...target(floating.anchor) });
                   clearSelection();
                   setFloating(undefined);
                 }}
@@ -814,7 +853,7 @@ export function ContentBlocks({
               </button>
               <button
                 onClick={() => {
-                  store.add("bookmark", target(floating.anchor));
+                  store.add({ kind: "bookmark", ...target(floating.anchor) });
                   clearSelection();
                   setFloating(undefined);
                 }}
@@ -877,9 +916,10 @@ export function ContentBlocks({
           }
           onSave={(text) => {
             if (floating.noteId) {
-              store.updateNote(floating.noteId, text);
+              if (text.trim()) store.update(floating.noteId, { note: text.trim() });
+              else store.remove(floating.noteId);
             } else if (floating.anchor && text.trim()) {
-              store.add("note", target(floating.anchor), text.trim());
+              store.add({ kind: "note", ...target(floating.anchor, text.trim()) });
             }
             setFloating(undefined);
           }}

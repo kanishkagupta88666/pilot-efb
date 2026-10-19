@@ -81,6 +81,19 @@ export async function annotationsFor(documentId: string): Promise<Annotation[]> 
     .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
 }
 
+/** All of this pilot's live annotations, across documents. */
+export async function allAnnotations(): Promise<Annotation[]> {
+  const owner = currentOwner();
+  return (await all())
+    .filter((item) => item.ownerKey === owner && !item.deleted)
+    .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+}
+
+/** Tests only: forget the in-memory annotations (used when the device has no IndexedDB). */
+export function resetAnnotationMemoryForTests(): void {
+  memory.clear();
+}
+
 export async function unsyncedCount(): Promise<number> {
   const owner = currentOwner();
   return (await all()).filter((item) => item.ownerKey === owner && item.unsynced).length;

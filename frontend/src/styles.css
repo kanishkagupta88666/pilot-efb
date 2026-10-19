@@ -1336,6 +1336,84 @@ time,
   font-weight: 800;
 }
 
+.your-annotations__bookmark {
+  width: 100%;
+  margin-bottom: 0.25rem;
+}
+
+.name-prompt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.name-prompt label {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 800;
+}
+
+.name-prompt p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+
+.name-prompt__row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.name-prompt input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--tap);
+  flex: 1;
+  padding: 0 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.your-annotations__group {
+  margin-top: 1.25rem;
+}
+
+.your-annotations__group h3 {
+  margin: 0 0 0.5rem;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 800;
+}
+
+.your-annotations__links,
+.your-annotations__kept {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.your-annotations__kept li {
+  padding: 0.5rem 0.65rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--surface);
+}
+
+.your-annotations__kept p {
+  margin: 0 0 0.25rem;
+  color: var(--ink);
+}
+
 /* Annotations: marks on selected words, the floating bar and the note box */
 
 .annotation-mark {

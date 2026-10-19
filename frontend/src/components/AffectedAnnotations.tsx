@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  anchorFor,
-  partText,
+  blockLayout,
   resolveRange,
+  shorten,
   useAnnotations,
   type Annotation,
 } from "../annotations/annotations";
@@ -14,15 +14,17 @@ const KIND_LABEL: Record<Annotation["kind"], string> = {
   bookmark: "Your bookmark",
 };
 
-/** The old text with the annotated words marked. */
+/** The text as it read when annotated, with the annotated words marked. */
 function QuotedText({ annotation }: { annotation: Annotation }) {
-  const { text, start, end, quote } = annotation;
-  if (text.slice(start, end) !== quote) return <p>{text}</p>;
+  const { anchorText, start, end, quote } = annotation;
+  if (start === null || end === null || anchorText.slice(start, end) !== quote) {
+    return <p>{anchorText || quote}</p>;
+  }
   return (
     <p>
-      {text.slice(0, start)}
+      {anchorText.slice(0, start)}
       <mark className="annotation-mark annotation-mark--highlight">{quote}</mark>
-      {text.slice(end)}
+      {anchorText.slice(end)}
     </p>
   );
 }
@@ -47,13 +49,15 @@ export function AffectedAnnotations({
 
   const earlier = (store?.annotations ?? []).filter(
     (annotation) =>
-      annotation.docId === docId &&
+      annotation.documentId === docId &&
       annotation.topicId === topic.id &&
-      annotation.revision !== revision,
+      annotation.revision !== revision &&
+      annotation.nodeId !== "" &&
+      !annotation.detached,
   );
   const reviewed = earlier.map((annotation) => {
     const block = topic.blocks.find((entry) => entry.id === annotation.nodeId);
-    const current = partText(block, annotation.part);
+    const current = block ? blockLayout(block).text : undefined;
     const found = current !== undefined && resolveRange(annotation, current);
     const status = current === undefined ? "removed" : found ? "unchanged" : "changed";
     return { annotation, current, status } as const;
@@ -103,19 +107,37 @@ export function AffectedAnnotations({
                 </div>
               )}
               <div className="affected__actions">
-                {current !== undefined && (
+                {current !== undefined ? (
                   <button
                     className="button button--primary"
                     onClick={() =>
-                      store.keep(
-                        annotation.id,
+                      store.update(annotation.id, {
                         revision,
-                        anchorFor(annotation.nodeId, annotation.part, current, 0, current.length),
-                      )
+                        anchorText: current,
+                        start: 0,
+                        end: current.length,
+                        quote: current,
+                      })
                     }
                     type="button"
                   >
                     Keep annotation
+                  </button>
+                ) : (
+                  <button
+                    className="button button--primary"
+                    onClick={() =>
+                      store.update(annotation.id, {
+                        detached: true,
+                        kind: "note",
+                        note:
+                          annotation.note ||
+                          `Kept from ${annotation.topicNumber}: “${shorten(annotation.quote, 300)}”`,
+                      })
+                    }
+                    type="button"
+                  >
+                    Keep as note
                   </button>
                 )}
                 <button
@@ -127,8 +149,8 @@ export function AffectedAnnotations({
                 </button>
                 <span className="affected__hint">
                   {current !== undefined
-                    ? "Keeping attaches it to the whole line in its current wording."
-                    : `The text it referred to is not in this topic in Revision ${revision}.`}
+                    ? "Keeping attaches it to the whole block in its current wording."
+                    : `The text is not in this topic in Revision ${revision}. Keeping it saves it under Kept notes.`}
                 </span>
               </div>
             </li>

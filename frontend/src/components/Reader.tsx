@@ -217,7 +217,7 @@ function ReaderWorkspace({
       aside={
         <>
           <OnThisPage blocks={topicResponse.topic.blocks} />
-          <YourAnnotations docId={docId} topicId={topicResponse.topic.id} />
+          <YourAnnotations docId={docId} revision={revision} topic={topicResponse.topic} />
         </>
       }
       breadcrumbs={[
