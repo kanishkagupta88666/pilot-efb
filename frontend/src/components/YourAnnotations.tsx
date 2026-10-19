@@ -50,8 +50,8 @@ function NamePrompt() {
 }
 
 /**
- * Right-panel section: annotation counts for this manual, a bookmark for the whole topic, and
- * jump links for this topic's annotations. With `statuses` from the server (API mode), it also
+ * Right-panel section: annotation counts for this manual and jump links for this topic's
+ * annotations (bookmarks are made by selecting words). With `statuses` from the server (API mode), it also
  * lists annotations whose text moved to another topic in this revision.
  */
 export function YourAnnotations({
@@ -79,7 +79,6 @@ export function YourAnnotations({
   const inManual = store.annotations.filter((annotation) => annotation.documentId === docId);
   const live = inManual.filter((annotation) => !annotation.detached);
   const inTopic = live.filter((annotation) => annotation.topicId === topic?.id);
-  const topicBookmark = inTopic.find((annotation) => annotation.kind === "bookmark" && !annotation.nodeId);
   const kept = inManual.filter((annotation) => annotation.detached);
   const elsewhere = live.filter((annotation) => {
     const status = statuses?.get(annotation.id);
@@ -95,27 +94,6 @@ export function YourAnnotations({
     }
   };
 
-  const toggleTopicBookmark = () => {
-    if (!topic || revision === undefined) return;
-    if (topicBookmark) {
-      store.remove(topicBookmark.id);
-      return;
-    }
-    store.add({
-      kind: "bookmark",
-      documentId: docId,
-      revision,
-      topicId: topic.id,
-      topicNumber: topic.number,
-      nodeId: "",
-      start: null,
-      end: null,
-      quote: "",
-      anchorText: "",
-      note: "",
-    });
-  };
-
   return (
     <section aria-labelledby="your-annotations-heading" className="your-annotations">
       <h2 id="your-annotations-heading">Your annotations</h2>
@@ -127,16 +105,6 @@ export function YourAnnotations({
           </div>
         ))}
       </dl>
-      {topic && revision !== undefined && (
-        <button
-          aria-pressed={Boolean(topicBookmark)}
-          className={`button ${topicBookmark ? "button--primary" : "button--secondary"} your-annotations__bookmark`}
-          onClick={toggleTopicBookmark}
-          type="button"
-        >
-          {topicBookmark ? "Topic bookmarked" : "Bookmark this topic"}
-        </button>
-      )}
       {!hasName && <NamePrompt />}
       {offline && (
         <p className="page-nav__empty">
