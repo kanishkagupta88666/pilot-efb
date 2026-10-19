@@ -120,3 +120,30 @@ export function InfoIcon() {
     </svg>
   );
 }
+
+export function BookIcon() {
+  return (
+    <svg {...stroke} className="icon">
+      <path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z" />
+      <path d="M5 18a2 2 0 0 1 2-2h11M9 8h5" />
+    </svg>
+  );
+}
+
+export function CheckIcon() {
+  return (
+    <svg {...stroke} className="icon">
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+export function CalendarIcon() {
+  return (
+    <svg {...stroke} className="icon">
+      <rect height="15" rx="2" width="16" x="4" y="5" />
+      <path d="M4 10h16M9 3v4M15 3v4" />
+    </svg>
+  );
+}
+
