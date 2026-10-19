@@ -385,12 +385,9 @@ time,
   text-decoration: none;
 }
 
-.app-bar__brand::before {
-  width: 0.65rem;
-  height: 0.65rem;
-  border-radius: 3px;
-  background: var(--accent);
-  content: "";
+.app-bar__brand .logo-mark {
+  width: 1.6rem;
+  height: 1.6rem;
 }
 
 .app-bar__title {
@@ -587,6 +584,216 @@ time,
   margin: 1.25rem 0 0;
   color: var(--muted);
   font-size: var(--text-sm);
+}
+
+/* Library page: grid background, blueprint banner, summary cards, book covers, footer */
+
+.library-page {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--page);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.library-page .library-body {
+  flex: 1;
+}
+
+.library-hero {
+  position: relative;
+  display: flex;
+  min-height: 11rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+  padding: 1.75rem 2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background-color: var(--soft-surface);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--accent) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.library-hero__text {
+  position: relative;
+  z-index: 1;
+  max-width: 30rem;
+}
+
+.library-hero__greeting {
+  margin: 0;
+  color: var(--accent);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.library-hero h1 {
+  margin: 0.3rem 0 0;
+  color: var(--ink);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.library-hero__intro {
+  margin: 0.6rem 0 0;
+  color: var(--ink-2);
+  font-size: var(--text-md);
+}
+
+.library-hero__blueprint {
+  position: absolute;
+  top: 50%;
+  right: 2rem;
+  width: auto;
+  max-width: 50%;
+  height: calc(100% - 1.5rem);
+  color: color-mix(in srgb, var(--accent) 45%, transparent);
+  stroke: currentColor;
+  stroke-width: 1.4;
+  transform: translateY(-50%);
+}
+
+.blueprint-centre {
+  stroke-dasharray: 12 4 2 4;
+  stroke-width: 0.9;
+}
+
+.blueprint-dimension {
+  stroke-width: 0.9;
+}
+
+.blueprint-label {
+  fill: currentColor;
+  stroke: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+}
+
+.library-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-card__icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius);
+}
+
+.summary-card__icon .icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.summary-card__icon--blue {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.summary-card__icon--green {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.summary-card__icon--amber {
+  color: var(--caution);
+  background: var(--caution-soft);
+}
+
+.summary-card__label {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+
+.summary-card__value {
+  margin: 0.1rem 0 0;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.summary-card__value--mono {
+  font-family: var(--mono);
+  font-size: var(--text-md);
+}
+
+.summary-card__hint {
+  margin: 0.1rem 0 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.doc-cover {
+  position: relative;
+  display: inline-flex;
+  width: 2.75rem;
+  height: 3.4rem;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.45rem;
+  border-radius: 3px 6px 6px 3px;
+  color: #ffffff;
+  background: linear-gradient(90deg, rgb(0 0 0 / 22%) 0 4px, transparent 4px), var(--button);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--mono);
+  font-size: var(--text-sm);
+  font-weight: 800;
+}
+
+.doc-cover--long {
+  font-size: 0.55rem;
+  letter-spacing: -0.02em;
+}
+
+.library-footnote {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.library-footnote .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.library-status {
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 760px) {
+  .library-hero__blueprint {
+    display: none;
+  }
 }
 
 /* Revision number and dropdown */

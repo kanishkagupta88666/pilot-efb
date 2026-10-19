@@ -37,7 +37,7 @@ describe("document library", () => {
     expect(screen.getByText("FM-S100")).toBeTruthy();
     expect(screen.getByText("1 Jul 2026")).toBeTruthy();
     expect(screen.getByText("15 Jul 2026")).toBeTruthy();
-    expect(screen.getByText("FM", { selector: "td" })).toBeTruthy();
+    expect(screen.getByText("FM", { selector: ".doc-cover" })).toBeTruthy();
     expect(screen.getByText("2", { selector: "td" })).toBeTruthy();
     expect(screen.queryByText("FM-S200")).toBeNull();
   });
