@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { blockText, useAnnotations, type Annotation } from "../annotations/annotations";
+import {
+  anchorFor,
+  partText,
+  resolveRange,
+  useAnnotations,
+  type Annotation,
+} from "../annotations/annotations";
 import type { TopicContentResponse } from "../types/api";
 
 const KIND_LABEL: Record<Annotation["kind"], string> = {
@@ -8,10 +14,23 @@ const KIND_LABEL: Record<Annotation["kind"], string> = {
   bookmark: "Your bookmark",
 };
 
+/** The old text with the annotated words marked. */
+function QuotedText({ annotation }: { annotation: Annotation }) {
+  const { text, start, end, quote } = annotation;
+  if (text.slice(start, end) !== quote) return <p>{text}</p>;
+  return (
+    <p>
+      {text.slice(0, start)}
+      <mark className="annotation-mark annotation-mark--highlight">{quote}</mark>
+      {text.slice(end)}
+    </p>
+  );
+}
+
 /**
  * Shown when the open topic is in a different revision from the one an annotation was made in,
- * and the annotated text has changed or is no longer in this topic. Nothing is deleted unless
- * the pilot chooses Delete.
+ * and the annotated words can no longer be found. Annotations whose words are still there are
+ * re-attached automatically. Nothing is deleted unless the pilot chooses Delete.
  */
 export function AffectedAnnotations({
   docId,
@@ -34,9 +53,9 @@ export function AffectedAnnotations({
   );
   const reviewed = earlier.map((annotation) => {
     const block = topic.blocks.find((entry) => entry.id === annotation.nodeId);
-    const current = block ? blockText(block) : undefined;
-    const status =
-      current === undefined ? "removed" : current === annotation.text ? "unchanged" : "changed";
+    const current = partText(block, annotation.part);
+    const found = current !== undefined && resolveRange(annotation, current);
+    const status = current === undefined ? "removed" : found ? "unchanged" : "changed";
     return { annotation, current, status } as const;
   });
   const affected = reviewed.filter((entry) => entry.status !== "unchanged");
@@ -75,7 +94,7 @@ export function AffectedAnnotations({
                 <span className="affected__label">
                   As it read when you annotated it (Revision {annotation.revision})
                 </span>
-                <p>{annotation.text}</p>
+                <QuotedText annotation={annotation} />
               </div>
               {current !== undefined && (
                 <div className="affected__now">
@@ -87,7 +106,13 @@ export function AffectedAnnotations({
                 {current !== undefined && (
                   <button
                     className="button button--primary"
-                    onClick={() => store.keep(annotation.id, revision, current)}
+                    onClick={() =>
+                      store.keep(
+                        annotation.id,
+                        revision,
+                        anchorFor(annotation.nodeId, annotation.part, current, 0, current.length),
+                      )
+                    }
                     type="button"
                   >
                     Keep annotation
@@ -102,7 +127,7 @@ export function AffectedAnnotations({
                 </button>
                 <span className="affected__hint">
                   {current !== undefined
-                    ? "Keeping re-anchors it to the current wording."
+                    ? "Keeping attaches it to the whole line in its current wording."
                     : `The text it referred to is not in this topic in Revision ${revision}.`}
                 </span>
               </div>

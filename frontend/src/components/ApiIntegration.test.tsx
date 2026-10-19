@@ -182,6 +182,31 @@ describe("API-backed frontend", () => {
     expect(screen.getByText("15 Jul 2026")).toBeTruthy();
   });
 
+  it("opens the library on the current revision, not the first one listed", async () => {
+    const revisions = library.documents[0].availableRevisions;
+    const withHistory: DocumentLibraryResponse = {
+      documents: [
+        {
+          ...library.documents[0],
+          availableRevisions: [
+            { ...revisions[0], revision: 1, status: "superseded" },
+            { ...revisions[0], revision: 2, status: "current" },
+          ],
+        },
+      ],
+    };
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(jsonResponse(withHistory))));
+    render(
+      <MemoryRouter>
+        <ApiDocumentLibrary />
+      </MemoryRouter>,
+    );
+
+    const selector = (await screen.findByRole("combobox", { name: "Revision" })) as HTMLSelectElement;
+    expect(selector.value).toBe("2");
+    expect(screen.getByText("Current")).toBeTruthy();
+  });
+
   it("shows an empty state when the API library has no documents", async () => {
     vi.stubGlobal(
       "fetch",

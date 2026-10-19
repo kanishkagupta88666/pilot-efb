@@ -20,8 +20,10 @@ export function YourAnnotations({ docId, topicId }: { docId: string; topicId?: s
   const inManual = store.annotations.filter((annotation) => annotation.docId === docId);
   const inTopic = inManual.filter((annotation) => annotation.topicId === topicId);
 
-  const jumpTo = (id: string) => {
-    const target = document.getElementById(id);
+  const jumpTo = (annotationId: string, nodeId: string) => {
+    const target =
+      document.querySelector(`[data-annotation-ids~="${annotationId}"]`) ??
+      document.getElementById(nodeId);
     if (typeof target?.scrollIntoView === "function") {
       target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -40,7 +42,7 @@ export function YourAnnotations({ docId, topicId }: { docId: string; topicId?: s
       </dl>
       {inTopic.length === 0 ? (
         <p className="page-nav__empty">
-          Tap a paragraph, note, table or checklist to bookmark, highlight or add a note.
+          Select words in the text to highlight, bookmark or add a note.
         </p>
       ) : (
         <ul className="page-nav">
@@ -48,11 +50,11 @@ export function YourAnnotations({ docId, topicId }: { docId: string; topicId?: s
             <li key={annotation.id}>
               <button
                 className={`page-nav__item page-nav__item--${annotation.kind}`}
-                onClick={() => jumpTo(annotation.nodeId)}
+                onClick={() => jumpTo(annotation.id, annotation.nodeId)}
                 type="button"
               >
                 <span className="page-nav__label">{SINGULAR[annotation.kind]}</span>
-                <span className="page-nav__preview">{shorten(annotation.note ?? annotation.text)}</span>
+                <span className="page-nav__preview">{shorten(annotation.note ?? annotation.quote)}</span>
               </button>
             </li>
           ))}
