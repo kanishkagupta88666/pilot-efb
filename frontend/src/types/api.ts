@@ -384,3 +384,41 @@ export interface AuditVerification {
   problemAt: number | null;
   problem: string | null;
 }
+
+export type AnnotationKind = "highlight" | "note" | "bookmark";
+
+export interface Annotation {
+  id: string;
+  kind: AnnotationKind;
+  documentId: string;
+  /** Revision the annotation was made in (or last confirmed in). */
+  revision: number;
+  topicId: string;
+  topicNumber: string;
+  /** Block (or check) ID; empty for a bookmark on the whole topic. */
+  nodeId: string;
+  /** Character range within the block's text, for a highlight or note on a selection. */
+  start: number | null;
+  end: number | null;
+  quote: string;
+  /** The block's text when annotated, to tell whether a later revision changed it. */
+  anchorText: string;
+  note: string;
+  /** Kept as a note after its text was removed from the manual. */
+  detached: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deleted: boolean;
+}
+
+export interface AnnotationStatus {
+  id: string;
+  status: "unchanged" | "changed" | "moved" | "removed";
+  changed: boolean;
+  moved: boolean;
+  topicId?: string;
+  topicNumber?: string;
+  topicTitle?: string;
+  currentText?: string | null;
+  previousTopicNumber?: string | null;
+}

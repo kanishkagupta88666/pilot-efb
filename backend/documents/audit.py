@@ -51,6 +51,9 @@ DEVICE_ACTIONS = {
     "connectivity.offline": "Device went offline",
     "connectivity.online": "Device came back online",
     "profile.changed": "Changed the name or role used on this device",
+    # Annotations are private: only the kind and where, never the text.
+    "annotation.added": "Added a highlight, note or bookmark",
+    "annotation.removed": "Removed a highlight, note or bookmark",
 }
 SERVER_ACTIONS = {
     "draft.started": "Started a draft",

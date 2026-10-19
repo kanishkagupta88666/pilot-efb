@@ -27,6 +27,16 @@ import { AffectedAnnotations } from "./AffectedAnnotations";
 import { resolveAvailableTargetId } from "../data/mockData";
 import { readerPathForResolution } from "../utils/readerLink";
 
+/** One highlighted range in a block's text (used by Hriday's annotation component). */
+export interface HighlightRange {
+  id: string;
+  start: number;
+  end: number;
+  hasNote: boolean;
+  /** The text changed since it was highlighted: shown, but flagged for review. */
+  flagged: boolean;
+}
+
 interface BlockProps {
   block: ContentBlock;
   docId: string;

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from documents import audit_views, authoring_views
+from documents import annotation_views, audit_views, authoring_views
 from documents.views import (
     document_library,
     health,
@@ -23,6 +23,12 @@ urlpatterns = [
     path("api/documents/", document_library, name="document-library"),
     path("api/search/", search_documents, name="search"),
     path("api/audit/events/", audit_views.events, name="audit-events"),
+    path("api/annotations/sync/", annotation_views.sync, name="annotations-sync"),
+    path(
+        "api/documents/<str:doc_id>/revisions/<str:revision>/annotation-status/",
+        annotation_views.status,
+        name="annotation-status",
+    ),
     path("api/audit/verify/", audit_views.verify, name="audit-verify"),
     path("api/documents/<str:doc_id>/draft/", authoring_views.draft, name="draft"),
     path(
