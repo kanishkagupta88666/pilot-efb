@@ -1,0 +1,61 @@
+name: Browser tests
+
+# Runs the Playwright regression suite in frontend/e2e against a freshly started
+# API and Vite server. Everything is disposable: the database is a temporary
+# SQLite file built from the synthetic sample data, the ports (8100 and 5200)
+# are not the development ports, and no secret or stored data is used.
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "sample-data/**"
+      - "scripts/e2e-backend.sh"
+      - ".github/workflows/browser-tests.yml"
+  push:
+    branches:
+      - "integration/**"
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "sample-data/**"
+      - "scripts/e2e-backend.sh"
+      - ".github/workflows/browser-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Use the Chromium that Playwright downloads rather than a local Chrome.
+      E2E_CHANNEL: ""
+      E2E_PYTHON: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: python -m pip install -r backend/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npx playwright test
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: frontend/test-results/
+          retention-days: 7
