@@ -1,25 +1,35 @@
 """API for the audit log. See documents/audit.py."""
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 
 from documents import audit
 from documents.api_errors import INVALID_REQUEST, ApiError
 from documents.models import AuditEvent
+from documents.permissions import AUTHENTICATION, AuditReadAccess, DeviceAuditAccess, acting_user
 
 MAX_PAGE = 200
 
 
+def _require_device_audit(request) -> None:
+    """Uploading events writes to the log, so it needs a token (reading does not)."""
+    permission = DeviceAuditAccess()
+    permission.has_permission(request, None)
+
+
 @api_view(["GET", "POST"])
+@authentication_classes(AUTHENTICATION)
 def events(request):
     if request.method == "POST":
+        _require_device_audit(request)
         body = request.data if isinstance(request.data, dict) else {}
         try:
-            result = audit.receive_device_events(body.get("events"))
+            result = audit.receive_device_events(body.get("events"), acting_user(request))
         except audit.AuditError as error:
             raise ApiError(400, INVALID_REQUEST, str(error)) from error
         return Response(result)
 
+    AuditReadAccess().has_permission(request, None)
     params = request.query_params
     try:
         since = audit.parse_bound(params.get("since"), "since")
@@ -63,5 +73,7 @@ def events(request):
 
 
 @api_view(["GET"])
+@authentication_classes(AUTHENTICATION)
+@permission_classes([AuditReadAccess])
 def verify(request):
     return Response(audit.verify_chain())

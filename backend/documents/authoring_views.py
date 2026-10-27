@@ -1,17 +1,19 @@
 """API for authoring a new revision. See documents/authoring.py for the rules.
 
-Prototype only: like the rest of the API there is no authentication yet, so
-anyone who can reach the API can edit a draft and publish it. Production
-needs the document owner, reviewer and approver roles from the DMS.
+Every endpoint here is off unless EFB_AUTHORING_ENABLED is set, and then needs
+a token for an account with the draft permissions (publishing also needs
+permission to add a document version). See documents/permissions.py.
+Production needs the document owner, reviewer and approver roles from the DMS.
 """
 
 from functools import wraps
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 
 from documents import audit, authoring
 from documents.api_errors import ApiError
+from documents.permissions import AUTHENTICATION, AuthoringAccess, PublishAccess
 
 DRAFT_METHODS = ["GET", "POST", "DELETE"]
 
@@ -47,6 +49,8 @@ def _log(request, action: str, doc_id: str, *, revision=None, node_id: str = "",
 
 
 @api_view(DRAFT_METHODS)
+@authentication_classes(AUTHENTICATION)
+@permission_classes([AuthoringAccess])
 @_errors
 def draft(request, doc_id: str):
     if request.method == "POST":
@@ -65,6 +69,8 @@ def draft(request, doc_id: str):
 
 
 @api_view(["GET", "PATCH", "DELETE"])
+@authentication_classes(AUTHENTICATION)
+@permission_classes([AuthoringAccess])
 @_errors
 def draft_topic(request, doc_id: str, topic_id: str):
     if request.method == "PATCH":
@@ -83,6 +89,8 @@ def draft_topic(request, doc_id: str, topic_id: str):
 
 
 @api_view(["POST"])
+@authentication_classes(AUTHENTICATION)
+@permission_classes([AuthoringAccess])
 @_errors
 def draft_topics(request, doc_id: str):
     body = _body(request)
@@ -98,6 +106,8 @@ def draft_topics(request, doc_id: str):
 
 
 @api_view(["POST"])
+@authentication_classes(AUTHENTICATION)
+@permission_classes([AuthoringAccess])
 @_errors
 def draft_blocks(request, doc_id: str, topic_id: str):
     body = _body(request)
@@ -114,6 +124,8 @@ def draft_blocks(request, doc_id: str, topic_id: str):
 
 
 @api_view(["PATCH", "DELETE"])
+@authentication_classes(AUTHENTICATION)
+@permission_classes([AuthoringAccess])
 @_errors
 def draft_block(request, doc_id: str, topic_id: str, block_id: str):
     before = authoring.snapshot(doc_id, topic_id, block_id)
@@ -135,6 +147,8 @@ def draft_block(request, doc_id: str, topic_id: str, block_id: str):
 
 
 @api_view(["POST"])
+@authentication_classes(AUTHENTICATION)
+@permission_classes([PublishAccess])
 @_errors
 def publish_draft(request, doc_id: str):
     body = _body(request)

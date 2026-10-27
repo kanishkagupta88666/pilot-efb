@@ -7,6 +7,7 @@ from documents import search
 from documents.ingestion import ingest_xml
 from documents.models import Annotation, ContentAnchor, DocumentVersion
 from documents.test_api import ApiAssertionsMixin
+from documents.test_support import WriteAccessMixin
 from documents.xml_validation import PROJECT_ROOT
 
 SYNC = "/api/annotations/sync/"
@@ -38,9 +39,11 @@ def change(**overrides) -> dict:
     return item
 
 
-class AnnotationSyncTests(ApiAssertionsMixin, APITestCase):
+class AnnotationSyncTests(WriteAccessMixin, ApiAssertionsMixin, APITestCase):
     def sync(self, owner, changes):
-        return self.assert_json(self.client.post(SYNC, {"owner": owner, "changes": changes}, format="json"))
+        # The account decides the owner; the name is normalised so "  pat   PILOT " is Pat Pilot.
+        self.sign_in(" ".join(owner.split()).lower())
+        return self.assert_json(self.client.post(SYNC, {"changes": changes}, format="json"))
 
     def test_annotations_are_private_to_their_owner_and_follow_them(self):
         mine = change()
@@ -66,7 +69,7 @@ class AnnotationSyncTests(ApiAssertionsMixin, APITestCase):
         self.assertTrue(body["annotations"][0]["deleted"])
 
     def test_validation(self):
-        self.assert_error(self.client.post(SYNC, {"owner": "", "changes": []}, format="json"), 400, "INVALID_REQUEST")
+        self.assert_error(self.client.post(SYNC, {"changes": "x"}, format="json"), 400, "INVALID_REQUEST")
         body = self.sync("Pat", [
             change(kind="scribble"),
             change(start=5, end=2),

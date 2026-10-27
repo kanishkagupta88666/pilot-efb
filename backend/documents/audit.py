@@ -15,8 +15,9 @@ its content together with the previous entry's hash. ``verify_chain`` walks
 the log and reports the first entry that was changed, removed or inserted
 outside the application.
 
-Identity: there is no sign-in yet, so the actor is what the device declares
-(name and role) plus a device ID. Treat it as unverified until SSO exists.
+Identity: writes need a token (documents/permissions.py), and the actor is the
+signed-in account, never a name or role sent in the request. The device ID is
+only a label for the hardware, sent by the device.
 """
 
 from datetime import UTC, datetime, timedelta
@@ -29,6 +30,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from documents.models import AuditEvent
+from documents.permissions import acting_user
 
 GENESIS = "0" * 64
 SYSTEM_ACTOR = "System"
@@ -165,7 +167,7 @@ def _text(value, label: str, limit: int, required: bool = False) -> str:
     return value
 
 
-def _device_event(payload: dict) -> AuditEvent:
+def _device_event(payload: dict, actor: tuple[str, str]) -> AuditEvent:
     if not isinstance(payload, dict):
         raise AuditError("Each event must be a JSON object.")
     try:
@@ -188,17 +190,14 @@ def _device_event(payload: dict) -> AuditEvent:
         raise AuditError("details must be a JSON object.")
     if len(_canonical(details).encode()) > MAX_DETAILS_BYTES:
         raise AuditError("details are too large.")
-    role = _text(payload.get("actorRole"), "actorRole", 32)
-    if role not in ROLES or role == "system":
-        raise AuditError("actorRole is not a known role.")
     occurred = _instant(occurred)
     return AuditEvent(
         event_id=event_id,
         occurred_at=occurred,
         source=AuditEvent.Source.DEVICE,
         action=action,
-        actor=_text(payload.get("actor"), "actor", 120) or "Unidentified user",
-        actor_role=role,
+        actor=actor[0][:120],
+        actor_role=actor[1],
         device_id=_text(payload.get("deviceId"), "deviceId", 64, required=True),
         document_id=_text(payload.get("documentId"), "documentId", 128),
         revision=revision,
@@ -208,8 +207,12 @@ def _device_event(payload: dict) -> AuditEvent:
     )
 
 
-def receive_device_events(events) -> dict:
-    """Store a batch from a device. Already-stored IDs are reported, not stored again."""
+def receive_device_events(events, actor: tuple[str, str]) -> dict:
+    """Store a batch from a device. Already-stored IDs are reported, not stored again.
+
+    ``actor`` is the verified (name, role) of the signed-in account; any actor or
+    role inside an event is ignored.
+    """
     if not isinstance(events, list):
         raise AuditError("events must be a list.")
     if len(events) > MAX_BATCH:
@@ -221,7 +224,7 @@ def receive_device_events(events) -> dict:
     parsed: list[AuditEvent] = []
     for payload in events:
         try:
-            parsed.append(_device_event(payload))
+            parsed.append(_device_event(payload, actor))
         except AuditError as error:
             rejected.append({"id": str((payload or {}).get("id", "")) if isinstance(payload, dict) else "", "reason": str(error)})
     parsed.sort(key=lambda event: event.occurred_at)
@@ -292,10 +295,10 @@ def parse_bound(value: str | None, label: str) -> datetime | None:
 
 
 def actor_from_request(request) -> dict:
-    """The self-declared user sent by the reader with each change (unverified)."""
-    role = (request.headers.get("X-EFB-Role") or "").strip().lower()
+    """The verified account making this request, plus the device label it sent."""
+    name, role = acting_user(request)
     return {
-        "actor": (request.headers.get("X-EFB-Actor") or "").strip()[:120] or "Unidentified user",
-        "actor_role": role if role in ROLES and role != "system" else "",
+        "actor": name[:120],
+        "actor_role": role,
         "device_id": (request.headers.get("X-EFB-Device") or "").strip()[:64],
     }

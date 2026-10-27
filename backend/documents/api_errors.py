@@ -3,6 +3,8 @@ import logging
 from django.http import Http404, JsonResponse
 from rest_framework.exceptions import (
     APIException,
+    AuthenticationFailed,
+    NotAuthenticated,
     MethodNotAllowed,
     NotAcceptable,
     NotFound,
@@ -24,6 +26,9 @@ UNSUPPORTED_NODE_TYPE = "UNSUPPORTED_NODE_TYPE"
 NO_PREVIOUS_REVISION = "NO_PREVIOUS_REVISION"
 PDF_NOT_AVAILABLE = "PDF_NOT_AVAILABLE"
 INTERNAL_ERROR = "INTERNAL_ERROR"
+AUTHENTICATION_REQUIRED = "AUTHENTICATION_REQUIRED"
+FORBIDDEN = "FORBIDDEN"
+FEATURE_DISABLED = "FEATURE_DISABLED"
 
 INTERNAL_ERROR_MESSAGE = "The server could not complete the request."
 NOT_FOUND_MESSAGE = "The requested resource was not found."
@@ -70,6 +75,11 @@ def api_exception_handler(exc: Exception, context: dict) -> Response:
         )
     if isinstance(exc, (Http404, NotFound)):
         return Response(error_body(NOT_FOUND, NOT_FOUND_MESSAGE), status=404)
+    if isinstance(exc, (AuthenticationFailed, NotAuthenticated)):
+        return Response(
+            error_body(AUTHENTICATION_REQUIRED, "Sign in with a valid token to use this endpoint."),
+            status=401,
+        )
     if isinstance(exc, MethodNotAllowed):
         return Response(
             error_body(

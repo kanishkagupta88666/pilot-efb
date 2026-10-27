@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -15,6 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
     "documents",
 ]
 
@@ -83,8 +85,18 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "DEFAULT_AUTHENTICATION_CLASSES": [],
-    # Prototype only: there is no production authentication yet, so every
-    # endpoint is deliberately open.
+    # Reading is open (synthetic data). Endpoints that write set their own
+    # authentication and permission classes; see documents/permissions.py.
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
     "EXCEPTION_HANDLER": "documents.api_errors.api_exception_handler",
 }
+
+# Endpoints that write data are off unless switched on, and then need a token
+# (see documents/permissions.py). Set to "1" to enable.
+def _flag(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+EFB_AUTHORING_ENABLED = _flag("EFB_AUTHORING_ENABLED")
+EFB_ANNOTATION_SYNC_ENABLED = _flag("EFB_ANNOTATION_SYNC_ENABLED")
+EFB_DEVICE_AUDIT_ENABLED = _flag("EFB_DEVICE_AUDIT_ENABLED")

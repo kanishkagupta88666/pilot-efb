@@ -8,13 +8,14 @@ from documents.models import Draft, DocumentNode, DocumentVersion
 from documents.pdf_only import ingest_pdf_only
 from documents.revision_diff import compare_versions
 from documents.test_api import ApiAssertionsMixin
+from documents.test_support import WriteAccessMixin
 from documents.xml_validation import PROJECT_ROOT
 
 TODAY = date(2026, 10, 14)
 DOC = "/api/documents/FM-S200"
 
 
-class AuthoringTests(ApiAssertionsMixin, APITestCase):
+class AuthoringTests(WriteAccessMixin, ApiAssertionsMixin, APITestCase):
     @classmethod
     def setUpTestData(cls):
         result = ingest_xml(PROJECT_ROOT / "sample-data" / "xml" / "FM-S200_Rev4.xml")
@@ -26,6 +27,7 @@ class AuthoringTests(ApiAssertionsMixin, APITestCase):
         )
 
     def setUp(self):
+        super().setUp()
         today = patch("documents.revision_status.current_date", return_value=TODAY)
         today.start()
         self.addCleanup(today.stop)

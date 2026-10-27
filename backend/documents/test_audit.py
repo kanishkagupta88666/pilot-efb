@@ -10,6 +10,7 @@ from documents import audit
 from documents.ingestion import ingest_xml
 from documents.models import AuditEvent, DocumentNode
 from documents.test_api import ApiAssertionsMixin
+from documents.test_support import WriteAccessMixin, make_user
 from documents.xml_validation import PROJECT_ROOT
 
 EVENTS = "/api/audit/events/"
@@ -70,10 +71,14 @@ class AuditChainTests(ApiAssertionsMixin, APITestCase):
 
     def test_verify_endpoint(self):
         audit.record("document.ingested", document_id="A")
+        self.client.force_authenticate(make_user("auditor", ("view_auditevent",)))
         self.assertTrue(self.assert_json(self.client.get("/api/audit/verify/"))["intact"])
 
 
-class DeviceEventTests(ApiAssertionsMixin, APITestCase):
+class DeviceEventTests(WriteAccessMixin, ApiAssertionsMixin, APITestCase):
+    codenames = ("view_auditevent",)
+    username = "Pat Pilot"
+
     def test_offline_events_are_stored_once_even_if_resent(self):
         events = [device_event(), device_event(action="search.performed", details={"query": "anti-ice"})]
         first = self.assert_json(self.client.post(EVENTS, {"events": events}, format="json"))
@@ -104,7 +109,6 @@ class DeviceEventTests(ApiAssertionsMixin, APITestCase):
                     device_event(id="not-a-uuid"),
                     device_event(action="revision.published"),  # server-only
                     device_event(occurredAt=future),
-                    device_event(actorRole="system"),
                     device_event(deviceId=""),
                     device_event(),
                 ]},
@@ -112,8 +116,14 @@ class DeviceEventTests(ApiAssertionsMixin, APITestCase):
             )
         )
         self.assertEqual(len(body["accepted"]), 1)
-        self.assertEqual(len(body["rejected"]), 5)
+        self.assertEqual(len(body["rejected"]), 4)
         self.assertTrue(all(r["reason"] for r in body["rejected"]))
+
+    def test_the_actor_is_the_signed_in_account_not_what_the_event_says(self):
+        forged = device_event(actor="Chief Pilot", actorRole="administrator")
+        self.assert_json(self.client.post(EVENTS, {"events": [forged]}, format="json"))
+        stored = AuditEvent.objects.get(event_id=forged["id"])
+        self.assertEqual((stored.actor, stored.actor_role), ("Pat Pilot", "pilot"))
 
     def test_batch_limits(self):
         self.assert_error(self.client.post(EVENTS, {"events": "x"}, format="json"), 400, "INVALID_REQUEST")
@@ -123,9 +133,11 @@ class DeviceEventTests(ApiAssertionsMixin, APITestCase):
     def test_listing_filters_and_pages_newest_first(self):
         self.client.post(
             EVENTS,
-            {"events": [device_event(documentId="FM-S100"), device_event(documentId="FOM", actor="Alex")]},
+            {"events": [device_event(documentId="FM-S100")]},
             format="json",
         )
+        self.sign_in("Alex", ("view_auditevent",))
+        self.client.post(EVENTS, {"events": [device_event(documentId="FOM")]}, format="json")
         audit.record("document.ingested", document_id="FM-S100")
         body = self.assert_json(self.client.get(f"{EVENTS}?documentId=FM-S100&limit=1"))
         self.assertEqual(body["events"][0]["action"], "document.ingested")
@@ -136,7 +148,7 @@ class DeviceEventTests(ApiAssertionsMixin, APITestCase):
         self.assert_error(self.client.get(f"{EVENTS}?since=yesterday"), 400, "INVALID_REQUEST")
 
 
-class AuthoringAuditTests(ApiAssertionsMixin, APITestCase):
+class AuthoringAuditTests(WriteAccessMixin, ApiAssertionsMixin, APITestCase):
     HEADERS = {"HTTP_X_EFB_ACTOR": "Ada Author", "HTTP_X_EFB_ROLE": "author", "HTTP_X_EFB_DEVICE": "ipad-7"}
 
     @classmethod
@@ -145,6 +157,7 @@ class AuthoringAuditTests(ApiAssertionsMixin, APITestCase):
         cls.topic = DocumentNode.objects.filter(version__document_id="FM-S200", node_type="topic").order_by("position").first()
 
     def setUp(self):
+        super().setUp()
         today = patch("documents.revision_status.current_date", return_value=date(2026, 10, 14))
         today.start()
         self.addCleanup(today.stop)
@@ -161,7 +174,7 @@ class AuthoringAuditTests(ApiAssertionsMixin, APITestCase):
         events = list(AuditEvent.objects.order_by("sequence"))
         self.assertEqual([e.action for e in events], ["draft.started", "block.edited", "revision.published"])
         edited = events[1]
-        self.assertEqual((edited.actor, edited.actor_role, edited.device_id), ("Ada Author", "author", "ipad-7"))
+        self.assertEqual((edited.actor, edited.actor_role, edited.device_id), ("Ada Author", "administrator", "ipad-7"))
         self.assertEqual(edited.details["after"]["text"], "New wording.")
         self.assertEqual(edited.details["before"]["text"], "".join(s["text"] for s in block["segments"]))
         self.assertEqual(events[2].revision, 5)
