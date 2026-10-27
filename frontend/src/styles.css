@@ -114,6 +114,41 @@ p {
   color: var(--muted);
 }
 
+.external-link-examples {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.external-link-examples h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.external-link-examples p {
+  color: var(--muted);
+}
+
+.external-link-examples ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.external-link-examples li {
+  padding: 0.25rem 0;
+}
+
+.external-link-example__id {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
 .document-type {
   flex: 0 0 auto;
   padding: 0.35rem 0.6rem;

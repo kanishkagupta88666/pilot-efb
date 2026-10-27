@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import deepLinkSamples from "../../../sample-data/deep_link_samples.json";
 import { getDocumentLibrary } from "../data/mockData";
 import { getDocumentLibraryFromApi, type ApiClientError } from "../api/client";
 import { DATA_SOURCE } from "../config/dataSource";
@@ -8,12 +9,16 @@ import type { DocumentSummary } from "../types/api";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionSelector } from "./RevisionSelector";
 
+type DeepLinkSample = (typeof deepLinkSamples.links)[number];
+
 function DocumentCard({
   document,
 }: {
   document: DocumentSummary;
 }) {
-  const initialRevision = document.availableRevisions[0];
+  const initialRevision =
+    document.availableRevisions.find((revision) => revision.status === "current") ??
+    document.availableRevisions[0];
   const [selectedRevision, setSelectedRevision] = useState(
     initialRevision?.revision,
   );
@@ -78,6 +83,51 @@ function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
       {documents.map((document) => (
         <DocumentCard document={document} key={document.id} />
       ))}
+    </section>
+  );
+}
+
+function ExternalLinkExamples({
+  documents,
+}: {
+  documents: DocumentSummary[];
+}) {
+  const documentIds = new Set(documents.map((document) => document.id));
+  const examples = deepLinkSamples.links.filter((link) =>
+    documentIds.has(link.docId),
+  );
+
+  if (examples.length === 0) return null;
+
+  return (
+    <section
+      aria-labelledby="external-link-examples-heading"
+      className="external-link-examples"
+    >
+      <h2 id="external-link-examples-heading">
+        Simulated external application links
+      </h2>
+      <p>
+        Open a sample permanent-ID link as if it came from another application.
+        These examples omit the revision so the resolver selects the current
+        effective revision.
+      </p>
+      <ul>
+        {examples.map((link: DeepLinkSample) => {
+          const query = new URLSearchParams({
+            doc: link.docId,
+            node: link.nodeId,
+          });
+          return (
+            <li key={link.nodeId}>
+              <Link to={`/open?${query.toString()}`}>
+                {link.expectedNumber} — {link.expectedTitle}
+              </Link>
+              <span className="external-link-example__id">{link.nodeId}</span>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
@@ -149,7 +199,10 @@ export function ApiDocumentLibrary() {
       {documents.length === 0 ? (
         <EmptyState message="No documents are available." />
       ) : (
-        <LibraryContent documents={documents} />
+        <>
+          <LibraryContent documents={documents} />
+          <ExternalLinkExamples documents={documents} />
+        </>
       )}
     </LibraryFrame>
   );

@@ -4,9 +4,11 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import deepLinkSamples from "../../../sample-data/deep_link_samples.json";
 import type {
   DocumentLibraryResponse,
   ResolveNodeResponse,
@@ -180,6 +182,63 @@ describe("API-backed frontend", () => {
     expect(await screen.findByRole("heading", { name: "Synthetic manual" })).toBeTruthy();
     expect(screen.getByText("2026-07-01")).toBeTruthy();
     expect(screen.getByText("2026-07-15")).toBeTruthy();
+  });
+
+  it("shows the supplied sample links as simulated external deep links", async () => {
+    vi.stubGlobal("fetch", apiFetch());
+    render(
+      <MemoryRouter>
+        <ApiDocumentLibrary />
+      </MemoryRouter>,
+    );
+
+    const examples = await screen.findByRole("region", {
+      name: "Simulated external application links",
+    });
+    const links = within(examples).getAllByRole("link");
+    expect(links).toHaveLength(deepLinkSamples.links.length);
+
+    for (const sample of deepLinkSamples.links) {
+      const link = within(examples).getByRole("link", {
+        name: `${sample.expectedNumber} — ${sample.expectedTitle}`,
+      });
+      const query = new URLSearchParams({
+        doc: sample.docId,
+        node: sample.nodeId,
+      });
+      expect(link.getAttribute("href")).toBe(`/open?${query.toString()}`);
+      expect(link.getAttribute("href")).not.toContain("rev=");
+    }
+  });
+
+  it("defaults the library to the current revision when revisions are returned out of order", async () => {
+    const current = library.documents[0].availableRevisions[0];
+    const older = {
+      ...current,
+      revision: 1,
+      status: "superseded" as const,
+      metadata: { ...current.metadata, revision: 1 },
+    };
+    const documentWithRevisions = {
+      ...library.documents[0],
+      availableRevisions: [older, current],
+    };
+    vi.stubGlobal(
+      "fetch",
+      apiFetch({
+        "/api/documents/": () =>
+          jsonResponse({ documents: [documentWithRevisions] }),
+      }),
+    );
+    render(
+      <MemoryRouter>
+        <ApiDocumentLibrary />
+      </MemoryRouter>,
+    );
+
+    const openReader = await screen.findByRole("link", { name: "Open reader" });
+    expect(openReader.getAttribute("href")).toBe("/reader/FM-S100/2");
+    expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe("2");
   });
 
   it("shows an empty state when the API library has no documents", async () => {
