@@ -57,7 +57,7 @@ Statuses: **Implemented**, **Mock only** (works in the UI against built-in sampl
 | Hierarchy extraction | Chapter → section → topic tree in source order | Implemented | `backend/documents/xml_hierarchy.py` |
 | Topic content extraction | Paragraphs, notes, cautions, warnings, lists, tables, checklists, cross-references | Implemented (`melItem` blocks are skipped and reported) | `backend/documents/xml_content.py` |
 | Normalized XML assembly | Combine the above into one contract-shaped payload plus a report | Implemented | `backend/documents/xml_normalization.py` |
-| Database persistence | Documents, versions and nodes with integrity constraints | Implemented on SQLite. PostgreSQL untested | `backend/documents/models.py`, `backend/documents/migrations/` |
+| Database persistence | Documents, versions and nodes with integrity constraints | Implemented on SQLite. PostgreSQL configurable, not yet verified on a server | `backend/documents/models.py`, `backend/documents/migrations/`, `backend/config/database.py` |
 | REST APIs | Read-only JSON endpoints | Implemented (3 document endpoints + health) | `backend/config/urls.py`, `backend/documents/views.py`, `backend/documents/api_errors.py` |
 | Chapter/section/topic navigation | Expandable outline | Backend: Implemented. Frontend: Mock only | `backend/documents/views.py`, `frontend/src/components/Reader.tsx` |
 | Revision status | Derive current, upcoming, superseded from effective dates | Backend: Implemented. Frontend: Not implemented (status is not displayed) | `backend/documents/revision_status.py` |
@@ -81,14 +81,15 @@ Summary only. Version ranges, evidence and the full list are in [docs/TECH_STACK
 | Backend | Django | `>=5.2,<6.0` | 5.2.18 | Web framework, ORM, migrations |
 | Backend | Django REST Framework | `>=3.16,<4.0` | 3.18.3 | JSON API |
 | Backend | lxml | `>=6.0,<7.0` | 6.1.3 | XML parsing and XSD validation |
-| Database | SQLite | Django default | 3.53.4 | Development database |
+| Database | SQLite | Django default | 3.53.4 | Default development database |
+| Database | PostgreSQL via psycopg 3 | `psycopg[binary]==3.3.6` | Driver 3.3.6; no server | Optional database, selected by environment variables |
 | Frontend | React / React DOM | `^19.0.0` | 19.3.0 | UI |
 | Frontend | TypeScript | `~5.7.2` | 5.7.3 | Static typing |
 | Frontend | Vite | `^6.0.0` | 6.4.4 | Dev server and build |
 | Frontend | React Router | `^7.0.0` | 7.18.4 | Routing |
 | Frontend (dev) | Vitest, Testing Library, jsdom | `^4.1.11`, `^16.1.0`, `^25.0.1` | 4.1.11, 16.3.3, 25.0.1 | Tests |
 
-**Planned, not installed:** PostgreSQL, PDF.js, service workers, IndexedDB and PWA tooling. None of these appear in any dependency file or source file.
+**Planned, not installed:** PDF.js, service workers, IndexedDB and PWA tooling. None of these appear in any dependency file or source file.
 
 ## Tools and skills used
 
@@ -161,7 +162,7 @@ Every folder and every meaningful file is explained in [docs/REPOSITORY_GUIDE.md
 
 ## How to run the project
 
-**Prerequisites:** Python 3.11 or newer, Node.js 20 or newer with npm, and Git. No environment variables are required.
+**Prerequisites:** Python 3.11 or newer, Node.js 20 or newer with npm, and Git. No environment variables are required for the default SQLite setup.
 
 ### Backend
 
@@ -177,6 +178,7 @@ python backend/manage.py runserver 127.0.0.1:8000
 ```
 
 - `migrate` creates `backend/db.sqlite3`, which is ignored by Git.
+- To use PostgreSQL instead, export `POSTGRES_DB` (with `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT`) or `DATABASE_URL` before these commands. Without them the backend uses SQLite. Setup steps are in [docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md).
 - `ingest_xml` loads one manual revision. The library is empty until you run it. Add `--replace` to re-ingest a revision that is already stored.
 - Run the backend tests with `python backend/manage.py test documents`.
 
@@ -280,7 +282,7 @@ Results from the run performed while writing this documentation (macOS, Python 3
 - **Backend tests** (`backend/documents/tests.py`, `backend/documents/test_api.py`) cover each pipeline step against the real FM-S100 Rev 2 file, failure and rollback paths, database constraints, every endpoint and error code, query counts and response shapes against the contract sample.
 - **Frontend tests** (`frontend/src/App.test.tsx`) cover the library, navigation, each block type, checklist interaction, deep-link scroll and highlight, and cross-reference links, all against mock data.
 
-**Not tested:** PostgreSQL, real iPad or any physical device, real browsers (tests use jsdom), end-to-end frontend-to-backend flows, performance under load, accessibility audits, and production deployment. There is no continuous integration.
+**Not tested:** a run on a PostgreSQL server, real iPad or any physical device, real browsers (tests use jsdom), end-to-end frontend-to-backend flows, performance under load, accessibility audits, and production deployment. There is no continuous integration.
 
 ## Known limitations and roadmap
 
@@ -292,7 +294,7 @@ Remaining work, in no committed order and with no dates assigned:
 - **Offline/PWA, search, annotations, bookmarks, authentication.** Not started.
 - **`melItem` content.** Skipped during ingestion, so each MEL-S100 topic is served with its paragraph but without its MEL item.
 - **iPad testing.** No real-device testing has been done.
-- **PostgreSQL.** Never configured or tested; settings use SQLite only.
+- **PostgreSQL.** Configured through environment variables with SQLite as the default. Migrations, tests and ingestion have not yet been run on a PostgreSQL server.
 - **Contract updates.** `contracts/provisional-contract.md` still labels every endpoint "PROPOSED, not implemented" and its error table differs from the implemented one. It can change only with approval.
 - **Configuration.** `backend/config/settings.py` hardcodes development values; `backend/.env.example` is not read by any code.
 

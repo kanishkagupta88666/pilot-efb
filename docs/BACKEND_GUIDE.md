@@ -4,6 +4,7 @@ The backend turns an XML manual into database rows and serves those rows as JSON
 
 - [Django architecture](#django-architecture)
 - [XML processing pipeline](#xml-processing-pipeline)
+- [Database selection](#database-selection)
 - [Database models](#database-models)
 - [Ingestion workflow](#ingestion-workflow)
 - [REST API](#rest-api)
@@ -20,8 +21,8 @@ The backend turns an XML manual into database rows and serves those rows as JSON
 
 Points worth knowing in `backend/config/settings.py`:
 
-- **Database:** SQLite at `backend/db.sqlite3`. Nothing else is configured.
-- **Development values are hardcoded:** `DEBUG = True`, a placeholder secret key, and `ALLOWED_HOSTS` of `127.0.0.1`, `localhost` and `testserver`. The file reads no environment variables, so `backend/.env.example` currently has no effect.
+- **Database:** SQLite at `backend/db.sqlite3` by default. Setting `POSTGRES_DB` or `DATABASE_URL` selects PostgreSQL instead; see [Database selection](#database-selection).
+- **Development values are hardcoded:** `DEBUG = True`, a placeholder secret key, and `ALLOWED_HOSTS` of `127.0.0.1`, `localhost` and `testserver`. Apart from the database variables, the file reads no environment variables, so the `DJANGO_*` lines in `backend/.env.example` currently have no effect.
 - **REST framework:** JSON renderer and parser only, no authentication classes, `AllowAny` permission, and a custom exception handler. A code comment states that the open API is deliberate for the prototype.
 - **Middleware:** Django's defaults plus `documents.api_errors.ApiNotFoundMiddleware`.
 - **Time zone:** `UTC`. Revision status uses this to decide what "today" is.
@@ -94,6 +95,32 @@ Additional checks performed here:
 It also confirms that the topics in the hierarchy and the topics in the content match one-to-one by ID. If the only problems are unresolved cross-references, the payload is still built so they can be inspected, but the report stays invalid and ingestion will refuse it.
 
 Implementation note: each extractor validates and parses the file independently, so one assembly reads the XML several times. This is a simplicity trade-off, not a correctness issue.
+
+## Database selection
+
+`backend/config/database.py` chooses the database from environment variables when Django starts. `backend/config/tests.py` covers every rule below.
+
+| Environment | Database |
+|---|---|
+| No database variables | SQLite at `backend/db.sqlite3` |
+| `POSTGRES_DB`, with optional `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT` | PostgreSQL |
+| `DATABASE_URL=postgresql://user:password@host:port/name` | PostgreSQL. `postgres://` also works, and query parameters such as `?sslmode=require` become connection options |
+
+- **The driver** is `psycopg[binary]==3.3.6` (psycopg 3), pinned in `backend/requirements.txt`.
+- **Half-set configuration stops the server.** A `POSTGRES_*` variable without `POSTGRES_DB`, both forms together, or a malformed URL raises `ImproperlyConfigured`. The backend never falls back to SQLite when PostgreSQL was intended, and the message never includes the URL.
+- **Django does not read `backend/.env`.** Export the variables in the shell that runs `manage.py`.
+- **Tests use their own database.** On PostgreSQL the test runner creates `test_<name>` (or `POSTGRES_TEST_DB`), runs the suite and drops it. The configured database is not touched. The role therefore needs the `CREATEDB` privilege: `ALTER ROLE pilot_efb CREATEDB;`.
+- **Never point these variables at a database you want to keep** when running `ingest_xml --replace` or experiments. Use a separate disposable database.
+
+**Verification status:** the settings, the driver import and the SQLite suite are verified. Migrations, the test suite and ingestion have **not yet been run on a PostgreSQL server**, because none was available on the development machine.
+
+Differences between the two databases that the code already accounts for:
+
+- **Text ordering.** PostgreSQL orders text by the database collation, SQLite by bytes. The library endpoint sorts document IDs in Python so both return the same order.
+- **Field lengths.** PostgreSQL enforces `max_length`; SQLite does not. The longest values in the eight sample manuals are far below every limit (IDs up to 13 characters against 128, titles up to 45 against 500). An over-long value on PostgreSQL fails the ingestion with "Database write failed; no records were written."
+- **JSON columns.** PostgreSQL stores `metadata` and `content_blocks` as `jsonb`, which does not keep the order of keys inside an object. The values are equal; the order of keys in a topic's block objects may differ from SQLite.
+- **NUL characters.** PostgreSQL rejects them in text. XML 1.0 cannot contain them, and the API returns 400 for an identifier that does.
+- **Errors inside a transaction.** PostgreSQL aborts the whole transaction after any error. Ingestion runs in a single `transaction.atomic()` block and catches errors only outside it, so a failure rolls everything back.
 
 ## Database models
 
@@ -360,7 +387,7 @@ Run from the repository root with the virtual environment active:
 python backend/manage.py test documents
 ```
 
-Django creates a temporary in-memory test database, so your `backend/db.sqlite3` is not touched. Result at the time of writing: **121 tests, all passing**, in about 7 seconds.
+On SQLite, Django creates a temporary in-memory test database, so your `backend/db.sqlite3` is not touched. To run the same suite on PostgreSQL, export the variables from [Database selection](#database-selection) first; Django then creates and drops `test_<name>`. `python backend/manage.py test` also runs the eight database-selection tests in `backend/config/tests.py`. Result at the time of writing: **121 tests, all passing**, in about 7 seconds.
 
 ### `backend/documents/tests.py` — 73 tests
 
@@ -390,7 +417,7 @@ Django creates a temporary in-memory test database, so your `backend/db.sqlite3`
 
 ### Not covered
 
-- PostgreSQL or any database other than SQLite.
+- A run on a PostgreSQL server. The configuration is tested; the suite itself has only been run on SQLite.
 - Ingesting the other seven sample manuals in automated tests (they were ingested manually during verification).
 - Load, concurrency and performance testing.
 - Deployment configuration and authentication, which do not exist yet.

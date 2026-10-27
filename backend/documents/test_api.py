@@ -355,6 +355,21 @@ class DocumentLibraryApiTests(ApiAssertionsMixin, APITestCase):
 
         self.assertEqual(self.assert_json(response), {"documents": []})
 
+    def test_document_order_does_not_depend_on_database_collation(self):
+        # A locale-aware collation ignores the hyphen and letter case on its
+        # first pass, so it would return these in a different order.
+        expected = ["FM-S100", "FMA", "FMS-100", "fm-s100"]
+        for doc_id in reversed(expected):
+            make_version(make_document(doc_id), 1, date(2026, 1, 1))
+
+        with fixed_today(), self.assertNumQueries(2):
+            response = self.client.get(LIBRARY_URL)
+
+        self.assertEqual(
+            [document["id"] for document in self.assert_json(response)["documents"]],
+            expected,
+        )
+
     def test_library_response_shape_and_revision_metadata(self):
         document = make_document("DOC-A")
         version = make_version(

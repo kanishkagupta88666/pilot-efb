@@ -105,12 +105,17 @@ def _document_identity(document: Document) -> dict[str, str]:
 @api_view(READ_METHODS)
 def document_library(request):
     # Document ID order is only a stable placeholder: the source/manifest order
-    # the contract asks for is not stored anywhere yet.
-    documents = Document.objects.order_by("id").prefetch_related(
-        Prefetch(
-            "versions",
-            queryset=DocumentVersion.objects.order_by("revision"),
-        )
+    # the contract asks for is not stored anywhere yet. The IDs are sorted here
+    # by code point, because a database orders text by its own collation and
+    # SQLite and PostgreSQL would disagree on IDs such as "FM-S100" and "FMA".
+    documents = sorted(
+        Document.objects.prefetch_related(
+            Prefetch(
+                "versions",
+                queryset=DocumentVersion.objects.order_by("revision"),
+            )
+        ),
+        key=lambda document: document.id,
     )
     today = revision_status.current_date()
     summaries = []

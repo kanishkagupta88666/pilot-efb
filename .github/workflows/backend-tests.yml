@@ -1,0 +1,63 @@
+name: Backend tests
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "sample-data/**"
+      - "contracts/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  sqlite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: python -m pip install -r backend/requirements.txt
+      - run: python manage.py makemigrations --check --dry-run
+        working-directory: backend
+      - run: python manage.py test
+        working-directory: backend
+
+  postgresql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: pilot_efb
+          POSTGRES_USER: pilot_efb
+          # Throwaway value for the job's own container; not a real credential.
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pilot_efb"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_DB: pilot_efb
+      POSTGRES_USER: pilot_efb
+      POSTGRES_PASSWORD: ci-only-not-a-secret
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: python -m pip install -r backend/requirements.txt
+      - run: python manage.py migrate
+        working-directory: backend
+      - run: python manage.py test
+        working-directory: backend
+      - run: python manage.py ingest_xml ../sample-data/xml/FM-S100_Rev2.xml
+        working-directory: backend

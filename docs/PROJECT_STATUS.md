@@ -9,7 +9,7 @@ This page describes the code, not the plan. A feature counts as implemented only
 | Area | State |
 |---|---|
 | Backend XML pipeline | Implemented and tested |
-| Backend database and ingestion | Implemented and tested on SQLite |
+| Backend database and ingestion | Implemented and tested on SQLite. PostgreSQL can be selected by environment variables but has not yet been run against a server |
 | Backend REST API | Three read-only document endpoints and a health check, implemented and tested |
 | Frontend reader | Implemented and tested against mock data |
 | Frontend-to-backend connection | Not implemented |
@@ -83,7 +83,7 @@ No partially built feature exists on `main`. Work that may exist on unmerged bra
 | Revision comparison | Nothing built. Expected differences exist in `sample-data/revision-keys/` |
 | Offline/PWA | No service worker, web app manifest or offline storage |
 | Authentication | None. The API allows all requests |
-| PostgreSQL | Not configured or tested |
+| PostgreSQL | Configured (psycopg 3.3.6, `POSTGRES_*` or `DATABASE_URL`) and covered by settings tests. Migrations, the test suite and ingestion are not yet verified on a PostgreSQL server |
 | Deployment | No production settings, hosting configuration or continuous integration |
 
 ## Known limitations
@@ -140,10 +140,10 @@ Open questions recorded in the contract and the inspection report, plus those ra
 5. **Inbound link format.** The external application's URL format is unknown. The frontend currently uses `/reader/{docId}/{revision}?nodeId={id}`.
 6. **PDF mapping.** Where does the mapping from permanent XML IDs to PDF locations come from? It is absent from the sample PDFs, manifest and revision keys.
 7. **PDF-only documents.** How should the two bulletins, which have no XML, be listed and opened?
-8. **`melItem` support.** Should MEL content be rendered, and in what JSON shape?
+8. **`melItem` support.** Should MEL content be rendered, and in what JSON shape? Until then, should ingestion refuse a manual with skipped blocks unless explicitly allowed, instead of succeeding with a one-line notice?
 9. **Whitespace.** Block text is currently stored exactly as parsed. Whether to normalize it for display is unresolved in the contract.
 10. **Cross-document references.** The sample contains only in-document cross-references. Whether references between documents are expected is unknown.
 11. **Outline size.** Whether the full navigation tree should be paginated or loaded lazily.
-12. **Database.** Whether and when to move to PostgreSQL, and how to test it.
+12. **Database.** Whether and when to move to PostgreSQL. The configuration exists; the first run of migrations, tests and ingestion on a PostgreSQL server is still to be done.
 13. **Contract status.** When the provisional contract should be updated to reflect the implemented API.
 14. **Production configuration.** How settings, secrets and the frontend's API location will be provided outside local development.

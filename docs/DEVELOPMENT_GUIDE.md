@@ -20,7 +20,7 @@ How to set up, run, test and contribute to Pilot EFB.
 | npm | Bundled with Node.js | Installs frontend packages |
 | Git | Any recent version | Version control |
 
-The project was verified with Python 3.14.0 and Node.js 22.23.3 on macOS. No environment variables, accounts or credentials are needed.
+The project was verified with Python 3.14.0 and Node.js 22.23.3 on macOS. No environment variables, accounts or credentials are needed for the default SQLite setup.
 
 ## First-time setup
 
@@ -47,6 +47,37 @@ python backend/manage.py ingest_xml sample-data/xml/FM-S100_Rev2.xml
 - `ingest_xml` loads one manual revision. Until you run it, the API returns an empty library.
 
 To load the whole sample set, run `ingest_xml` once for each file in `sample-data/xml/`.
+
+#### Optional: use PostgreSQL instead of SQLite
+
+Skip this unless you need PostgreSQL. This path is configured but has not yet been run against a PostgreSQL server, so treat the first run as a verification.
+
+Install and start PostgreSQL (macOS with Homebrew shown), then create a role and a disposable database:
+
+```sh
+brew install postgresql@17
+brew services start postgresql@17
+export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
+createuser --createdb --pwprompt pilot_efb
+createdb --owner pilot_efb pilot_efb
+```
+
+`--createdb` gives the role the `CREATEDB` privilege. The test runner needs it to create and drop its own `test_pilot_efb` database.
+
+Point the backend at it in the same shell, then migrate, ingest and test:
+
+```sh
+export POSTGRES_DB=pilot_efb POSTGRES_USER=pilot_efb POSTGRES_HOST=127.0.0.1 POSTGRES_PORT=5432
+export POSTGRES_PASSWORD='<the password you chose>'
+python backend/manage.py migrate
+python backend/manage.py ingest_xml sample-data/xml/FM-S100_Rev2.xml
+python backend/manage.py test
+```
+
+- `DATABASE_URL=postgresql://pilot_efb:<password>@127.0.0.1:5432/pilot_efb` works in place of the five variables. Do not set both.
+- Unset the variables (or open a new shell) to return to SQLite. The two databases hold separate data.
+- Django does not read `backend/.env`. `backend/.env.example` lists the variable names only.
+- Never commit a password or a `.env` file.
 
 ### 3. Frontend (from `frontend/`)
 
@@ -185,6 +216,9 @@ Before opening a pull request:
 | `ImportError: cannot import name 'NotRequired' from 'typing'` | Python older than 3.11 | Recreate the virtual environment with Python 3.11 or newer |
 | `ModuleNotFoundError: No module named 'django'` | Virtual environment not active | Activate it, then reinstall requirements if needed |
 | `no such table: documents_document` | Migrations not applied | Run `python backend/manage.py migrate` |
+| `ImproperlyConfigured: ... is set but POSTGRES_DB is not` | Some PostgreSQL variables are exported without `POSTGRES_DB` | Set `POSTGRES_DB`, or unset them all to use SQLite |
+| `connection to server ... failed` | PostgreSQL variables are set but no server is running | Start PostgreSQL, or unset the variables to use SQLite |
+| `permission denied to create database` when running tests on PostgreSQL | The role lacks `CREATEDB` | `ALTER ROLE pilot_efb CREATEDB;` as a superuser |
 | `/api/documents/` returns `{"documents": []}` | Nothing ingested yet | Run `ingest_xml` |
 | `CommandError: Document FM-S100 revision 2 already exists.` | That revision is already stored | Add `--replace` |
 | `Unable to read XML file` | Path is relative to a different directory | Run from the repository root or give a correct path |
@@ -195,4 +229,4 @@ Before opening a pull request:
 | Port 8000 is in use | Another process holds it | Stop it; the Vite proxy expects port 8000 |
 | `npm test` or `npm run build` fails immediately on a fresh clone | Dependencies not installed | Run `npm install` in `frontend/` |
 
-To start over with an empty database, stop the server, delete `backend/db.sqlite3`, and run `migrate` again. This removes all ingested data.
+To start over with an empty SQLite database, stop the server, delete `backend/db.sqlite3`, and run `migrate` again. This removes all ingested data. On PostgreSQL, run `dropdb pilot_efb`, `createdb --owner pilot_efb pilot_efb` and `migrate`.
