@@ -8,6 +8,9 @@ on:
       - "contracts/**"
       - ".github/workflows/backend-tests.yml"
 
+permissions:
+  contents: read
+
 jobs:
   sqlite:
     runs-on: ubuntu-latest
