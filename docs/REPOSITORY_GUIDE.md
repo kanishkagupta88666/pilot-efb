@@ -198,6 +198,15 @@ This file reaches outside `frontend/` with a relative import of `../../../contra
 
 **Purpose:** reserved for decision records. It contains only `docs/decisions/.gitkeep`; no decisions have been recorded.
 
+### `docs/external/`
+
+**Purpose:** documents written by other teams, kept as received. Nothing in the code reads them. Pilot DMS integration is not implemented in this repository.
+
+| File | Kind | What it does |
+|---|---|---|
+| `docs/external/pilot-dms-integration-guide-v2.md` | Documentation | Team 1's "Pilot DMS → Pilot EFB: integration guide", version 2, October 2026: routes, release package, XML structure, change record, events, deep links, payload shapes and errors. Rebuilt from a text extraction; the wording is unchanged and must not be edited |
+| `docs/external/pilot-dms-guide-v2-clarifications.md` | Documentation | Corrections and agreements Team 1 confirmed after the guide, including the `fm100-p00673` topic correction, manifest `state` being the export-time state, and FOM Rev 13 having no PDF rendition |
+
 ## `sample-data/`
 
 **Purpose:** the synthetic dataset supplied for the project. Every document is fictional and marked as not for operational use. Used by the backend pipeline, by tests and as reference material.

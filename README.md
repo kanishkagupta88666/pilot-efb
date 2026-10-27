@@ -311,3 +311,5 @@ The full status, including open technical decisions, is in [docs/PROJECT_STATUS.
 | [docs/xml-inspection.md](docs/xml-inspection.md) | Inspection report on the FM-S100 Rev 2 dataset |
 | [contracts/provisional-contract.md](contracts/provisional-contract.md) | Provisional JSON contract shared by frontend and backend |
 | [sample-data/README.md](sample-data/README.md) | The client's description of the synthetic dataset |
+| [docs/external/pilot-dms-integration-guide-v2.md](docs/external/pilot-dms-integration-guide-v2.md) | Team 1's Pilot DMS → Pilot EFB integration guide, version 2, kept as received |
+| [docs/external/pilot-dms-guide-v2-clarifications.md](docs/external/pilot-dms-guide-v2-clarifications.md) | Corrections and agreements Team 1 confirmed after the guide |
