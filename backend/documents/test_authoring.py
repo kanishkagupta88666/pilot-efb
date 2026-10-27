@@ -173,4 +173,4 @@ class AuthoringTests(ApiAssertionsMixin, APITestCase):
 
     def test_pdf_only_documents_are_not_editable(self):
         ingest_pdf_only(PROJECT_ROOT / "sample-data" / "pdf-only" / "Bulletin_26-02.pdf")
-        self.assert_error(self.client.post("/api/documents/BULLETIN-26-02/draft/"), 422, "NOT_EDITABLE")
+        self.assert_error(self.client.post("/api/documents/BUL-26-02/draft/"), 422, "NOT_EDITABLE")

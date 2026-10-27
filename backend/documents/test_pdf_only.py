@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 
 from documents import pdf_rendition, search
 from documents.models import DocumentNode, DocumentVersion
-from documents.pdf_only import align, ingest_pdf_only, parse_pdf
+from documents.pdf_only import align, document_id_for, ingest_pdf_only, parse_pdf
 from documents.revision_diff import compare_versions
 from documents.test_api import ApiAssertionsMixin, fixed_today
 from documents.xml_validation import PROJECT_ROOT
@@ -50,19 +50,38 @@ class AlignTests(SimpleTestCase):
         self.assertEqual(align(["engine anti ice is required"], ["taxi slowly on wet runways"], 0.6), {})
 
 
+class DocumentIdTests(SimpleTestCase):
+    def test_bulletin_files_get_the_dms_document_ids(self):
+        self.assertEqual(document_id_for(Path("sample-data/pdf-only/Bulletin_26-01.pdf")), "BUL-26-01")
+        self.assertEqual(document_id_for(Path("Bulletin_26-02.pdf")), "BUL-26-02")
+        self.assertEqual(document_id_for(Path("Bulletin_26-01_Rev1.pdf")), "BUL-26-01")
+
+    def test_other_names_keep_the_old_rule(self):
+        self.assertEqual(document_id_for(Path("Notice_7.pdf")), "NOTICE-7")
+
+
 class PdfOnlyRevisionTests(ApiAssertionsMixin, APITestCase):
     @classmethod
     def setUpTestData(cls):
         for path in (REV0, REV1):
-            result = ingest_pdf_only(path, document_id="BULLETIN-26-01")
+            result = ingest_pdf_only(path, document_id="BUL-26-01")
             if not result.success:
                 raise AssertionError(result.message)
-        cls.versions = {v.revision: v for v in DocumentVersion.objects.filter(document_id="BULLETIN-26-01")}
+        cls.versions = {v.revision: v for v in DocumentVersion.objects.filter(document_id="BUL-26-01")}
 
     def setUp(self):
         today = fixed_today()
         today.start()
         self.addCleanup(today.stop)
+
+    def test_generated_ids_are_marked_derived_and_never_look_like_client_ids(self):
+        # The client's IDs are fm100-t0193 / fm100-p00673; ours always carry "-pdf-".
+        for version in self.versions.values():
+            self.assertTrue(version.metadata["derivedIds"])
+            for node in version.nodes.all():
+                ids = [node.node_id, *(block["id"] for block in node.content_blocks or ())]
+                for identifier in ids:
+                    self.assertTrue(identifier.startswith("bul-26-01-pdf-"), identifier)
 
     def rev0_ids(self):
         """Rev 0 IDs by (section, paragraph) position, both counted from 1."""
@@ -95,10 +114,10 @@ class PdfOnlyRevisionTests(ApiAssertionsMixin, APITestCase):
         self.assertNotIn(sections[old_number], changed)
 
     def test_same_pdf_again_keeps_every_id(self):
-        result = ingest_pdf_only(REV1, document_id="BULLETIN-26-01", revision=2)
+        result = ingest_pdf_only(REV1, document_id="BUL-26-01", revision=2)
         self.assertTrue(result.success, result.message)
         self.assertEqual(result.new_ids, 0)
-        latest = DocumentVersion.objects.get(document_id="BULLETIN-26-01", revision=2)
+        latest = DocumentVersion.objects.get(document_id="BUL-26-01", revision=2)
         manifest = compare_versions(self.versions[1], latest)
         self.assertEqual(manifest["summary"], {"modified": 0, "added": 0, "removed": 0, "moved": 0})
 
@@ -108,17 +127,17 @@ class PdfOnlyRevisionTests(ApiAssertionsMixin, APITestCase):
         self.assertEqual(metadata["effectiveDate"], "2026-10-01")
 
     def test_duplicate_revision_and_outside_path_are_refused(self):
-        self.assertFalse(ingest_pdf_only(REV0, document_id="BULLETIN-26-01", revision=0).success)
+        self.assertFalse(ingest_pdf_only(REV0, document_id="BUL-26-01", revision=0).success)
         outside = ingest_pdf_only("/etc/hosts", document_id="X")
         self.assertFalse(outside.success)
         self.assertIn("inside the project", outside.message)
 
     def test_outline_map_and_pdf_file(self):
-        body = self.assert_json(self.client.get("/api/documents/BULLETIN-26-01/revisions/1/pdf/outline/"))
+        body = self.assert_json(self.client.get("/api/documents/BUL-26-01/revisions/1/pdf/outline/"))
         self.assertEqual(body["unmatched"], [])
         topics = DocumentNode.objects.filter(version=self.versions[1], node_type="topic").order_by("position")
         self.assertEqual([body["nodes"][t.node_id]["heading"] for t in topics], [t.title for t in topics])
-        response = self.client.get("/api/documents/BULLETIN-26-01/revisions/1/pdf/")
+        response = self.client.get("/api/documents/BUL-26-01/revisions/1/pdf/")
         self.assertEqual(response["Content-Type"], "application/pdf")
 
     def test_stored_pdf_path_cannot_leave_the_allowed_folders(self):
@@ -132,8 +151,8 @@ class PdfOnlyRevisionTests(ApiAssertionsMixin, APITestCase):
         body = self.assert_json(
             self.client.get("/api/search/?q=cargo+smoke+detection+advisory&category=supplemental")
         )
-        self.assertEqual({r["docId"] for r in body["results"]}, {"BULLETIN-26-01"})
+        self.assertEqual({r["docId"] for r in body["results"]}, {"BUL-26-01"})
         self.assertEqual({r["revision"] for r in body["results"]}, {0})
         self.assertEqual(
-            {d["docId"]: d["category"] for d in body["documents"]}["BULLETIN-26-01"], search.SUPPLEMENTAL
+            {d["docId"]: d["category"] for d in body["documents"]}["BUL-26-01"], search.SUPPLEMENTAL
         )

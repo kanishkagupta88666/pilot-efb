@@ -84,7 +84,7 @@ def edit(sections: list[ParsedSection]) -> tuple[list[ParsedSection], dict]:
         section.title = f"Section {number}"
 
     key = {
-        "docId": "BULLETIN-26-01",
+        "docId": "BUL-26-01",
         "fromRevision": 0,
         "toRevision": 1,
         "paragraphs": {

@@ -307,8 +307,14 @@ def _slug(document_id: str) -> str:
 
 
 def document_id_for(path: Path) -> str:
-    """Bulletin_26-01.pdf -> BULLETIN-26-01."""
-    return re.sub(r"[^A-Z0-9]+", "-", path.stem.upper().split("_REV")[0]).strip("-")
+    """Bulletin_26-01.pdf -> BUL-26-01, the document ID the DMS gives bulletins.
+
+    Other names keep the old rule (upper case, other characters become dashes).
+    """
+    name = path.stem.upper().split("_REV")[0]
+    if name.startswith("BULLETIN_"):
+        name = "BUL_" + name[len("BULLETIN_"):]
+    return re.sub(r"[^A-Z0-9]+", "-", name).strip("-")
 
 
 @dataclass
