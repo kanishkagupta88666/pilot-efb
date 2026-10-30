@@ -7,7 +7,6 @@ The repository has 20 folders. Files that are generated locally and ignored by G
 Each file is labelled with its kind: **production code**, **test**, **configuration**, **fixture** (sample or reference data), or **documentation**.
 
 - [Root](#root)
-- [`.github/`](#github)
 - [`backend/`](#backend)
 - [`frontend/`](#frontend)
 - [`contracts/`](#contracts)
@@ -20,18 +19,7 @@ Each file is labelled with its kind: **production code**, **test**, **configurat
 | File | Kind | What it does |
 |---|---|---|
 | `README.md` | Documentation | Project overview and entry point to the rest of the documentation |
-| `CLAUDE.md` | Configuration | Project rules read by Claude Code: synthetic data only, never change node IDs, React never parses XML, folder ownership, parser build order, branch workflow |
 | `.gitignore` | Configuration | Excludes dependencies, build output, virtual environments, Python bytecode, the SQLite database, `.env` and OS files |
-
-## `.github/`
-
-**Purpose:** GitHub-specific configuration. Used by GitHub Copilot.
-
-| File | Kind | What it does |
-|---|---|---|
-| `.github/copilot-instructions.md` | Configuration | The same project rules as `CLAUDE.md`, in the location GitHub Copilot reads |
-
-There are no workflow files, so no continuous integration runs.
 
 ## `backend/`
 
@@ -192,6 +180,7 @@ This file reaches outside `frontend/` with a relative import of `../../../contra
 | `docs/FRONTEND_GUIDE.md` | Documentation | Frontend architecture, components, mock data and tests |
 | `docs/DEVELOPMENT_GUIDE.md` | Documentation | Setup, commands, workflow and troubleshooting |
 | `docs/PROJECT_STATUS.md` | Documentation | Implemented and planned features, limitations and open decisions |
+| `docs/PROJECT_RULES.md` | Documentation | Engineering rules: synthetic data, permanent IDs, ownership, parser order, branch workflow |
 | `docs/xml-inspection.md` | Documentation | A 16-section inspection of FM-S100 Rev 2: namespace, metadata, hierarchy, block types and counts, IDs, cross-references, checklists, manifest, deep-link samples, PDF outline findings, XSD constraints and open questions. Written before ingestion existed |
 
 ### `docs/decisions/`
