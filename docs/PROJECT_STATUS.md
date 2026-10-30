@@ -31,7 +31,7 @@ This page describes the code, not the plan. A feature counts as implemented only
 | #10 | Validated database ingestion (Step 5F) |
 | #11 | Read-only document REST API (Step 5G) |
 
-"Step 5A" to "Step 5I" are milestone names from the project plan. They are not identifiers in the code: no module, function or command is named after a step. The mapping of each name to a module follows the build order in `CLAUDE.md` (validation, metadata, hierarchy, block types, normalized JSON, database) and the order of the merges.
+"Step 5A" to "Step 5I" are milestone names from the project plan. They are not identifiers in the code: no module, function or command is named after a step. The mapping of each name to a module follows the build order in [PROJECT_RULES.md](PROJECT_RULES.md) (validation, metadata, hierarchy, block types, normalized JSON, database) and the order of the merges.
 
 ## Implemented
 
