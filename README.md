@@ -95,11 +95,9 @@ Summary only. Version ranges, evidence and the full list are in [docs/TECH_STACK
 | Category | Items | Evidence |
 |---|---|---|
 | Demonstrated by source code | Python, Django models and migrations, REST API design, XML parsing, XSD validation, relational schema design with constraints, React components, TypeScript, responsive CSS, unit and API testing | `backend/`, `frontend/src/` |
-| Development tools confirmed by the repository | Git, GitHub pull requests (11 merged), npm, Claude Code, GitHub Copilot | Commit history, `frontend/package-lock.json`, `CLAUDE.md`, `.github/copilot-instructions.md` |
+| Development tools confirmed by the repository | Git, GitHub pull requests (11 merged), npm | Commit history, `frontend/package-lock.json` |
 | Mentioned in documentation only | Oxygen XML Editor (the client's authoring tool) | `sample-data/README.md` |
 | Cannot be verified | VS Code or any other editor, continuous integration, linters or formatters | No such configuration is tracked |
-
-Three of the thirteen non-merge commits carry an AI co-author trailer (one Claude, two Copilot). The repository does not record which lines any tool wrote, so no specific code is attributed to them here.
 
 ## Architecture
 
@@ -124,10 +122,7 @@ flowchart TD
 ```text
 pilot-efb/
 ├── README.md                  This file
-├── CLAUDE.md                  Project rules for Claude Code
 ├── .gitignore
-├── .github/
-│   └── copilot-instructions.md   The same rules for GitHub Copilot
 ├── backend/                   Django project (Python)
 │   ├── manage.py
 │   ├── requirements.txt
@@ -238,7 +233,7 @@ Response shapes and examples are in [docs/BACKEND_GUIDE.md](docs/BACKEND_GUIDE.m
 
 ## XML ingestion workflow
 
-The pipeline was built in small steps. "Step 5A" to "Step 5I" are milestone names from the project plan. They are not identifiers in the code: no module, function or command is named after a step. The mapping of each name to a module follows the build order in `CLAUDE.md` and the order of the merged pull requests.
+The pipeline was built in small steps. "Step 5A" to "Step 5I" are milestone names from the project plan. They are not identifiers in the code: no module, function or command is named after a step. The mapping of each name to a module follows the build order in [docs/PROJECT_RULES.md](docs/PROJECT_RULES.md) and the order of the merged pull requests.
 
 | Step | What it does | Module |
 |---|---|---|
@@ -308,6 +303,7 @@ The full status, including open technical decisions, is in [docs/PROJECT_STATUS.
 | [docs/FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md) | React architecture, components, types, mock data, styling, tests |
 | [docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) | Setup, commands, Git workflow, troubleshooting, contributing |
 | [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) | Implemented, planned, limitations and open decisions |
+| [docs/PROJECT_RULES.md](docs/PROJECT_RULES.md) | Engineering rules: synthetic data, permanent IDs, ownership, workflow |
 | [docs/xml-inspection.md](docs/xml-inspection.md) | Inspection report on the FM-S100 Rev 2 dataset |
 | [contracts/provisional-contract.md](contracts/provisional-contract.md) | Provisional JSON contract shared by frontend and backend |
 | [sample-data/README.md](sample-data/README.md) | The client's description of the synthetic dataset |

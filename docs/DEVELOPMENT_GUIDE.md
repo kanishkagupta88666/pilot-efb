@@ -114,7 +114,7 @@ The `<path>` given to `ingest_xml` is relative to the directory you run the comm
 
 ## Git workflow
 
-The rules come from `CLAUDE.md`.
+The rules are in [PROJECT_RULES.md](PROJECT_RULES.md).
 
 - **One branch per phase.** Name branches by purpose, following the existing pattern: `feature/...`, `docs/...`, `chore/...`.
 - **Test, commit, then open a pull request** for each phase.
@@ -141,11 +141,11 @@ git push -u origin feature/my-change
 | `contracts/` | Shared | Changes need the project owner's approval |
 | Anything marked `PROVISIONAL` | — | Temporary and expected to change |
 
-Backend Development and Frontend Development are two parallel streams of work. `CLAUDE.md` refers to them by internal working labels; the ownership rule is the same.
+Backend Development and Frontend Development are two parallel streams of work.
 
 ## Project rules
 
-These are hard rules from `CLAUDE.md` and `.github/copilot-instructions.md`.
+These are the hard rules from [PROJECT_RULES.md](PROJECT_RULES.md).
 
 - **Synthetic data only.** Never add real operational documents.
 - **Never generate or change node IDs** such as `fm100-t1193`. The ID is the permanent identity; the number is for display.

@@ -69,11 +69,11 @@ None of the following appears in a dependency file, a configuration file or any 
 
 | Technology | Intended purpose | Status | Where it is mentioned |
 |---|---|---|---|
-| PostgreSQL | Possible later database | Not installed, not configured, not tested. No driver in `backend/requirements.txt` | `CLAUDE.md` ("PostgreSQL may be used later") |
+| PostgreSQL | Possible later database | Not installed, not configured, not tested. No driver in `backend/requirements.txt` | `docs/PROJECT_RULES.md` ("PostgreSQL may be used later") |
 | PDF.js | PDF viewing | Not installed. No PDF library has been chosen in the repository | Not mentioned in the repository |
-| Service workers | Offline support | Not implemented; no service worker file exists | `CLAUDE.md` describes the app as a PWA prototype |
+| Service workers | Offline support | Not implemented; no service worker file exists | `docs/PROJECT_RULES.md` describes the app as a PWA prototype |
 | IndexedDB | Offline storage | Not implemented; no code references it | Not mentioned in the repository |
-| PWA tooling (web app manifest, Vite PWA plugin) | Installable app | Not installed. `frontend/index.html` has only a `theme-color` meta tag | `CLAUDE.md` |
+| PWA tooling (web app manifest, Vite PWA plugin) | Installable app | Not installed. `frontend/index.html` has only a `theme-color` meta tag | `docs/PROJECT_RULES.md` |
 
 ## 4. Not present
 
@@ -85,9 +85,5 @@ To avoid assumptions: the repository tracks **no** linter or formatter configura
 |---|---|---|
 | Git | Yes | Repository history |
 | GitHub pull requests | Yes | 11 merge commits named "Merge pull request #1" to "#11" |
-| Claude Code | Yes, as a configured tool | `CLAUDE.md`; one commit has a Claude co-author trailer |
-| GitHub Copilot | Yes, as a configured tool | `.github/copilot-instructions.md`; two commits have a Copilot co-author trailer |
 | Oxygen XML Editor | Mentioned only | `sample-data/README.md` names it as the client's authoring tool |
 | VS Code or another editor | Not verified | No editor settings are tracked |
-
-The repository does not record which code any AI tool produced, so this documentation does not attribute specific code to them.
