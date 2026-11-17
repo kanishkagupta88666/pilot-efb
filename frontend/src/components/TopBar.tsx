@@ -1,3 +1,4 @@
+import { AccountMenu } from "../auth/AccountMenu";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ConnectionStatus } from "./ConnectionStatus";
@@ -24,6 +25,7 @@ export function TopBar({
       <div className="app-bar__actions">
         <ConnectionStatus />
         <ThemeToggle />
+        <AccountMenu />
         {children}
       </div>
     </div>

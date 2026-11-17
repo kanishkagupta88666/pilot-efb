@@ -10,13 +10,16 @@ import { Reader } from "./components/Reader";
 import { SearchPage } from "./components/SearchPage";
 import { AuditPage } from "./components/AuditPage";
 import { SignInPage } from "./components/SignInPage";
+import { AuthSignInPage } from "./auth/AuthSignInPage";
+import { AuthBoundary } from "./auth/AuthBoundary";
+import { AUTH_ENABLED } from "./auth/runtime";
 import { startAnnotationSync } from "./utils/annotationStore";
 import { startAuditSync } from "./utils/auditLog";
 
 export function AppRoutes() {
   return (
     <AnnotationProvider>
-      <Routes>
+      <AuthBoundary><Routes>
         <Route path="/" element={<DocumentLibrary />} />
         <Route path="/open" element={<OpenNodeRoute />} />
         <Route path="/compare/:docId" element={<ComparePage />} />
@@ -24,9 +27,9 @@ export function AppRoutes() {
         <Route path="/author/:docId" element={<AuthorPage />} />
         <Route path="/audit" element={<AuditPage />} />
         <Route path="/reader/:docId/:revision" element={<Reader />} />
-        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/sign-in" element={AUTH_ENABLED ? <AuthSignInPage /> : <SignInPage />} />
         <Route path="*" element={<NotFound />} />
-      </Routes>
+      </Routes></AuthBoundary>
     </AnnotationProvider>
   );
 }

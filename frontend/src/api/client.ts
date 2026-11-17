@@ -1,3 +1,4 @@
+import { authHeaders, notifyUnauthorized } from "../auth/runtime";
 import { API_BASE_URL } from "../config/dataSource";
 import { identityHeaders } from "../utils/deviceIdentity";
 import type {
@@ -331,8 +332,10 @@ async function request<T>(
         options.body = JSON.stringify(write.body);
       }
     }
+    options.headers = { ...options.headers, ...authHeaders() };
     if (signal) options.signal = signal;
     response = await fetch(`${API_BASE_URL}${path}`, options);
+    if (response.status === 401) notifyUnauthorized();
     if (write && response.status === 204) {
       // Nothing to read: a successful delete.
       return guard(undefined) ? { ok: true, data: undefined as T } : {
