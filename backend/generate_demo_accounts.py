@@ -9,10 +9,10 @@ BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_FILE = BASE_DIR / "auth_data" / "demo_accounts.json"
 
 ACCOUNTS = [
-    {"id": "pilot_1", "role": "pilot", "fleet": "fleet_1"},
-    {"id": "pilot_2", "role": "pilot", "fleet": "fleet_2"},
-    {"id": "manager_1", "role": "management", "fleet": None},
-    {"id": "admin_1", "role": "admin", "fleet": None},
+    {"id": "P-100", "role": "pilot", "fleet": "fleet_1"},
+    {"id": "P-200", "role": "pilot", "fleet": "fleet_2"},
+    {"id": "M-001", "role": "management", "fleet": None},
+    {"id": "A-001", "role": "admin", "fleet": None},
 ]
 
 

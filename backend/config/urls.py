@@ -8,6 +8,7 @@ from documents.views import (
     resolve_node,
     topic_content,
 )
+from documents.auth_views import login_view, logout_view, me_view
 
 
 urlpatterns = [
@@ -29,4 +30,7 @@ urlpatterns = [
         resolve_node,
         name="document-resolve-node",
     ),
+    path("api/auth/login/", login_view, name="auth-login"),
+    path("api/auth/me/", me_view, name="auth-me"),
+    path("api/auth/logout/", logout_view, name="auth-logout"),
 ]

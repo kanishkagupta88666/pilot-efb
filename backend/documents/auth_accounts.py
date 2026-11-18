@@ -35,6 +35,10 @@ def authenticate_account(username, password):
         return None
 
     if check_password(password, account["password_hash"]):
-        return account
+        return {
+            "id": account["id"],
+            "role": account["role"],
+            "fleet": account["fleet"]
+        }
 
     return None
