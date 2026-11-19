@@ -2300,6 +2300,16 @@ time,
   font-size: 0.92rem;
 }
 
+/* Content the reader cannot show yet (MEL items). */
+.content-gap-note {
+  margin: 0.6rem 0 0;
+  padding: 0.45rem 0.7rem;
+  border-left: 3px solid var(--line-strong);
+  background: var(--soft-surface);
+  color: var(--ink-2);
+  font-size: 0.92rem;
+}
+
 .change-frame {
   position: relative;
   padding-left: 1rem;

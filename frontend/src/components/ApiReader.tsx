@@ -600,6 +600,13 @@ export function ApiReader() {
             New topic in Revision {changes.toRevision}.
           </p>
         )}
+        {/* MEL items are not sent by the API yet, so say so instead of leaving them out silently. */}
+        {metadata.docType === "MEL" && viewMode === "interactive" && (
+          <p className="content-gap-note" role="note">
+            The MEL item for this topic (category, number installed, number required and remarks)
+            is not shown here yet. Open Print view (PDF) to see it.
+          </p>
+        )}
         {targetNodeId && !isChapterOrSectionTarget && topicData.status === "ready" &&
           targetNodeId !== topicData.topic.id &&
           !topicData.topic.blocks.some(
