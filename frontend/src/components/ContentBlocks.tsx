@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { resolveNodeFromApi } from "../api/client";
@@ -955,13 +955,31 @@ function NotePopover({
   onDelete?: () => void;
 }) {
   const [text, setText] = useState(initialText);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [nudge, setNudge] = useState(0);
   const save = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSave(text);
   };
 
+  // The box is pinned to the screen, so scrolling cannot reveal a part that opened off screen.
+  // Once it is drawn, move it back inside, clear of the status bar at the bottom.
+  useLayoutEffect(() => {
+    const box = formRef.current?.getBoundingClientRect();
+    if (!box) return;
+    const bottomLimit = window.innerHeight - 48;
+    if (box.bottom > bottomLimit) setNudge(Math.max(bottomLimit - box.bottom, 12 - box.top));
+    else if (box.top < 12) setNudge(12 - box.top);
+  }, []);
+
   return (
-    <form aria-label="Note" className="note-popover" onSubmit={save} style={style}>
+    <form
+      aria-label="Note"
+      className="note-popover"
+      onSubmit={save}
+      ref={formRef}
+      style={{ ...style, marginTop: nudge }}
+    >
       <q className="annotation-note__quote">{quote}</q>
       <label htmlFor="note-text">Your note</label>
       <textarea
