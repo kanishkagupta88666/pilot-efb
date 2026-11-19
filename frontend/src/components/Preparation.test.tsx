@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
+import { ApiErrorState, describeError, EmptyState, LoadingState } from "./RequestStates";
 import { RevisionAlert } from "./RevisionAlert";
 import { RevisionSelector } from "./RevisionSelector";
 import { getDocumentLibrary } from "../data/mockData";
@@ -109,10 +109,35 @@ describe("frontend integration preparation", () => {
       />,
     );
     expect(screen.getByRole("alert").textContent).toContain(
-      "Unable to reach the API.",
+      "The EFB server is not responding.",
     );
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(retry).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["offline", { kind: "network", code: "NETWORK_ERROR", message: "x" }, true, "You're offline.", undefined],
+    ["the server down", { kind: "network", code: "NETWORK_ERROR", message: "x" }, false, "The EFB server is not responding.", undefined],
+    ["the dev proxy with no server", { kind: "non-json", code: "NON_JSON_RESPONSE", message: "x", status: 500 }, false, "The EFB server is not responding.", undefined],
+    ["a gateway timeout", { kind: "http", code: "GATEWAY", message: "x", status: 504 }, false, "The EFB server is not responding.", undefined],
+    ["a server error with a reason", { kind: "http", code: "INTERNAL_ERROR", message: "Temporary failure.", status: 500 }, false, "The EFB server had a problem.", "Temporary failure."],
+    ["a missing topic", { kind: "http", code: "NODE_NOT_FOUND", message: "The topic was not found.", status: 404 }, false, undefined, "The topic was not found."],
+  ] as const)("describes %s in plain words", (_label, error, offline, title, detail) => {
+    const described = describeError(error, offline);
+    expect(described.title).toBe(title);
+    if (detail) expect(described.detail).toBe(detail);
+  });
+
+  it("retries by itself when the iPad comes back online", () => {
+    const retry = vi.fn();
+    vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+    render(
+      <ApiErrorState error={{ kind: "network", code: "NETWORK_ERROR", message: "x" }} onRetry={retry} />,
+    );
+    expect(screen.getByRole("alert").textContent).toContain("You're offline.");
+    window.dispatchEvent(new Event("online"));
+    expect(retry).toHaveBeenCalledOnce();
+    vi.restoreAllMocks();
   });
 
   it("shows the explicit frontend not-found route", () => {
