@@ -47,6 +47,16 @@ export function AnnotationIcon({ kind }: { kind: AnnotationKind }) {
   return <BookmarkIcon />;
 }
 
+/** A window with its left or right column marked: the reader's panel toggles. */
+export function PanelIcon({ side }: { side: "left" | "right" }) {
+  return (
+    <svg {...stroke} className="icon">
+      <rect height="16" rx="2" width="18" x="3" y="4" />
+      <path d={side === "left" ? "M9 4v16" : "M15 4v16"} />
+    </svg>
+  );
+}
+
 export function SunIcon() {
   return (
     <svg {...stroke} className="icon icon--theme">
