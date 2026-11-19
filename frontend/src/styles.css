@@ -991,11 +991,40 @@ time,
   min-width: 0;
 }
 
-.breadcrumbs {
-  padding: 0.7rem clamp(1rem, 3vw, 2.25rem);
+/* Breadcrumb row, with the panel buttons at either end on wide screens. */
+.reader-main__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 clamp(1rem, 3vw, 2.25rem);
   border-bottom: 1px solid var(--line);
+}
+
+.breadcrumbs {
+  flex: 1;
+  min-width: 0;
+  padding: 0.7rem 0;
   color: var(--muted);
   font-size: var(--text-sm);
+}
+
+/* Shown only where the panels are columns (see Screen sizes). */
+.panel-toggle {
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-toggle .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* A hidden panel's button stays tinted, so it is easy to find again. */
+.panel-toggle[aria-expanded="false"] {
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .breadcrumbs ol {
@@ -3973,6 +4002,26 @@ button.pdf-mark__badge {
   .navigation-backdrop {
     display: none;
   }
+
+  .reader-main__bar {
+    padding-left: 0.5rem;
+  }
+
+  .panel-toggle--contents {
+    display: inline-flex;
+  }
+
+  .reader-page--contents-hidden .reader-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reader-page--contents-hidden .reader-navigation {
+    display: none;
+  }
+
+  .reader-page--contents-hidden .reader-content {
+    margin-inline: auto;
+  }
 }
 
 @media (min-width: 1180px) {
@@ -3989,6 +4038,34 @@ button.pdf-mark__badge {
     padding: 1.5rem 1.25rem;
     border-left: 1px solid var(--line);
     background: var(--soft-surface);
+  }
+
+  .reader-main__bar {
+    padding-right: 0.5rem;
+  }
+
+  .panel-toggle--aside {
+    display: inline-flex;
+  }
+
+  .reader-page--contents-hidden .reader-layout {
+    grid-template-columns: minmax(0, 1fr) 16rem;
+  }
+
+  .reader-page--aside-hidden .reader-layout {
+    grid-template-columns: 19rem minmax(0, 1fr);
+  }
+
+  .reader-page--contents-hidden.reader-page--aside-hidden .reader-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reader-page--aside-hidden .reader-aside {
+    display: none;
+  }
+
+  .reader-page--aside-hidden .reader-content {
+    margin-inline: auto;
   }
 }
 
