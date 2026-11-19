@@ -88,6 +88,35 @@ describe("frontend integration preparation", () => {
     }
   });
 
+  it("lets the pilot acknowledge a new revision without blocking reading, and remembers it", () => {
+    // A stand-in for the iPad's storage, as in the other tests.
+    const data = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => data.set(key, value),
+      removeItem: (key: string) => data.delete(key),
+    });
+    const revisions = [withStatus("current", 2), withStatus("upcoming", 3)];
+    const alert = () => (
+      <MemoryRouter>
+        <RevisionAlert docId="FM-S100" revision={2} revisions={revisions} />
+      </MemoryRouter>
+    );
+    const { unmount } = render(alert());
+
+    fireEvent.click(screen.getByRole("button", { name: "Acknowledge" }));
+    expect(screen.getByText(/Acknowledged on/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "View Revision 3" })).toBeTruthy();
+    const saved = JSON.parse(localStorage.getItem("pilot-efb.acknowledgments") ?? "[]");
+    expect(saved).toMatchObject([{ docId: "FM-S100", revision: 3 }]);
+
+    unmount();
+    render(alert());
+    expect(screen.queryByRole("button", { name: "Acknowledge" })).toBeNull();
+    expect(screen.getByText(/Acknowledged on/)).toBeTruthy();
+    vi.unstubAllGlobals();
+  });
+
   it("renders accessible loading, empty, and error states with retry", () => {
     const retry = vi.fn();
     const { rerender } = render(<LoadingState label="Loading navigation…" />);

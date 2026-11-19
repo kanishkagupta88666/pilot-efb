@@ -1,6 +1,35 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { DocumentRevision } from "../types/api";
+import { acknowledgeRevision, findAcknowledgment } from "../utils/acknowledgments";
 import { formatDate } from "../utils/formatDate";
+import { CheckIcon } from "./Icons";
+
+/**
+ * The pilot confirms they have seen a new revision. Saved on this device for now.
+ * It never blocks reading: the banner and its other button stay as they are.
+ */
+function AcknowledgeButton({ docId, revision }: { docId: string; revision: number }) {
+  const [acknowledged, setAcknowledged] = useState(() => findAcknowledgment(docId, revision));
+  if (acknowledged) {
+    return (
+      <span className="revision-alert__acknowledged">
+        <CheckIcon />
+        {/* en-CA gives the local date as YYYY-MM-DD, the form formatDate reads. */}
+        Acknowledged on {formatDate(new Date(acknowledged.acknowledgedAt).toLocaleDateString("en-CA"))}
+      </span>
+    );
+  }
+  return (
+    <button
+      className="button button--primary"
+      onClick={() => setAcknowledged(acknowledgeRevision(docId, revision))}
+      type="button"
+    >
+      Acknowledge
+    </button>
+  );
+}
 
 /**
  * Publish alert: tells the pilot when the revision on screen is not the one in force.
@@ -46,11 +75,14 @@ export function RevisionAlert({
           {formatDate(shown.effectiveDate)}.
           {current && ` Revision ${current.revision} is the current revision.`}
         </p>
-        {current && (
-          <Link className="button button--secondary" to={readerPath(current.revision)}>
-            Open Revision {current.revision}
-          </Link>
-        )}
+        <div className="revision-alert__actions">
+          <AcknowledgeButton docId={docId} key={`${docId}/${revision}`} revision={revision} />
+          {current && (
+            <Link className="button button--secondary" to={readerPath(current.revision)}>
+              Open Revision {current.revision}
+            </Link>
+          )}
+        </div>
       </div>
     );
   }
@@ -62,9 +94,16 @@ export function RevisionAlert({
           <strong>New revision available.</strong> Revision {upcoming.revision} takes effect
           on {formatDate(upcoming.effectiveDate)}.
         </p>
-        <Link className="button button--secondary" to={readerPath(upcoming.revision)}>
-          View Revision {upcoming.revision}
-        </Link>
+        <div className="revision-alert__actions">
+          <AcknowledgeButton
+            docId={docId}
+            key={`${docId}/${upcoming.revision}`}
+            revision={upcoming.revision}
+          />
+          <Link className="button button--secondary" to={readerPath(upcoming.revision)}>
+            View Revision {upcoming.revision}
+          </Link>
+        </div>
       </div>
     );
   }

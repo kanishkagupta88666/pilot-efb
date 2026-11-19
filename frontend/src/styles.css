@@ -1252,6 +1252,27 @@ time,
   margin: 0;
 }
 
+.revision-alert__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.revision-alert__acknowledged {
+  display: inline-flex;
+  min-height: var(--tap);
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.revision-alert__acknowledged .icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .revision-alert--caution {
   border-color: var(--caution-line);
   border-left-color: var(--caution);
