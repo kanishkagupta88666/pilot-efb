@@ -59,8 +59,8 @@ test.describe("library and XML reader", () => {
     await expect(box).toBeChecked();
   });
 
-  // Known gap (Phase 2B): the open topic and checklist ticks are lost on reload.
-  test.fixme("the open topic survives a reload", async ({ page }) => {
+  // Known gap: checklist ticks are still lost on reload (waiting on the airline).
+  test("the open topic survives a reload", async ({ page }) => {
     await page.goto("/reader/FM-S100/2");
     await page.getByRole("button", { name: /01\.10\.3 / }).first().click();
     const before = await heading(page).innerText();

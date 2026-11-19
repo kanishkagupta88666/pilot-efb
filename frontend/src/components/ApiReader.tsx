@@ -221,6 +221,8 @@ export function ApiReader() {
 
   useEffect(() => {
     if (!navigation) return;
+    // The topic was just picked in the contents (selectTopic); the outline is already right.
+    if (topicIdParam && topicIdParam === selectedTopicId && !targetNodeId) return;
     const defaultTopicId = firstTopic(navigation.chapters);
     const nextTopicId = topicIdParam ?? defaultTopicId;
 
@@ -428,7 +430,8 @@ export function ApiReader() {
   const selectTopic = (id: string) => {
     setSelectedTopicId(id);
     setTopicData({ status: "loading" });
-    setSearchParams({}, { state: location.state });
+    // Keep the topic in the address, so a reload or a shared link opens the same topic.
+    setSearchParams({ topicId: id }, { state: location.state });
     setHighlightedTargetId(undefined);
     setNavigationOpen(false);
   };
