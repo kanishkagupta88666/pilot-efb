@@ -505,6 +505,116 @@ time,
   letter-spacing: 0.04em;
 }
 
+/* Checklists: the first section of the library */
+
+.checklist-section {
+  margin-bottom: 1.5rem;
+  padding: 1.1rem 1.25rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.checklist-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.checklist-section h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-lg);
+}
+
+.checklist-section .view-mode {
+  margin-top: 0;
+}
+
+.checklist-section__hint {
+  margin: 0.35rem 0 0.9rem;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.checklist-phases {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.5rem;
+}
+
+.checklist-phase {
+  display: flex;
+  min-height: var(--tap);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--soft-surface);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+}
+
+.checklist-phase:hover {
+  background: var(--hover);
+}
+
+.checklist-phase[aria-expanded="true"] {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.checklist-phase__count {
+  min-width: 1.75rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.checklist-links {
+  /* Scrolled into view above the status bar pinned to the bottom. */
+  scroll-margin-bottom: calc(var(--status-height) + 1rem);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 0.25rem 1rem;
+  margin: 1rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.checklist-links a {
+  display: flex;
+  min-height: var(--tap);
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.checklist-links a:hover {
+  background: var(--hover);
+}
+
+.checklist-links .outline-number {
+  flex: none;
+  min-width: 4.5rem;
+}
+
 .document-list {
   overflow-x: auto;
   border: 1px solid var(--line);

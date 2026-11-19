@@ -208,9 +208,10 @@ describe("API-backed frontend", () => {
   });
 
   it("shows an empty state when the API library has no documents", async () => {
+    // A fresh response per request: the library and its checklists both ask.
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(jsonResponse({ documents: [] })),
+      vi.fn(() => Promise.resolve(jsonResponse({ documents: [] }))),
     );
     render(
       <MemoryRouter>
@@ -230,7 +231,12 @@ describe("API-backed frontend", () => {
         ),
       )
       .mockResolvedValueOnce(jsonResponse(library));
-    vi.stubGlobal("fetch", fetchMock);
+    // The checklists' search-index request is answered separately.
+    vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
+      String(input).includes("/api/search/index/")
+        ? Promise.resolve(jsonResponse({ documents: [] }))
+        : fetchMock(input, init),
+    );
     render(
       <MemoryRouter>
         <ApiDocumentLibrary />

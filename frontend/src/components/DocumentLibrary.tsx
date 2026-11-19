@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getDocumentLibrary } from "../data/mockData";
 import { getDocumentLibraryFromApi, type ApiClientError } from "../api/client";
 import { DATA_SOURCE } from "../config/dataSource";
+import { ChecklistSection } from "./ChecklistSection";
 import type { DocumentSummary } from "../types/api";
 import { formatDate } from "../utils/formatDate";
 import { ApiErrorState, EmptyState, LoadingState } from "./RequestStates";
@@ -126,9 +127,12 @@ function LibraryContent({ documents }: { documents: DocumentSummary[] }) {
 function LibraryFrame({
   children,
   documents,
+  checklists,
 }: {
   children: ReactNode;
   documents?: DocumentSummary[];
+  /** Shown first, above search and the manuals. */
+  checklists?: ReactNode;
 }) {
   // The classification most documents carry (a PDF-only document may have its own text here).
   const classifications = (documents ?? []).flatMap((document) =>
@@ -145,6 +149,7 @@ function LibraryFrame({
       </TopBar>
       <div className="library-body">
         <LibraryHero />
+        {checklists}
         <header className="library-header">
           <p className="library-links">
             <Link to="/audit">Activity log</Link>
@@ -210,7 +215,7 @@ export function ApiDocumentLibrary() {
 
   if (error) {
     return (
-      <LibraryFrame>
+      <LibraryFrame checklists={<ChecklistSection />}>
         <ApiErrorState error={error} onRetry={() => setAttempt((value) => value + 1)} />
       </LibraryFrame>
     );
@@ -218,14 +223,14 @@ export function ApiDocumentLibrary() {
 
   if (!documents) {
     return (
-      <LibraryFrame>
+      <LibraryFrame checklists={<ChecklistSection />}>
         <LoadingState label="Loading documents…" />
       </LibraryFrame>
     );
   }
 
   return (
-    <LibraryFrame documents={documents}>
+    <LibraryFrame checklists={<ChecklistSection />} documents={documents}>
       {documents.length === 0 ? (
         <EmptyState message="No documents are available." />
       ) : (
