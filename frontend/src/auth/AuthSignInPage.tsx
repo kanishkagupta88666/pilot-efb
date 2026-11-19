@@ -1,3 +1,4 @@
+import { logout } from './client';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TopBar } from '../components/TopBar';
@@ -30,7 +31,7 @@ export function AuthSignInPage({ standalone = false }: { standalone?: boolean })
     </section>}
     <dialog className="auth-signout-dialog" ref={dialogRef} onCancel={() => setSignOutOpen(false)} onClose={() => setSignOutOpen(false)}>
       <span className="auth-dialog-icon"><LockIcon /></span><h2>Sign out of Pilot EFB?</h2><p>You’ll need to sign in again to receive account updates. Your notes will stay on this device, including any that haven’t synced.</p>
-      <div className="auth-dialog-actions"><button autoFocus className="button button--secondary" onClick={() => setSignOutOpen(false)}>Stay signed in</button><button className="button button--primary" onClick={() => { if (!clearSession()) { setError('Unable to clear saved sign-in. Please try again.'); setSignOutOpen(false); return; } setSession(null); setSignOutOpen(false); }}>Sign out</button></div>
+      <div className="auth-dialog-actions"><button autoFocus className="button button--secondary" onClick={() => setSignOutOpen(false)}>Stay signed in</button><button className="button button--primary" onClick={async () => { await logout(session); if (!clearSession()) { setError('Unable to clear saved sign-in. Please try again.'); setSignOutOpen(false); return; } setSession(null); setSignOutOpen(false); }}>Sign out</button></div>
     </dialog>
     {(!session || isExpired(session)) && <form className="sign-in__form" onSubmit={async event => {
       event.preventDefault(); if (busy) return;

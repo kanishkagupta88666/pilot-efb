@@ -1,3 +1,4 @@
+import { hasSavedReading } from './savedReading';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
@@ -6,11 +7,13 @@ import { isExpired, readSession } from './session';
 import './preview.css';
 export function AuthBoundary({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const [rejected, setRejected] = useState(false);
+  const [rejectedToken, setRejectedToken] = useState<string | null>(null);
   const [online, setOnline] = useState(navigator.onLine);
+  const [saved, setSaved] = useState<boolean | null>(null);
+  useEffect(() => { let active = true; setSaved(null); hasSavedReading(location.pathname).then(value => { if (active) setSaved(value); }); return () => { active = false; }; }, [location.pathname]);
   const [, tick] = useState(0);
   useEffect(() => {
-    const expire = () => setRejected(true);
+    const expire = () => setRejectedToken(readSession()?.token ?? null);
     const update = () => { setOnline(navigator.onLine); tick(n => n + 1); };
     window.addEventListener('efb-auth-expired', expire);
     window.addEventListener('online', update); window.addEventListener('offline', update); window.addEventListener('storage', update);
@@ -21,7 +24,9 @@ export function AuthBoundary({ children }: { children: ReactNode }) {
   const session = readSession();
   const reading = location.pathname.startsWith('/reader/') || location.pathname === '/open';
   const returnTo = encodeURIComponent(location.pathname + location.search + location.hash);
-  if (!session && !reading && online) return <Navigate to={`/sign-in?returnTo=${returnTo}`} replace />;
+  if (reading && saved === null) return <main role="status">Checking saved reading…</main>;
+  const invalid = !session || isExpired(session) || rejectedToken === session.token;
+  if (invalid && !saved && online) return <Navigate to={`/sign-in?returnTo=${returnTo}`} replace />;
   if ((location.pathname.startsWith('/author/') || location.pathname === '/audit') && (!session || isExpired(session) || session.user.role !== 'admin')) return <main className="auth-access"><h1>Access restricted</h1><p>This area requires an administrator account.</p><Link to="/">Back to manuals</Link></main>;
-  return <>{(!session || isExpired(session) || rejected || !online) && <div className="auth-banner" role="status">{!online ? 'You are offline. Reading available documents remains open.' : 'Sign in to keep updates. Reading remains available.'} {online && <Link to={`/sign-in?returnTo=${returnTo}`}>Sign in</Link>}</div>}{children}</>;
+  return <>{(!session || isExpired(session) || (session && rejectedToken === session.token) || !online) && <div className="auth-banner" role="status">{!online ? 'You are offline. Reading available documents remains open.' : 'Sign in to keep updates. Reading remains available.'} {online && <Link to={`/sign-in?returnTo=${returnTo}`}>Sign in</Link>}</div>}{children}</>;
 }

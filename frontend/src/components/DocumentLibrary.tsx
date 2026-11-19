@@ -1,3 +1,5 @@
+import { AUTH_ENABLED } from '../auth/runtime';
+import { readSession } from '../auth/session';
 import { useEffect, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -141,7 +143,7 @@ function LibraryFrame({
   return (
     <main className="library-page">
       <TopBar title="Library">
-        <Link className="button button--secondary" to="/sign-in">Sign in</Link>
+        {(!AUTH_ENABLED || !readSession()) && <Link className="button button--secondary" to="/sign-in">Sign in</Link>}
       </TopBar>
       <div className="library-body">
         <LibraryHero />

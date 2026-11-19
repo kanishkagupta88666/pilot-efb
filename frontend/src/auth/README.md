@@ -1,29 +1,17 @@
-# Frontend sign-in handoff
+# Sign-in integration
 
-## Run the integrated application
+Run Vite with VITE_AUTH_MODE=api VITE_DATA_SOURCE=api and API_PROXY_TARGET pointing to the Django server. The private local launcher is not included in this branch. Demo IDs are P-100, P-200, M-001 and A-001; the local demonstration password is demo-only. Generated accounts and passwords are ignored by Git.
 
-Start Vite with `VITE_AUTH_MODE=mock VITE_DATA_SOURCE=api` for independent frontend development, or `VITE_AUTH_MODE=api VITE_DATA_SOURCE=api` for Brendan's login API. Set `API_PROXY_TARGET` to the Django server. Mock authentication is restricted to Vite development mode. Without an auth mode, the existing application behavior remains available for regression testing.
+POST /api/auth/login/ receives username and password and returns token, expires_at and user with id, role and fleet. The client normalizes this into its session model. Null fleet displays as all. Authenticated requests use Authorization: Token. GET /api/auth/me/ checks the account. POST /api/auth/logout/ is stateless; the client discards its token even if offline or the server is unavailable. There is no token revocation endpoint.
 
-Demo IDs: P-100, P-200, M-001, A-001. Demo password: demo-only. The demo and API sessions use separate storage keys. Demo credentials never authenticate backend requests. Fleet filtering in the live document API requires Brendan's implementation; a mock identity does not grant server permissions.
+The separate local integration accepts signed demo sessions and existing Django API tokens for protected writes. Those backend compatibility changes are not included in this frontend branch and require backend review. Signed pilot and management accounts cannot author or read the audit log. Signed admin accounts have document permissions. Annotation ownership comes from the authenticated ID. Feature flags still control writes; the local integration launcher enables them for synthetic data.
 
-## Contract
+This frontend branch depends on Brendan's feature/backend-auth API. Sakshi's latest Checklists UI and the backend authentication compatibility changes are maintained in the separate local integration; they are not bundled here.
 
-POST /api/auth/login/ receives employeeId and password. A successful response contains token, expiresAt (ISO date), and user with employeeId, displayName, role (pilot, management, admin), fleet. Invalid credentials return 401. Subsequent API requests carry Authorization: Bearer token. No logout or refresh endpoint is assumed; logout removes the local signed token. Server-side token revocation is outside the provided prototype contract.
+Remaining team dependencies: document APIs currently serve the synthetic library openly and do not enforce account fleet filtering. Complete offline document caching and production SSO are not implemented by this sign-in work. Local route access alone does not guarantee offline content availability.
 
-## Implemented
+## Saved reading integration
 
-- Branded sign-in form, password visibility, loading and error states.
-- Session validation, localStorage persistence, transient fallback when storage is unavailable, expiry checks.
-- Integrated root sign-in redirect and return-path handling.
-- Reading routes remain accessible without identity; offline and expired sessions do not cause a forced reading redirect.
-- API token headers and server-401 notification; existing API errors preserve the server's 403 message.
-- Account menu, pending-note check, sign-out confirmation, retention of local notes.
-- Client-side admin page guard. Backend authorization remains mandatory.
+Visited, validated document API responses are retained in a separate Cache Storage cache, without credentials. The API client can read those responses after a network failure or a 401. A 403 is always shown and never replaced by cached content. The route guard checks for a saved topic in the requested revision before allowing an expired session to continue online. Signing out retains these reading copies and notes. PDF.js now sends the current authorization header as well.
 
-## Remaining integration acceptance
-
-Brendan must provide the login endpoint and Bearer authentication, fleet filtering and role enforcement. Hriday's complete document cache is required to reopen manuals offline. The current application has no complete document cache, so allowing a route offline does not make its data available. Sakshi's Checklists landing page is not present; successful login currently returns to the requested URL or the existing library. No fake Checklists destination is introduced.
-
-Existing annotations identify owners using the device profile; login sets that profile to employeeId. Before enabling server annotation sync, confirm that backend ownership uses this stable ID. Existing notes under manually entered names are retained and are not reassigned automatically.
-
-The standalone auth-preview.html remains a development preview. The integrated sign-in is included in the normal production build when VITE_AUTH_MODE=api is supplied at build time.
+This is a fallback for visited content, not a complete manual download or application-shell cache. Hriday's offline package must provide complete manual storage and offline application startup before the Wi-Fi-off/relaunch acceptance test can pass. Fleet authorization remains Brendan's server responsibility.

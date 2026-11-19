@@ -1,3 +1,4 @@
+import { authHeaders } from "../auth/runtime";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -37,7 +38,7 @@ const documents = new Map<string, Promise<PDFDocumentProxy>>();
 function loadDocument(url: string): Promise<PDFDocumentProxy> {
   let pending = documents.get(url);
   if (!pending) {
-    pending = pdfjs.getDocument({ url }).promise;
+    pending = pdfjs.getDocument({ url, httpHeaders: authHeaders() }).promise;
     pending.catch(() => documents.delete(url));
     documents.set(url, pending);
   }

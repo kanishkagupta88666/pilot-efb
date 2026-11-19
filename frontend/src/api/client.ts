@@ -1,3 +1,4 @@
+import { savedResponse, saveReadingResponse } from "../auth/savedReading";
 import { authHeaders, notifyUnauthorized } from "../auth/runtime";
 import { API_BASE_URL } from "../config/dataSource";
 import { identityHeaders } from "../utils/deviceIdentity";
@@ -334,7 +335,19 @@ async function request<T>(
     }
     options.headers = { ...options.headers, ...authHeaders() };
     if (signal) options.signal = signal;
-    response = await fetch(`${API_BASE_URL}${path}`, options);
+    const url = `${API_BASE_URL}${path}`;
+    try {
+      response = await fetch(url, options);
+    } catch (error) {
+      const saved = !write && !signal?.aborted ? await savedResponse(url) : undefined;
+      if (!saved) throw error;
+      response = saved;
+    }
+    if (!write && response.status === 401) {
+      notifyUnauthorized();
+      response = await savedResponse(url) ?? response;
+    }
+
     if (response.status === 401) notifyUnauthorized();
     if (write && response.status === 204) {
       // Nothing to read: a successful delete.
@@ -428,6 +441,7 @@ async function request<T>(
     };
   }
 
+  if (!write) await saveReadingResponse(`${API_BASE_URL}${path}`, new Response(JSON.stringify(payload), { headers: { "Content-Type": "application/json" } }));
   return { ok: true, data: payload };
 }
 
